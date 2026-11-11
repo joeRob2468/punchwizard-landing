@@ -10,7 +10,7 @@ import { aethericCorePart, brainPart, etherealGlandPart, focusGemsPart } from '.
 import { sinusPart, tonguePart } from './parts/face-organs.ts';
 import { beardPart, eyebrowsPart, hairPart, moustachePart } from './parts/hair.ts';
 import { eyesPart, headPart, irisPart, pupilPart } from './parts/head.ts';
-import { hatPart } from './parts/hat.ts';
+import { hatBandPart, hatBucklePart, hatGemPart, hatPart } from './parts/hat.ts';
 import type { PartDefinition } from './parts/part.ts';
 import { robePart } from './parts/robe.ts';
 import { girdlePart, mandiblePart, skullPart, spinePart } from './parts/skeleton.ts';
@@ -18,6 +18,9 @@ import { girdlePart, mandiblePart, skullPart, spinePart } from './parts/skeleton
 export function specimenParts(): PartDefinition[] {
   return [
     // Integument
+    hatGemPart(),
+    hatBucklePart(),
+    hatBandPart(),
     hatPart(),
     eyebrowsPart(),
     moustachePart(),

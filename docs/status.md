@@ -9,6 +9,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Shading:** four soft watercolour glazes, baked ambient occlusion, cross-contour engraved hatching at a steady screen spacing, depth and part-id outlines without flickering specks, paper composite.
 - **Face (realism pass, owner-approved):** an old man's face with large, forward-set eyes angled away from the nose, almond lids, fold, bags, filled inner corners, wrinkles. The head has no through-holes.
 - **Hair (realism pass):** beard, moustache, eyebrows and hair are clumped locks over solid cores, grown with gravity and collision (`growth/locks.ts`); hair drapes over the shoulders; hair parts hatch along their strands.
+- **Hat (realism pass):** floppy lobed brim with a rolled edge, crumpled and creased cone, leather band with a metal buckle and a mana-blue gem.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 150k triangles, 1.6 MB, 40 s.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
@@ -17,10 +18,9 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 
 Realism pass, in this order (owner wants procedural first; an imported sculpt only if procedural can't get there):
 
-1. **Hat:** creased felt cone, more natural brim, a hat band (new part) and a buckle with a gem.
-2. **Robe:** layered mantle over an inner robe, high collar, trim along the opening (new part, gold/ochre), a clasp at the chest.
-3. Check labels and section anchors still land after the new parts (registry anchors, part names in `src/anatomy/registry.ts`).
-4. Then M6 polish (idle motion, ink-in on load, no-WebGL fallback image, touch tuning), building the Docker image (ask first: it pulls base images), and the optional stylisation step (dark background, monotone, MRI-like internals) if the owner wants it. Deploy (M8) only once the owner calls the site final.
+1. **Robe:** layered mantle over an inner robe, high collar, trim along the opening (new part, gold/ochre), a clasp at the chest.
+2. Check labels and section anchors still land after the new parts (registry anchors, part names in `src/anatomy/registry.ts`).
+3. Then M6 polish (idle motion, ink-in on load, no-WebGL fallback image, touch tuning), building the Docker image (ask first: it pulls base images), and the optional stylisation step (dark background, monotone, MRI-like internals) if the owner wants it. Deploy (M8) only once the owner calls the site final.
 
 ## Working notes
 
