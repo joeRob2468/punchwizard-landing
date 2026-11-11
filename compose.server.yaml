@@ -1,0 +1,23 @@
+# Home server overlay: serve the site through the existing Traefik on the shared
+# `media_network` instead of a host port, at the apex domain, with www. redirected
+# to it. See docs/operations.md.
+services:
+  web:
+    ports: !reset []
+    networks:
+      - default
+      - media_network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=media_network
+      - traefik.http.routers.pw-landing.rule=Host(`${DOMAIN:?set DOMAIN in .env}`) || Host(`www.${DOMAIN}`)
+      - traefik.http.routers.pw-landing.entrypoints=websecure
+      - traefik.http.routers.pw-landing.middlewares=pw-landing-www
+      - traefik.http.middlewares.pw-landing-www.redirectregex.regex=^https://www\.(.+)
+      - traefik.http.middlewares.pw-landing-www.redirectregex.replacement=https://$${1}
+      - traefik.http.middlewares.pw-landing-www.redirectregex.permanent=true
+      - traefik.http.services.pw-landing.loadbalancer.server.port=8080
+
+networks:
+  media_network:
+    external: true

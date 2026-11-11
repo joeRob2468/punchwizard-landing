@@ -1,0 +1,19 @@
+# Local / default deployment. On the home server, layer compose.server.yaml on top
+# (set COMPOSE_FILE=compose.yaml:compose.server.yaml in that machine's .env).
+name: punchwizard-landing
+
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    ports:
+      # Loopback only: Docker-published ports bypass host firewalls such as ufw.
+      - 127.0.0.1:${PORT:-8080}:8080
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8080/healthz']
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
