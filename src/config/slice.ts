@@ -22,6 +22,8 @@ export const SLICE: {
   readonly keyboardStep: number;
   /** Plane travel per 100 px of wheel scroll. */
   readonly wheelStep: number;
+  /** Plane travel per 100 px of two-finger drag. */
+  readonly touchStep: number;
   readonly introDelay: number;
   /** Seconds for the plane to ease most of the way to its target. */
   readonly easeTime: number;
@@ -36,6 +38,7 @@ export const SLICE: {
   initialAxis: 'sagittal',
   keyboardStep: 0.05,
   wheelStep: 0.06,
+  touchStep: 0.12,
   introDelay: 1.4,
   easeTime: 0.45,
   parkMargin: 0.05,

@@ -29,8 +29,10 @@ export function CameraRig() {
     c.setBoundary(
       new Box3(new Vector3(tx - bx, ty - by, tz - bz), new Vector3(tx + bx, ty + by, tz + bz)),
     );
-    // The wheel is ours: it moves the cut, or zooms with Ctrl/⌘ (see below).
+    // The wheel is ours: it moves the cut, or zooms with Ctrl/⌘ (see below). Two
+    // fingers only pinch-zoom here; dragging them moves the cut (SliceController).
     c.mouseButtons.wheel = ACTION.NONE;
+    c.touches.two = ACTION.TOUCH_DOLLY;
     void c.setLookAt(...CAMERA.position, ...CAMERA.target, false);
     c.saveState();
     lastInput.current = performance.now();

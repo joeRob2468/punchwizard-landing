@@ -138,7 +138,7 @@ Parts are capped in manifest order with `LessEqual` depth, so later caps win whe
 
 ### Controls
 
-The scroll wheel moves the cut: `SliceController` listens for wheel events on the canvas and moves the target offset by `SLICE.wheelStep` per 100 px (scrolling down pushes the cut deeper), eased like every other change. Ctrl/⌘ + wheel is left to the camera rig, which zooms with it; trackpad pinches arrive as Ctrl + wheel, so they zoom too. camera-controls' own wheel handling is switched off. There is no on-screen handle.
+The scroll wheel moves the cut: `SliceController` listens for wheel events on the canvas and moves the target offset by `SLICE.wheelStep` per 100 px (scrolling down pushes the cut deeper), eased like every other change. Ctrl/⌘ + wheel is left to the camera rig, which zooms with it; trackpad pinches arrive as Ctrl + wheel, so they zoom too. camera-controls' own wheel handling is switched off. On touch screens, two fingers dragged up or down move the cut (`SLICE.touchStep` per 100 px), while camera-controls handles only the pinch (`TOUCH_DOLLY`). There is no on-screen handle.
 
 `ui/SliceControls`, bottom right: the section's Latin name (click to change axis) and a reset mark (camera and cut).
 
@@ -178,6 +178,7 @@ Leaders are cubic curves from the label to the anchor with a small per-label wob
 | `+` / `-`                          | Zoom in steps                                              |
 | `R`, double-click, reset mark      | Reset the view and ease the cut back to its resting offset |
 | Wheel                              | Move the cut (down: deeper)                                |
+| Two-finger drag (touch)            | Move the cut (up: deeper); pinch zooms, one finger orbits  |
 | `[` / `]`                          | Move the cut in steps                                      |
 | `S`, section name                  | Change the section axis                                    |
 

@@ -1,8 +1,9 @@
 /**
  * Drives the sectioning plane: keeps the travel range in step with the axis,
  * eases the offset toward its target, runs the one-time intro, and writes the
- * shared clip plane each frame. Also binds the slice keys and the scroll wheel
- * (scrolling down pushes the cut deeper; Ctrl/⌘ + wheel is left to the camera).
+ * shared clip plane each frame. Also binds the slice keys, the scroll wheel
+ * (scrolling down pushes the cut deeper; Ctrl/⌘ + wheel is left to the camera) and
+ * two-finger touch drags.
  */
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
@@ -73,6 +74,46 @@ export function SliceController({ bounds }: SliceControllerProps) {
     domElement.addEventListener('wheel', onWheel, { passive: false });
     return () => {
       domElement.removeEventListener('wheel', onWheel);
+    };
+  }, [domElement]);
+
+  // Touch: two fingers dragged up or down move the cut, like scrolling (fingers up
+  // pushes it deeper). Pinching is left to the camera, which zooms.
+  useEffect(() => {
+    const touches = new Map<number, number>();
+    let lastMidY: number | null = null;
+    const midY = () => [...touches.values()].reduce((sum, y) => sum + y, 0) / touches.size;
+
+    const onDown = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch') return;
+      touches.set(event.pointerId, event.clientY);
+      lastMidY = touches.size === 2 ? midY() : null;
+    };
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch' || !touches.has(event.pointerId)) return;
+      touches.set(event.pointerId, event.clientY);
+      if (touches.size !== 2 || lastMidY === null) return;
+      const y = midY();
+      const { slice, setSliceTarget } = usePlateStore.getState();
+      if (Number.isFinite(slice.targetOffset)) {
+        setSliceTarget(slice.targetOffset + ((y - lastMidY) / 100) * SLICE.touchStep);
+      }
+      lastMidY = y;
+    };
+    const onUp = (event: PointerEvent) => {
+      touches.delete(event.pointerId);
+      lastMidY = touches.size === 2 ? midY() : null;
+    };
+
+    domElement.addEventListener('pointerdown', onDown);
+    domElement.addEventListener('pointermove', onMove);
+    domElement.addEventListener('pointerup', onUp);
+    domElement.addEventListener('pointercancel', onUp);
+    return () => {
+      domElement.removeEventListener('pointerdown', onDown);
+      domElement.removeEventListener('pointermove', onMove);
+      domElement.removeEventListener('pointerup', onUp);
+      domElement.removeEventListener('pointercancel', onUp);
     };
   }, [domElement]);
 
