@@ -34,8 +34,19 @@ const [EX, EY, EZ] = L.eyeLeft;
  * Eye opening, after real proportions: about a fifth of the face's width (the gap
  * between the eyes is about one eye-width), and hooded to roughly a third as tall.
  */
-const EYE_OPENING_HALF_WIDTH = 0.068;
-const EYE_OPENING_HALF_HEIGHT = 0.019;
+const EYE_OPENING_HALF_WIDTH = 0.072;
+const EYE_OPENING_HALF_HEIGHT = 0.022;
+
+/**
+ * The almond opening between the lids, as a prism along z (both eyes; x is mirrored),
+ * its outer corner a touch lower than the inner.
+ */
+const eyeOpening: Sdf = (x, y) => {
+  const u = (Math.abs(x) - EX) / EYE_OPENING_HALF_WIDTH;
+  const centreY = EY - 0.005 - 0.01 * u;
+  const halfHeight = EYE_OPENING_HALF_HEIGHT * Math.max(0, 1 - u * u);
+  return Math.max(Math.abs(y - centreY) - halfHeight, (Math.abs(u) - 1) * EYE_OPENING_HALF_WIDTH);
+};
 
 /**
  * Eyelids: one sheet of skin wrapping the front of each eyeball, with an almond
@@ -46,13 +57,7 @@ const EYE_OPENING_HALF_HEIGHT = 0.019;
 function eyelids(): Sdf {
   const lid = shell(sphere(L.eyeLeft, EYE_RADIUS + 0.008), 0.014);
   const front = halfSpace([0, 0, EZ - 0.02], [0, 0, -1]);
-  // The opening, as a prism along z, its outer corner a touch lower than the inner.
-  const opening: Sdf = (x, y) => {
-    const u = (Math.abs(x) - EX) / EYE_OPENING_HALF_WIDTH;
-    const centreY = EY - 0.005 - 0.01 * u;
-    const halfHeight = EYE_OPENING_HALF_HEIGHT * Math.max(0, 1 - u * u);
-    return Math.max(Math.abs(y - centreY) - halfHeight, (Math.abs(u) - 1) * EYE_OPENING_HALF_WIDTH);
-  };
+  const opening = eyeOpening;
   const sheet = subtract(intersect(lid, front), opening);
   // The rim: the band of lid within 6 mm of the opening, outside it.
   const outsideOpening: Sdf = (x, y, z) => -opening(x, y, z);
@@ -65,21 +70,21 @@ function eyelids(): Sdf {
   const fold = smoothUnion(
     0.02,
     roundCone(
-      [EX - 0.055, EY + 0.036, EZ + 0.056],
-      [EX + 0.02, EY + 0.03, EZ + 0.058],
+      [EX - 0.055, EY + 0.038, EZ + 0.05],
+      [EX + 0.02, EY + 0.033, EZ + 0.052],
       0.013,
       0.015,
     ),
     roundCone(
-      [EX + 0.02, EY + 0.03, EZ + 0.058],
-      [EX + 0.08, EY + 0.012, EZ + 0.036],
+      [EX + 0.02, EY + 0.033, EZ + 0.052],
+      [EX + 0.08, EY + 0.015, EZ + 0.032],
       0.015,
       0.012,
     ),
   );
   const eye = smoothUnion(0.008, sheet, rim, fold);
-  const bag = ellipsoid([EX + 0.01, EY - 0.06, EZ + 0.048], [0.07, 0.025, 0.032]);
-  return mirrorX(smoothUnion(0.03, eye, bag));
+  const bag = ellipsoid([EX + 0.01, EY - 0.062, EZ + 0.038], [0.068, 0.024, 0.03]);
+  return mirrorX(smoothUnion(0.02, eye, bag));
 }
 
 /** The tear-trough crease under each bag. */
@@ -179,15 +184,16 @@ export function headSkinField(): Sdf {
   );
 
   // The orbit: open the face in front of each eye so the eyeball (a separate part)
-  // shows, and let the lids wrap it. The carve stays inside the lid's outer surface,
-  // so the lid always seals it. There is deliberately no socket hollowed behind the
-  // eye: a socket wider than the ball broke out beside the nose bridge.
-  const lidReach = mirrorX(sphere(L.eyeLeft, EYE_RADIUS + 0.012));
+  // shows. There is deliberately no socket hollowed behind the eye: a socket wider
+  // than the ball broke out beside the nose bridge.
+  // Only in front of the visible opening (plus a margin the lid rim covers), so the
+  // skin always meets the lid: a wider carve left a gap behind the lid that looped
+  // round to the outside as a hole.
   const orbits = intersect(
-    mirrorX(ellipsoid([EX, EY + 0.005, EZ + 0.035], [0.084, 0.062, 0.07])),
-    lidReach,
+    mirrorX(ellipsoid([EX, EY, EZ + 0.04], [0.09, 0.06, 0.075])),
+    offset(eyeOpening, 0.01),
   );
-  solid = subtract(solid, orbits);
+  solid = smoothSubtract(0.012, solid, orbits);
   const skin = smoothSubtract(0.014, smoothUnion(0.012, solid, eyelids()), tearTroughs());
 
   return displace(skin, wrinkles);
