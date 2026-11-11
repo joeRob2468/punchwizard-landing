@@ -5,8 +5,8 @@
 export const CAMERA = {
   fov: 30,
   /** Initial three-quarter view. */
-  position: [4.6, 1.9, 8.2] as const,
-  target: [0, 0.55, 0] as const,
+  position: [4.4, 1.6, 8.0] as const,
+  target: [0, 0.2, 0] as const,
   minDistance: 2.2,
   maxDistance: 11,
   /** Radians from straight up: can look down on the hat, not up from under the shoulders. */

@@ -22,7 +22,7 @@ How code in this repo should look and be organised. Setup and scripts are in [de
 
 ## React and three.js
 
-- Function components only. One component per file, `PascalCase.tsx`, with its CSS Module beside it (`Foo.module.css`).
+- Function components only (the one exception is `ui/ErrorBoundary`, since React requires a class). One component per file, `PascalCase.tsx`, with its CSS Module beside it (`Foo.module.css`).
 - Don't allocate three.js objects (vectors, materials, geometries) in render or per frame; create them once (`useMemo`, module scope) and dispose of what you create.
 - GLSL lives in `.glsl` files under `src/rendering/shaders/`, imported with `?raw`.
 

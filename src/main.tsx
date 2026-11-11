@@ -5,6 +5,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './app/App.tsx';
+import { ErrorBoundary } from './ui/ErrorBoundary.tsx';
 import { Fallback } from './ui/Fallback.tsx';
 import './styles/global.css';
 
@@ -20,4 +21,14 @@ function hasWebGL2(): boolean {
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
 
-createRoot(root).render(<StrictMode>{hasWebGL2() ? <App /> : <Fallback />}</StrictMode>);
+createRoot(root).render(
+  <StrictMode>
+    {hasWebGL2() ? (
+      <ErrorBoundary fallback={<Fallback />}>
+        <App />
+      </ErrorBoundary>
+    ) : (
+      <Fallback />
+    )}
+  </StrictMode>,
+);
