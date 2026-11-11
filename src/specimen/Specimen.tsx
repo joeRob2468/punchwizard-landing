@@ -31,6 +31,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
       parts.map(({ entry, geometry }, index) => {
         const material = new InkWashMaterial({
           partId: partIdFor(index),
+          useOcclusion: true,
           wash: isPaletteKey(entry.look.wash) ? PALETTE[entry.look.wash] : PALETTE.ink,
           glow: entry.look.glow ?? 0,
         });

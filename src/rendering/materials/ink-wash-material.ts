@@ -22,12 +22,20 @@ export interface InkWashOptions {
    * ink boundaries between parts; 255 is reserved for the background and helpers.
    */
   readonly partId?: number;
+  /** Read the baked `occlusion` vertex attribute (specimen parts have it). */
+  readonly useOcclusion?: boolean;
 }
 
 export class InkWashMaterial extends ShaderMaterial {
   readonly #time: { value: number };
 
-  constructor({ wash, glow = 0, hatchScale = RENDER.hatchScale, partId = 255 }: InkWashOptions) {
+  constructor({
+    wash,
+    glow = 0,
+    hatchScale = RENDER.hatchScale,
+    partId = 255,
+    useOcclusion = false,
+  }: InkWashOptions) {
     const time = { value: 0 };
     super({
       vertexShader: vertex,
@@ -41,6 +49,7 @@ export class InkWashMaterial extends ShaderMaterial {
         uGlow: { value: glow },
         uTime: time,
         uPartId: { value: partId },
+        uUseOcclusion: { value: useOcclusion ? 1 : 0 },
       },
     });
     this.name = 'InkWashMaterial';

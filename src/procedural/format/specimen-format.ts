@@ -5,6 +5,7 @@
  * Part file layout (little-endian, sections 4-byte aligned):
  *   positions  Int16 × 3 × vertexCount, quantised within the part's bounds, padded to 4 bytes
  *   normals    Int8 × 3 × vertexCount (normalised), padded to 4 bytes
+ *   occlusion  Uint8 × vertexCount (normalised; 1 = open), padded to 4 bytes
  *   indices    Uint16 or Uint32 × indexCount
  *
  * Positions are decoded to Float32 on load, so quantisation only affects download
@@ -13,7 +14,7 @@
 import type { MeshData } from '../mesh/surface-nets.ts';
 import type { Bounds, Vec3 } from '../sdf/types.ts';
 
-export const FORMAT_VERSION = 2;
+export const FORMAT_VERSION = 3;
 
 /** Anatomical layers, outside in. */
 export const LAYERS = ['integument', 'musculature', 'skeleton', 'organs', 'arcane'] as const;
@@ -57,6 +58,7 @@ const QUANT = 32767;
 export function encodePart(
   mesh: MeshData,
   bounds: Bounds,
+  occlusion: Float32Array | null,
 ): {
   bytes: Uint8Array<ArrayBuffer>;
   indexType: PartEntry['indexType'];
@@ -65,9 +67,10 @@ export function encodePart(
   const indexType = vertexCount <= 0xffff ? 'uint16' : 'uint32';
   const positionBytes = align4(vertexCount * 3 * 2);
   const normalBytes = align4(vertexCount * 3);
+  const occlusionBytes = align4(vertexCount);
   const indexBytes = mesh.indices.length * (indexType === 'uint16' ? 2 : 4);
 
-  const buffer = new ArrayBuffer(positionBytes + normalBytes + indexBytes);
+  const buffer = new ArrayBuffer(positionBytes + normalBytes + occlusionBytes + indexBytes);
   const positions = new Int16Array(buffer, 0, vertexCount * 3);
   for (let i = 0; i < positions.length; i++) {
     const axis = i % 3;
@@ -80,7 +83,11 @@ export function encodePart(
   for (let i = 0; i < normals.length; i++) {
     normals[i] = Math.round(Math.max(-1, Math.min(1, mesh.normals[i] ?? 0)) * 127);
   }
-  const indexOffset = positionBytes + normalBytes;
+  const occlusionView = new Uint8Array(buffer, positionBytes + normalBytes, vertexCount);
+  for (let i = 0; i < vertexCount; i++) {
+    occlusionView[i] = Math.round(Math.max(0, Math.min(1, occlusion?.[i] ?? 1)) * 255);
+  }
+  const indexOffset = positionBytes + normalBytes + occlusionBytes;
   if (indexType === 'uint16') {
     new Uint16Array(buffer, indexOffset, mesh.indices.length).set(mesh.indices);
   } else {
@@ -92,6 +99,7 @@ export function encodePart(
 export interface DecodedPart {
   readonly positions: Float32Array;
   readonly normals: Int8Array;
+  readonly occlusion: Uint8Array;
   readonly indices: Uint16Array | Uint32Array;
 }
 
@@ -107,12 +115,14 @@ export function decodePart(buffer: ArrayBuffer, entry: PartEntry): DecodedPart {
   }
   const positionBytes = align4(count * 2);
   const normals = new Int8Array(buffer, positionBytes, count);
-  const indexOffset = positionBytes + align4(count);
+  const occlusionOffset = positionBytes + align4(count);
+  const occlusion = new Uint8Array(buffer, occlusionOffset, entry.vertexCount);
+  const indexOffset = occlusionOffset + align4(entry.vertexCount);
   const indices =
     entry.indexType === 'uint16'
       ? new Uint16Array(buffer, indexOffset, entry.indexCount)
       : new Uint32Array(buffer, indexOffset, entry.indexCount);
-  return { positions, normals, indices };
+  return { positions, normals, occlusion, indices };
 }
 
 /** Narrow check for a fetched manifest; the bake is the only writer. */

@@ -6,7 +6,9 @@ import { parentPort, workerData } from 'node:worker_threads';
 
 import { encodePart } from '../src/procedural/format/specimen-format.ts';
 import { dropSmallComponents } from '../src/procedural/mesh/components.ts';
+import { bakeOcclusion } from '../src/procedural/mesh/occlusion.ts';
 import { meshSdf } from '../src/procedural/mesh/surface-nets.ts';
+import { union } from '../src/procedural/sdf/operators.ts';
 import { specimenParts } from '../src/procedural/specimen.ts';
 
 export interface BakeResult {
@@ -28,6 +30,10 @@ const MIN_PIECE_TRIANGLES = 60;
 
 const indices = workerData as number[];
 const parts = specimenParts();
+// Outer parts are shaded with occlusion from all outer parts together (the brim
+// shades the face, the beard the robe). Internal parts are only seen in section.
+const outer = parts.filter((p) => p.layer === 'integument');
+const outerField = union(...outer.map((p) => p.field));
 for (const index of indices) {
   const part = parts[index];
   if (!part) continue;
@@ -37,7 +43,8 @@ for (const index of indices) {
       meshSdf(part.field, part.bounds, part.cellSize),
       MIN_PIECE_TRIANGLES,
     );
-    const { bytes, indexType } = encodePart(mesh, part.bounds);
+    const occlusion = part.layer === 'integument' ? bakeOcclusion(mesh, outerField) : null;
+    const { bytes, indexType } = encodePart(mesh, part.bounds, occlusion);
     const result: BakeResult = {
       index,
       bytes,

@@ -55,10 +55,11 @@ function unionBounds(all: readonly Bounds[]): Bounds {
 }
 
 function buildGeometry(buffer: ArrayBuffer, entry: PartEntry): BufferGeometry {
-  const { positions, normals, indices } = decodePart(buffer, entry);
+  const { positions, normals, occlusion, indices } = decodePart(buffer, entry);
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(positions, 3));
   geometry.setAttribute('normal', new BufferAttribute(normals, 3, true));
+  geometry.setAttribute('occlusion', new BufferAttribute(occlusion, 1, true));
   geometry.setIndex(new BufferAttribute(indices, 1));
   const [minX, minY, minZ] = entry.bounds.min;
   const [maxX, maxY, maxZ] = entry.bounds.max;

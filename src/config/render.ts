@@ -4,8 +4,8 @@
 export const RENDER = {
   /** Key light in view space (x right, y up, z toward the viewer): upper left. */
   lightDirection: [-0.8, 0.55, 0.3] as const,
-  /** Hatch lines per object-space unit (the bust is ~2.5 units tall). */
-  hatchScale: 22,
+  /** Hatch lines per object-space unit (the head is about one unit tall). */
+  hatchScale: 46,
   /** Outline width in pixels, before per-stroke jitter. */
   outlineWidth: 2.1,
   /** 0–1: how dark outlines are drawn. */
