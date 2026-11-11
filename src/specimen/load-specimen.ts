@@ -10,6 +10,7 @@ import {
   type PartEntry,
   type SpecimenManifest,
 } from '../procedural/format/specimen-format.ts';
+import type { Bounds } from '../procedural/sdf/types.ts';
 
 export interface LoadedPart {
   readonly entry: PartEntry;
@@ -19,6 +20,8 @@ export interface LoadedPart {
 export interface LoadedSpecimen {
   readonly manifest: SpecimenManifest;
   readonly parts: readonly LoadedPart[];
+  /** Union of all parts' bounds. */
+  readonly bounds: Bounds;
 }
 
 export class SpecimenLoadError extends Error {
@@ -36,7 +39,19 @@ export async function loadSpecimen(baseUrl: string): Promise<LoadedSpecimen> {
       return { entry, geometry: buildGeometry(buffer, entry) };
     }),
   );
-  return { manifest, parts };
+  return { manifest, parts, bounds: unionBounds(manifest.parts.map((p) => p.bounds)) };
+}
+
+function unionBounds(all: readonly Bounds[]): Bounds {
+  const min: [number, number, number] = [Infinity, Infinity, Infinity];
+  const max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+  for (const b of all) {
+    for (let i = 0; i < 3; i++) {
+      min[i] = Math.min(min[i] ?? Infinity, b.min[i] ?? Infinity);
+      max[i] = Math.max(max[i] ?? -Infinity, b.max[i] ?? -Infinity);
+    }
+  }
+  return { min, max };
 }
 
 function buildGeometry(buffer: ArrayBuffer, entry: PartEntry): BufferGeometry {

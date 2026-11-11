@@ -16,10 +16,18 @@ export const FORMAT_VERSION = 1;
 export const LAYERS = ['integument', 'musculature', 'skeleton', 'organs', 'arcane'] as const;
 export type Layer = (typeof LAYERS)[number];
 
+/** Fill pattern for a part's cut face when the specimen is sectioned. */
+export type SectionPattern = 'hatch' | 'stipple' | 'rings' | 'glow';
+
 /** How a part is painted. `wash` is a key of PALETTE. */
 export interface PartLook {
   readonly wash: string;
   readonly glow?: number;
+  readonly section?: {
+    readonly pattern: SectionPattern;
+    /** Centre for `rings` (rings are drawn around the vertical axis through it). */
+    readonly centre?: Vec3;
+  };
 }
 
 export interface PartEntry {

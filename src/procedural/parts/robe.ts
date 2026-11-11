@@ -35,7 +35,7 @@ export function robePart(): PartDefinition {
   return {
     id: 'robe',
     layer: 'integument',
-    look: { wash: 'washOchre' },
+    look: { wash: 'washOchre', section: { pattern: 'hatch' } },
     field: intersect(displace(body, folds), cut),
     bounds: { min: [-1.3, baseY - 0.02, -0.55], max: [1.3, -0.6, 0.5] },
     cellSize: 0.03,

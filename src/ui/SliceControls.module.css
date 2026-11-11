@@ -1,0 +1,37 @@
+.controls {
+  position: absolute;
+  right: clamp(24px, 5vmin, 56px);
+  bottom: clamp(22px, 4.5vmin, 52px);
+  display: flex;
+  gap: 1.1rem;
+  align-items: baseline;
+  pointer-events: auto;
+}
+
+.control {
+  display: inline-flex;
+  gap: 0.4em;
+  align-items: baseline;
+  padding: 0.2em 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: var(--ink);
+  font: italic 0.95rem var(--font-plate);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.control:hover {
+  border-bottom-color: var(--ink-faint);
+}
+
+.control:focus-visible {
+  outline: 1px dashed var(--ink);
+  outline-offset: 4px;
+}
+
+.glyph {
+  font-style: normal;
+  font-size: 1.1em;
+}

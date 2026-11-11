@@ -10,6 +10,7 @@ import { Box3, Vector3 } from 'three';
 
 import { CAMERA } from '../config/camera.ts';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
+import { usePlateStore } from '../state/plate-store.ts';
 
 const { ACTION } = CameraControlsImpl;
 
@@ -55,7 +56,7 @@ export function CameraRig() {
     };
     const onDoubleClick = () => {
       markInput();
-      void controls.current?.reset(true);
+      usePlateStore.getState().resetView();
     };
 
     window.addEventListener('keydown', onKeyDown);
@@ -71,6 +72,18 @@ export function CameraRig() {
       domElement.removeEventListener('wheel', markInput);
     };
   }, [domElement]);
+
+  // Reset requests (keyboard, double-click, the reset glyph) and the slice handle.
+  const viewResets = usePlateStore((state) => state.viewResets);
+  const handleActive = usePlateStore((state) => state.slice.handleActive);
+  useEffect(() => {
+    if (viewResets === 0) return;
+    lastInput.current = performance.now();
+    void controls.current?.reset(true);
+  }, [viewResets]);
+  useEffect(() => {
+    if (controls.current) controls.current.enabled = !handleActive;
+  }, [handleActive]);
 
   useFrame((_, delta) => {
     const c = controls.current;
@@ -117,7 +130,7 @@ function runKey(c: CameraControlsImpl, key: string, orbit: number, zoom: number)
       return true;
     case 'r':
     case 'R':
-      void c.reset(true);
+      usePlateStore.getState().resetView();
       return true;
     default:
       return false;

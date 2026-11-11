@@ -19,7 +19,7 @@ export function PlateEffects() {
   );
 
   return (
-    <EffectComposer multisampling={4}>
+    <EffectComposer multisampling={4} stencilBuffer>
       <primitive object={outline} />
       <primitive object={paper} />
     </EffectComposer>

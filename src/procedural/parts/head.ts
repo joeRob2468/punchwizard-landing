@@ -41,7 +41,7 @@ export function headPart(): PartDefinition {
   return {
     id: 'head',
     layer: 'integument',
-    look: { wash: 'washFlesh' },
+    look: { wash: 'washFlesh', section: { pattern: 'hatch' } },
     field: displace(skin, (x, y, z) => fbm(SEED, x * 9, y * 9, z * 9) * 0.012),
     bounds: { min: [-0.6, -1.15, -0.7], max: [0.6, 0.78, 0.75] },
     cellSize: 0.02,
@@ -52,7 +52,7 @@ export function eyesPart(): PartDefinition {
   return {
     id: 'eyes',
     layer: 'organs',
-    look: { wash: 'arcaneMana', glow: 0.4 },
+    look: { wash: 'arcaneMana', glow: 0.4, section: { pattern: 'glow' } },
     field: mirrorX(sphere(L.eyeLeft, EYE_RADIUS)),
     bounds: {
       min: [-L.eyeLeft[0] - 0.1, L.eyeLeft[1] - 0.1, L.eyeLeft[2] - 0.1],

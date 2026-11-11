@@ -47,7 +47,7 @@ export function beardPart(): PartDefinition {
   return {
     id: 'beard',
     layer: 'integument',
-    look: { wash: 'washBone' },
+    look: { wash: 'washBone', section: { pattern: 'stipple' } },
     field: displace(beard, strands(SEED, 0.035)),
     bounds: { min: [-0.62, -1.5, -0.2], max: [0.62, 0.38, 0.78] },
     cellSize: 0.02,
@@ -67,7 +67,7 @@ export function hairPart(): PartDefinition {
   return {
     id: 'hair',
     layer: 'integument',
-    look: { wash: 'washBone' },
+    look: { wash: 'washBone', section: { pattern: 'stipple' } },
     field: displace(hair, strands(SEED + 5, 0.04)),
     bounds: { min: [-0.65, -0.95, -0.75], max: [0.65, 0.45, 0.2] },
     cellSize: 0.024,

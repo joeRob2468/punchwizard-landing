@@ -43,7 +43,7 @@ export function hatPart(): PartDefinition {
   return {
     id: 'hat',
     layer: 'integument',
-    look: { wash: 'washVein' },
+    look: { wash: 'washVein', section: { pattern: 'rings', centre: L.brimCentre } },
     field: displace(hat, (x, y, z) => fbm(SEED + 1, x * 4, y * 4, z * 4) * 0.02),
     bounds: { min: [-1.2, -0.2, -1.2], max: [1.2, 2.15, 1.15] },
     cellSize: 0.024,
