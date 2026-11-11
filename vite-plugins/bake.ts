@@ -90,9 +90,14 @@ export function bakeSpecimen(): Plugin {
       });
     },
 
-    // Procedural modules are bake inputs, not page code: don't hot-update the page for them.
-    handleHotUpdate({ file }) {
-      return WATCHED.test(file) ? [] : undefined;
+    // Procedural modules are bake inputs, and some are also imported by the page
+    // (format decoder, landmarks, fields for labels). Don't hot-update them, or the
+    // page would mix new code with the old bake; invalidate them so the full reload
+    // sent when the bake finishes picks up fresh code.
+    handleHotUpdate({ file, modules, server }) {
+      if (!WATCHED.test(file)) return undefined;
+      for (const mod of modules) server.moduleGraph.invalidateModule(mod);
+      return [];
     },
 
     async generateBundle() {
