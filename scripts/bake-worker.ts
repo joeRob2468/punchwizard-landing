@@ -37,7 +37,7 @@ for (const index of indices) {
       meshSdf(part.field, part.bounds, part.cellSize),
       MIN_PIECE_TRIANGLES,
     );
-    const { bytes, indexType } = encodePart(mesh);
+    const { bytes, indexType } = encodePart(mesh, part.bounds);
     const result: BakeResult = {
       index,
       bytes,

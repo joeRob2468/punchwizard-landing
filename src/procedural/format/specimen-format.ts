@@ -3,14 +3,17 @@
  * Simpler than glTF and needs no exporter in Node.
  *
  * Part file layout (little-endian, sections 4-byte aligned):
- *   positions  Float32 × 3 × vertexCount
+ *   positions  Int16 × 3 × vertexCount, quantised within the part's bounds, padded to 4 bytes
  *   normals    Int8 × 3 × vertexCount (normalised), padded to 4 bytes
  *   indices    Uint16 or Uint32 × indexCount
+ *
+ * Positions are decoded to Float32 on load, so quantisation only affects download
+ * size (precision is bounds / 65534, well under a micron at specimen scale).
  */
 import type { MeshData } from '../mesh/surface-nets.ts';
 import type { Bounds, Vec3 } from '../sdf/types.ts';
 
-export const FORMAT_VERSION = 1;
+export const FORMAT_VERSION = 2;
 
 /** Anatomical layers, outside in. */
 export const LAYERS = ['integument', 'musculature', 'skeleton', 'organs', 'arcane'] as const;
@@ -49,18 +52,30 @@ export interface SpecimenManifest {
 
 const align4 = (n: number) => (n + 3) & ~3;
 
-export function encodePart(mesh: MeshData): {
+const QUANT = 32767;
+
+export function encodePart(
+  mesh: MeshData,
+  bounds: Bounds,
+): {
   bytes: Uint8Array<ArrayBuffer>;
   indexType: PartEntry['indexType'];
 } {
   const vertexCount = mesh.positions.length / 3;
   const indexType = vertexCount <= 0xffff ? 'uint16' : 'uint32';
-  const positionBytes = mesh.positions.byteLength;
+  const positionBytes = align4(vertexCount * 3 * 2);
   const normalBytes = align4(vertexCount * 3);
   const indexBytes = mesh.indices.length * (indexType === 'uint16' ? 2 : 4);
 
   const buffer = new ArrayBuffer(positionBytes + normalBytes + indexBytes);
-  new Float32Array(buffer, 0, mesh.positions.length).set(mesh.positions);
+  const positions = new Int16Array(buffer, 0, vertexCount * 3);
+  for (let i = 0; i < positions.length; i++) {
+    const axis = i % 3;
+    const lo = bounds.min[axis] ?? 0;
+    const hi = bounds.max[axis] ?? 1;
+    const t = ((mesh.positions[i] ?? 0) - lo) / (hi - lo); // 0–1 inside the bounds
+    positions[i] = Math.round(Math.max(-1, Math.min(1, t * 2 - 1)) * QUANT);
+  }
   const normals = new Int8Array(buffer, positionBytes, vertexCount * 3);
   for (let i = 0; i < normals.length; i++) {
     normals[i] = Math.round(Math.max(-1, Math.min(1, mesh.normals[i] ?? 0)) * 127);
@@ -81,9 +96,18 @@ export interface DecodedPart {
 }
 
 export function decodePart(buffer: ArrayBuffer, entry: PartEntry): DecodedPart {
-  const positions = new Float32Array(buffer, 0, entry.vertexCount * 3);
-  const normals = new Int8Array(buffer, positions.byteLength, entry.vertexCount * 3);
-  const indexOffset = positions.byteLength + align4(entry.vertexCount * 3);
+  const count = entry.vertexCount * 3;
+  const quantised = new Int16Array(buffer, 0, count);
+  const positions = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    const axis = i % 3;
+    const lo = entry.bounds.min[axis] ?? 0;
+    const hi = entry.bounds.max[axis] ?? 1;
+    positions[i] = lo + (((quantised[i] ?? 0) / QUANT + 1) / 2) * (hi - lo);
+  }
+  const positionBytes = align4(count * 2);
+  const normals = new Int8Array(buffer, positionBytes, count);
+  const indexOffset = positionBytes + align4(count);
   const indices =
     entry.indexType === 'uint16'
       ? new Uint16Array(buffer, indexOffset, entry.indexCount)
