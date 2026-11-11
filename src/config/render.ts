@@ -7,7 +7,7 @@ export const RENDER = {
   /** Hatch lines per object-space unit (the bust is ~2.5 units tall). */
   hatchScale: 22,
   /** Outline width in pixels, before per-stroke jitter. */
-  outlineWidth: 1.6,
+  outlineWidth: 2.1,
   /** 0–1: how dark outlines are drawn. */
   outlineStrength: 0.9,
   /** 0–1: lines between different parts (including tissues on a cut face). */
