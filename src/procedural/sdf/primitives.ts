@@ -78,6 +78,11 @@ export function roundedCylinder(
   };
 }
 
+/** Regular octahedron centred on c; `size` is the centre-to-vertex distance (bound, not exact). */
+export function octahedron([cx, cy, cz]: Vec3, size: number): Sdf {
+  return (x, y, z) => (Math.abs(x - cx) + Math.abs(y - cy) + Math.abs(z - cz) - size) * 0.57735027;
+}
+
 /** Torus around the y axis: major radius R, tube radius r. */
 export function torus([cx, cy, cz]: Vec3, major: number, minor: number): Sdf {
   return (x, y, z) => {

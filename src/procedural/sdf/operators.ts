@@ -44,6 +44,18 @@ export function intersect(...fields: Sdf[]): Sdf {
   };
 }
 
+/**
+ * Intersection that skips the (expensive) container when the (cheap) shape is
+ * already farther than `skipBeyond`. The result then under-reports distance but
+ * keeps the right sign, which is all meshing needs away from the surface.
+ */
+export function intersectLazy(shape: Sdf, container: Sdf, skipBeyond: number): Sdf {
+  return (x, y, z) => {
+    const d = shape(x, y, z);
+    return d > skipBeyond ? d : Math.max(d, container(x, y, z));
+  };
+}
+
 export function smoothIntersect(k: number, a: Sdf, b: Sdf): Sdf {
   return (x, y, z) => -smoothMin(-a(x, y, z), -b(x, y, z), k);
 }
