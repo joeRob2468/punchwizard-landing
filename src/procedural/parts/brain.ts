@@ -69,18 +69,22 @@ const GEM_DIRECTIONS: readonly Vec3[] = [
   [-0.25, 0.92, 0.1],
 ];
 
-export function focusGemsPart(): PartDefinition {
+/** Centres of the Focus Gems. */
+export function focusGemCentres(): Vec3[] {
   const centre: Vec3 = [0, 0.17, -0.06];
   const radii: Vec3 = [0.3, 0.35, 0.38];
-  const gems: Sdf[] = GEM_DIRECTIONS.map(([dx, dy, dz], i) => {
+  return GEM_DIRECTIONS.map(([dx, dy, dz]) => {
     const l = Math.hypot(dx, dy, dz);
-    const p: Vec3 = [
+    return [
       centre[0] + (dx / l) * radii[0],
       centre[1] + (dy / l) * radii[1],
       centre[2] + (dz / l) * radii[2],
     ];
-    return octahedron(p, 0.045 + 0.012 * (i % 3));
   });
+}
+
+export function focusGemsPart(): PartDefinition {
+  const gems: Sdf[] = focusGemCentres().map((p, i) => octahedron(p, 0.045 + 0.012 * (i % 3)));
   return {
     id: 'focus-gems',
     layer: 'organs',
