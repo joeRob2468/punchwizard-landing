@@ -80,6 +80,43 @@ Both effects use `BlendFunction.SET` and run in one merged pass, outline first. 
 
 Tunables (light direction, hatch density, outline width and strength) are in `src/config/render.ts`.
 
+## Sectioning
+
+### State
+
+`src/state/plate-store.ts` (zustand) holds the slice: axis, current `offset`, `targetOffset`, travel `range` and whether the handle is active, plus `viewResets` (a counter the camera rig watches). Components subscribe to what they display; per-frame code uses `getState()` so easing never re-renders React.
+
+### Plane and clipping
+
+`slicing/clip-plane.tsx` provides one `ClipPlane` (a three.js `Plane` with `setNormal` / `setOffset`) through context. Every specimen material lists it in `clippingPlanes`; the renderer has `localClippingEnabled`. Fragments are kept where `dot(normal, p) + offset > 0`.
+
+Axes are in `src/config/slice.ts`. Each normal points away from the default camera, so the removed half is the one nearest the viewer and the cut face looks toward them:
+
+| Axis       | Normal | Removes                            | Resting offset  |
+| ---------- | ------ | ---------------------------------- | --------------- |
+| Sagittal   | −x     | The wizard's left (viewer's right) | 0.08            |
+| Coronal    | −z     | The front                          | 0.18            |
+| Transverse | −y     | The top                            | 0.1 (eye level) |
+
+`slicing/SliceController` recomputes the travel range from the specimen's bounds when the axis changes (`plane-math.offsetRange`), eases `offset` toward `targetOffset` each frame, writes the plane, binds `S`, `[` and `]`, and runs the intro: the plane starts parked just outside the specimen and slides to the resting cut after 1.4 s (set immediately under reduced motion). Changing axis parks the plane and eases it in again.
+
+### Section caps
+
+`slicing/SectionCaps` fills cut faces with the stencil technique, per part:
+
+1. The part's geometry is drawn twice with colour and depth writes off and the clip plane on: back faces increment the stencil, front faces decrement it. Where the plane cuts the part's interior, the count ends non-zero.
+2. A large quad on the plane draws with `CapMaterial` only where the stencil is non-zero, then resets it to 0.
+
+Parts are capped in manifest order with `LessEqual` depth, so later caps win where volumes overlap; `specimenParts()` therefore lists parts from outermost to innermost. The effect composer's buffers have a stencil attachment for this.
+
+`CapMaterial` (`rendering/shaders/cap.*.glsl`) paints a deeper version of the part's wash plus its section pattern from the part's look: `hatch` (45° lines; flesh, robe), `stipple` (jittered dots; hair), `rings` (growth rings around a vertical axis; the hat) or `glow` (self-lit; eyes). Pattern coordinates are on the plane, so patterns don't swim as the plane moves.
+
+### Handle and controls
+
+`slicing/SliceHandle` draws a faint ink rectangle where the plane crosses the specimen's bounds (no depth writes, so the outline effect ignores it) and a garnet knob on its top edge (front edge for transverse). Hovering the knob sets `handleActive`, which disables the camera controls; dragging maps the pointer ray to the closest point on the plane's normal through the knob (`plane-math.offsetUnderRay`).
+
+`ui/SliceControls`, bottom right: the section's Latin name (click to change axis) and a reset mark (camera and cut).
+
 ## Camera and input
 
 `scene/CameraRig` wraps drei's `<CameraControls>` (the `camera-controls` library). Settings are in `src/config/camera.ts`.
