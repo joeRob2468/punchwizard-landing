@@ -5,6 +5,8 @@
  */
 import type { Sdf, Vec3 } from '../procedural/sdf/types.ts';
 
+export { gradient, snapToSurface } from '../procedural/sdf/surface.ts';
+
 /** A plane as `dot(normal, p) + constant`, positive on the kept side. */
 export interface PlaneLike {
   readonly normal: Vec3;
@@ -35,28 +37,6 @@ export function sectionAnchor(
     if (field(p[0], p[1], p[2]) < -inset) return p;
   }
   return null;
-}
-
-/** Field gradient (unnormalised) by central differences. */
-export function gradient(field: Sdf, [x, y, z]: Vec3, e = 0.002): Vec3 {
-  return [
-    field(x + e, y, z) - field(x - e, y, z),
-    field(x, y + e, z) - field(x, y - e, z),
-    field(x, y, z + e) - field(x, y, z - e),
-  ];
-}
-
-/** Moves a point onto the field's surface with a few Newton steps. */
-export function snapToSurface(field: Sdf, start: Vec3, steps = 12): Vec3 {
-  let p: Vec3 = start;
-  for (let i = 0; i < steps; i++) {
-    const d = field(p[0], p[1], p[2]);
-    if (Math.abs(d) < 1e-4) break;
-    const g = gradient(field, p);
-    const len = Math.hypot(g[0], g[1], g[2]) || 1;
-    p = [p[0] - (g[0] / len) * d, p[1] - (g[1] / len) * d, p[2] - (g[2] / len) * d];
-  }
-  return p;
 }
 
 /** Where the segment a→b crosses the plane, or null if both ends are on one side. */

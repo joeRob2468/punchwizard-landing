@@ -1,45 +1,131 @@
 /**
- * The skin of the head and neck: cranium, face, a generous nose, ears, brow and
- * eye sockets. Low detail by design; the wash style and the beard do the rest.
+ * The skin of the head and neck, modelled as an old man's face: a long aquiline
+ * nose, deep-set hooded eyes with bags beneath, a heavy brow, high cheekbones over
+ * hollow cheeks, nasolabial folds, thin lips, large ears, forehead furrows and
+ * crow's feet. Much of the lower face is later covered by the beard.
+ *
+ * Also the eyeballs and their crystalline irises.
  */
 import { EYE_RADIUS, LANDMARKS as L } from '../landmarks.ts';
-import { mirrorPoint } from './mirror.ts';
 import {
   capsule,
   displace,
   ellipsoid,
   fbm,
+  halfSpace,
+  intersect,
   mirrorX,
   roundCone,
+  shell,
   smoothSubtract,
   smoothUnion,
   sphere,
+  subtract,
+  union,
 } from '../sdf/index.ts';
-import type { Sdf } from '../sdf/types.ts';
+import type { Sdf, Vec3 } from '../sdf/types.ts';
+import { mirrorPoint } from './mirror.ts';
 import type { PartDefinition } from './part.ts';
 
 const SEED = 11;
+const [EX, EY, EZ] = L.eyeLeft;
+
+/** Hooded upper lid and a thinner lower lid, as shells over the eyeball. */
+function eyelids(): Sdf {
+  const lidShell = shell(sphere(L.eyeLeft, EYE_RADIUS + 0.009), 0.016);
+  const front = halfSpace([0, 0, EZ - 0.015], [0, 0, -1]);
+  // Upper lid covers the top of the eye, its edge tilting down toward the outer corner.
+  const upperEdge: Sdf = (x, y) => -(y - (EY + 0.008 - 0.12 * (Math.abs(x) - EX)));
+  const upper = intersect(lidShell, front, upperEdge);
+  const lowerEdge: Sdf = (_x, y) => y - (EY - 0.036);
+  const lower = intersect(lidShell, front, lowerEdge);
+  // The fold of skin that hangs over the upper lid, and the bag beneath.
+  const hood = ellipsoid([EX + 0.01, EY + 0.055, EZ - 0.005], [0.065, 0.022, 0.04]);
+  const bag = ellipsoid([EX + 0.005, EY - 0.07, EZ - 0.01], [0.055, 0.024, 0.035]);
+  return mirrorX(smoothUnion(0.02, upper, lower, hood, bag));
+}
+
+function nose(): Sdf {
+  return smoothUnion(
+    0.035,
+    roundCone([0, 0.16, 0.465], [0, -0.03, 0.6], 0.036, 0.05), // bridge
+    sphere([0, 0.06, 0.545], 0.034), // the hump
+    sphere([0, -0.055, 0.615], 0.052), // bulbous tip
+    mirrorX(ellipsoid([0.05, -0.085, 0.55], [0.038, 0.032, 0.042])), // nostril wings
+  );
+}
+
+function ears(): Sdf {
+  const [ax, ay, az] = L.earLeft;
+  const plate = ellipsoid([ax, ay, az], [0.032, 0.15, 0.09]);
+  const lobe = sphere([ax + 0.005, ay - 0.12, az + 0.01], 0.035);
+  const concha = sphere([ax + 0.04, ay - 0.01, az + 0.005], 0.045);
+  return mirrorX(smoothSubtract(0.02, smoothUnion(0.04, plate, lobe), concha));
+}
+
+function lips(): Sdf {
+  const upper = ellipsoid([0, -0.205, 0.5], [0.08, 0.022, 0.035]);
+  const lower = ellipsoid([0, -0.252, 0.488], [0.068, 0.026, 0.035]);
+  const slit = capsule([-0.075, -0.229, 0.53], [0.075, -0.229, 0.53], 0.006);
+  return smoothSubtract(0.006, smoothUnion(0.015, upper, lower), slit);
+}
+
+/** Surface grooves: forehead furrows, crow's feet, a frown line, and fine skin noise. */
+function wrinkles(x: number, y: number, z: number): number {
+  let groove = 0;
+  const ax = Math.abs(x);
+
+  // Forehead furrows: horizontal, gently arched, front of the head only.
+  const front = smoothstep(0.25, 0.42, z);
+  const band = smoothstep(0.24, 0.3, y) * (1 - smoothstep(0.48, 0.56, y));
+  const arch = y + 0.15 * ax * ax;
+  const furrow = Math.max(0, Math.sin(arch * 62 + fbm(SEED + 3, x * 4, y * 4, z * 4) * 3) - 0.6);
+  groove += furrow * 0.012 * front * band;
+
+  // Crow's feet: lines fanning out from the outer corner of each eye.
+  const cx = ax - (EX + 0.075);
+  const cy = y - EY;
+  const r = Math.hypot(cx, cy);
+  const fan = Math.max(0, Math.sin(Math.atan2(cy, cx) * 11) - 0.5) * 0.012;
+  groove += fan * Math.exp(-((r / 0.06) ** 2)) * smoothstep(0.2, 0.32, z) * smoothstep(0, 0.02, cx);
+
+  // A vertical frown line between the brows.
+  groove += 0.006 * Math.exp(-((ax / 0.012) ** 2)) * Math.exp(-(((y - 0.21) / 0.05) ** 2)) * front;
+
+  return groove + fbm(SEED, x * 14, y * 14, z * 14) * 0.006;
+}
 
 /** The skin of head and neck as a field (also used to keep internals inside it). */
 export function headSkinField(): Sdf {
-  const cranium = ellipsoid([0, 0.17, -0.05], [0.45, 0.52, 0.54]);
-  const face = ellipsoid([0, -0.13, 0.15], [0.35, 0.42, 0.37]);
-  const cheek = mirrorX(ellipsoid([0.21, -0.02, 0.32], [0.13, 0.1, 0.12]));
-  const brow = capsule([-0.2, 0.19, 0.42], [0.2, 0.19, 0.42], 0.065);
-  const nose = smoothUnion(
-    0.05,
-    roundCone(L.noseBridge, L.noseTip, 0.045, 0.07),
-    mirrorX(sphere([0.055, -0.1, 0.55], 0.045)),
+  const cranium = ellipsoid([0, 0.17, -0.06], [0.43, 0.5, 0.52]);
+  const face = ellipsoid([0, -0.13, 0.15], [0.33, 0.42, 0.36]);
+  const jaw = ellipsoid([0, -0.33, 0.17], [0.27, 0.15, 0.25]);
+  const brow = smoothUnion(
+    0.04,
+    mirrorX(roundCone([0.04, 0.2, 0.465], [0.27, 0.19, 0.37], 0.045, 0.03)),
+    sphere([0, 0.19, 0.46], 0.04),
   );
-  const ear = mirrorX(ellipsoid(L.earLeft, [0.05, 0.13, 0.085]));
-  const neck = capsule(L.neckTop, L.neckBase, 0.2);
+  const cheekbones = mirrorX(ellipsoid([0.24, 0.0, 0.31], [0.11, 0.055, 0.09]));
+  const neck = capsule(L.neckTop, L.neckBase, 0.19);
 
-  const solid = smoothUnion(0.06, smoothUnion(0.2, cranium, face, neck), cheek, brow, nose, ear);
-  const sockets = mirrorX(
-    sphere([L.eyeLeft[0], L.eyeLeft[1], L.eyeLeft[2] + 0.02], EYE_RADIUS + 0.03),
-  );
-  const skin = smoothSubtract(0.05, solid, sockets);
-  return displace(skin, (x, y, z) => fbm(SEED, x * 9, y * 9, z * 9) * 0.012);
+  let solid = smoothUnion(0.18, cranium, face, jaw, neck);
+  // Sunken temples and hollow cheeks under the cheekbones.
+  solid = smoothSubtract(0.08, solid, mirrorX(sphere([0.47, 0.2, 0.17], 0.09)));
+  solid = smoothSubtract(0.06, solid, mirrorX(sphere([0.3, -0.13, 0.36], 0.065)));
+  solid = smoothUnion(0.04, solid, brow, cheekbones, ears());
+  solid = smoothUnion(0.03, solid, nose(), lips());
+
+  // Nasolabial folds, from the nostril wings toward the corners of the mouth.
+  const folds = mirrorX(capsule([0.08, -0.07, 0.535], [0.135, -0.27, 0.44], 0.01));
+  solid = smoothSubtract(0.015, solid, folds);
+  // Nostrils.
+  solid = smoothSubtract(0.008, solid, mirrorX(sphere([0.03, -0.1, 0.585], 0.016)));
+
+  // Sockets hug the eyeball; the lids then wrap it.
+  const sockets = mirrorX(sphere(L.eyeLeft, EYE_RADIUS + 0.006));
+  const skin = smoothUnion(0.012, subtract(solid, sockets), eyelids());
+
+  return displace(skin, wrinkles);
 }
 
 export function headPart(): PartDefinition {
@@ -48,24 +134,47 @@ export function headPart(): PartDefinition {
     layer: 'integument',
     look: { wash: 'washFlesh', section: { pattern: 'hatch' } },
     field: headSkinField(),
-    bounds: { min: [-0.6, -1.15, -0.7], max: [0.6, 0.78, 0.75] },
-    cellSize: 0.02,
+    bounds: { min: [-0.62, -1.15, -0.7], max: [0.62, 0.78, 0.76] },
+    cellSize: 0.009,
   };
 }
+
+const eyeBounds = (r: number) => ({
+  min: [-EX - r, EY - r, EZ - r] as Vec3,
+  max: [EX + r, EY + r, EZ + r] as Vec3,
+});
 
 export function eyesPart(): PartDefinition {
   return {
     id: 'eyes',
     layer: 'organs',
-    look: { wash: 'arcaneMana', glow: 0.4, section: { pattern: 'glow' } },
+    look: { wash: 'washBone', section: { pattern: 'stipple' } },
     field: mirrorX(sphere(L.eyeLeft, EYE_RADIUS)),
-    bounds: {
-      min: [-L.eyeLeft[0] - 0.1, L.eyeLeft[1] - 0.1, L.eyeLeft[2] - 0.1],
-      max: [L.eyeLeft[0] + 0.1, L.eyeLeft[1] + 0.1, L.eyeLeft[2] + 0.1],
-    },
-    cellSize: 0.012,
+    bounds: eyeBounds(0.1),
+    cellSize: 0.007,
+  };
+}
+
+/** The crystalline iris: a glowing cap on the front of each eyeball. */
+export function irisPart(): PartDefinition {
+  const cap = intersect(
+    sphere(L.eyeLeft, EYE_RADIUS + 0.004),
+    sphere([EX, EY, EZ + EYE_RADIUS], 0.032),
+  );
+  return {
+    id: 'iris',
+    layer: 'organs',
+    look: { wash: 'arcaneMana', glow: 0.7, section: { pattern: 'glow' } },
+    field: union(mirrorX(cap)),
+    bounds: eyeBounds(0.1),
+    cellSize: 0.004,
   };
 }
 
 /** Right-hand eye position, for consumers that need both. */
 export const EYE_RIGHT = mirrorPoint(L.eyeLeft);
+
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}

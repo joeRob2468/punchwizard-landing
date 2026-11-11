@@ -92,11 +92,14 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     name: 'Crystalline Eye',
     latin: 'Oculus crystallinus',
     description: 'Fed directly by the vessels; sees ley lines and the glow of enchanted things.',
-    part: 'eyes',
-    section: [L.eyeLeft, mirrorX(L.eyeLeft)],
+    part: 'iris',
+    section: [
+      [L.eyeLeft[0], L.eyeLeft[1], L.eyeLeft[2] + 0.05],
+      [-L.eyeLeft[0], L.eyeLeft[1], L.eyeLeft[2] + 0.05],
+    ],
     surface: [
-      [L.eyeLeft[0], L.eyeLeft[1], L.eyeLeft[2] + 0.08],
-      [-L.eyeLeft[0], L.eyeLeft[1], L.eyeLeft[2] + 0.08],
+      [L.eyeLeft[0], L.eyeLeft[1], L.eyeLeft[2] + 0.07],
+      [-L.eyeLeft[0], L.eyeLeft[1], L.eyeLeft[2] + 0.07],
     ],
   },
   {

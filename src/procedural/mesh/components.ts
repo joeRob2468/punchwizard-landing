@@ -43,13 +43,17 @@ export function dropSmallComponents(mesh: MeshData, minTriangles: number): MeshD
     }
   }
   if (kept.length === indices.length) return mesh;
+  return compactMesh(mesh, kept);
+}
 
-  // Compact: keep only referenced vertices.
+/** Rebuilds a mesh from a subset of its triangles, keeping only referenced vertices. */
+export function compactMesh(mesh: MeshData, kept: ArrayLike<number>): MeshData {
+  const vertexCount = mesh.positions.length / 3;
   const remap = new Int32Array(vertexCount).fill(-1);
   const positions: number[] = [];
   const normals: number[] = [];
   const outIndices = new Uint32Array(kept.length);
-  kept.forEach((v, i) => {
+  Array.from(kept).forEach((v, i) => {
     if (remap[v] === -1) {
       remap[v] = positions.length / 3;
       positions.push(

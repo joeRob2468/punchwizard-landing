@@ -10,6 +10,7 @@ import { bakeOcclusion } from '../src/procedural/mesh/occlusion.ts';
 import { meshSdf } from '../src/procedural/mesh/surface-nets.ts';
 import { union } from '../src/procedural/sdf/operators.ts';
 import { specimenParts } from '../src/procedural/specimen.ts';
+import { simplifyMesh } from './simplify.ts';
 
 export interface BakeResult {
   readonly index: number;
@@ -27,6 +28,8 @@ export interface BakeFailure {
 
 /** Disconnected pieces smaller than this are noise islands, not anatomy. */
 const MIN_PIECE_TRIANGLES = 60;
+/** Allowed simplification error, as a fraction of the part's cell size. */
+const SIMPLIFY_ERROR = 0.2;
 
 const indices = workerData as number[];
 const parts = specimenParts();
@@ -39,10 +42,11 @@ for (const index of indices) {
   if (!part) continue;
   const started = performance.now();
   try {
-    const mesh = dropSmallComponents(
+    const raw = dropSmallComponents(
       meshSdf(part.field, part.bounds, part.cellSize),
       MIN_PIECE_TRIANGLES,
     );
+    const mesh = await simplifyMesh(raw, part.cellSize * SIMPLIFY_ERROR);
     const occlusion = part.layer === 'integument' ? bakeOcclusion(mesh, outerField) : null;
     const { bytes, indexType } = encodePart(mesh, part.bounds, occlusion);
     const result: BakeResult = {

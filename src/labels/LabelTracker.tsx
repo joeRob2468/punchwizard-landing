@@ -33,7 +33,7 @@ import type { LabelChannel } from './label-channel.ts';
 
 /** Parts that can hide a surface anchor from view (everything seen from outside). */
 const OCCLUDER_LAYERS = new Set(['integument']);
-const EXTRA_OCCLUDERS = new Set(['eyes', 'girdle']);
+const EXTRA_OCCLUDERS = new Set(['eyes', 'iris', 'girdle']);
 /** Surface visibility is re-checked every this many frames. */
 const SURFACE_CHECK_INTERVAL = 6;
 

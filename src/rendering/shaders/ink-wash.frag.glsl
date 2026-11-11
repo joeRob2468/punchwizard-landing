@@ -8,7 +8,7 @@
 // - Hatching follows the form (cross-contour): rings of constant height on upright
 //   surfaces, concentric rings on flat ones, and in deeper shadow a spiral
 //   cross-hatch around the vertical axis. Lines thicken as the tone darkens, like
-//   an engraving, and fade out where they would be denser than the screen can show.
+//   an engraving, and keep a steady on-screen spacing at any zoom.
 //
 // Colours are "pigment on white": the paper effect multiplies them onto paper.
 
@@ -29,16 +29,29 @@ varying vec3 vObjectNormal;
 varying float vOcclusion;
 
 const float GLAZES = 4.0;
-const float CROSS_LINES_PER_TURN = 56.0;
+const float CROSS_LINES_PER_TURN = 8.0;
+// Target spacing of hatch lines, in device pixels.
+const float HATCH_SPACING_PX = 9.0;
 
 // Anti-aliased line mask for a coordinate whose integer values are line centres.
 // `width` is the line's half-width in line spacings (0–0.5).
 float lineMask(float v, float width) {
   float d = abs(fract(v + 0.5) - 0.5);
   float fw = fwidth(v);
-  float mask = 1.0 - smoothstep(width - fw, width + fw, d);
-  // Lines closer than ~3 px apart turn to mush: fade them out instead.
-  return mask * (1.0 - smoothstep(0.18, 0.35, fw));
+  return 1.0 - smoothstep(width - fw, width + fw, d);
+}
+
+// Lines at a steady on-screen spacing whatever the zoom, like an engraving: the
+// density doubles or halves in octaves, cross-fading between neighbouring octaves.
+// `v` is the coordinate at base density, `perPixel` how many base-density lines
+// one pixel spans (taken from position, so the spiral's angle seam can't spike it);
+// `wobble` is added after scaling.
+float engravedLines(float v, float perPixel, float wobble, float width) {
+  float level = log2(1.0 / (HATCH_SPACING_PX * perPixel));
+  float l0 = floor(level);
+  float a = lineMask(v * exp2(l0) + wobble, width);
+  float b = lineMask(v * exp2(l0 + 1.0) + wobble, width);
+  return mix(a, b, level - l0);
 }
 
 void main() {
@@ -76,16 +89,21 @@ void main() {
   vec3 an = abs(normalize(vObjectNormal));
   float upright = 1.0 - smoothstep(0.55, 0.85, an.y);
   float wobble = (pwNoise3(p * 7.0) - 0.5) * 0.35;
-  float rings = p.y * uHatchScale + wobble;
-  float radial = length(p.xz) * uHatchScale + wobble;
-  float spiral = p.y * uHatchScale * 0.55 + atan(p.z, p.x) * (CROSS_LINES_PER_TURN / 6.2831853) + wobble;
+  float perPixel = max(length(fwidth(p)) * uHatchScale, 1e-5);
+  float rings = p.y * uHatchScale;
+  float radial = length(p.xz) * uHatchScale;
+  float spiral = p.y * uHatchScale * 0.55 + atan(p.z, p.x) * (CROSS_LINES_PER_TURN / 6.2831853);
 
   float darkness = 1.0 - tone;
-  float firstLayer = smoothstep(0.38, 0.62, darkness);
-  float secondLayer = smoothstep(0.58, 0.78, darkness);
-  float width = mix(0.05, 0.2, darkness);
-  float contour = mix(lineMask(radial, width), lineMask(rings, width), upright);
-  float hatch = max(contour * firstLayer, lineMask(spiral, width * 0.8) * secondLayer);
+  float firstLayer = smoothstep(0.45, 0.7, darkness);
+  float secondLayer = smoothstep(0.62, 0.82, darkness);
+  float width = mix(0.06, 0.24, darkness);
+  float contour = mix(
+    engravedLines(radial, perPixel, wobble, width),
+    engravedLines(rings, perPixel, wobble, width),
+    upright
+  );
+  float hatch = max(contour * firstLayer, engravedLines(spiral, perPixel, wobble, width * 0.8) * secondLayer);
   colour = mix(colour, uInk, hatch * 0.62);
 
   // Arcane parts are self-lit: pale at the heart, saturated at the rim, pulsing.
