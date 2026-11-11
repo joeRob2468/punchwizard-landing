@@ -25,16 +25,36 @@ Specimen space: origin near the centre of the head, y up, the face looking along
 
 ### Parts
 
-Each part (`parts/*.ts`) is a `PartDefinition`: an id, a layer, a look (palette key and optional glow), a signed distance field, the bounds the surface must fit in, and a cell size for meshing. `specimen.ts` lists the parts in draw order.
+Each part (`parts/*.ts`) is a `PartDefinition`: an id, a layer, a look (palette key, optional glow, section pattern), a signed distance field, the bounds the surface must fit in, and a cell size for meshing. `specimen.ts` lists the parts **outermost to innermost**, which is also the order section caps are drawn in (see Sectioning). Names and lore are in [anatomy.md](anatomy.md).
 
-| Part    | Layer      | Built from                                                                                                                             |
-| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `robe`  | integument | Sloping shoulder cones, arms, chest ellipsoid and a rolled collar, cut flat at the bust base; vertical fold noise                      |
-| `head`  | integument | Cranium and face ellipsoids, cheeks, brow ridge, nose cone and nostrils, ears, neck; eye sockets carved out; fine noise                |
-| `eyes`  | organs     | Two spheres in the sockets, glowing cyan                                                                                               |
-| `hair`  | integument | A mantle behind the head, below the brim; strand noise                                                                                 |
-| `beard` | integument | Jaw mass, side tufts, a tapering fall down the chest along a curve, moustache and eyebrows; strand noise                               |
-| `hat`   | integument | A rounded disc brim that droops and ripples, and a cone of tapering segments along a spine that bends at the tip; solid (lore: a horn) |
+| Part             | Layer      | Section | Built from                                                                                                                                  |
+| ---------------- | ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hat`            | integument | rings   | Rounded disc brim that droops and ripples; a cone of tapering segments along a spine that bends at the tip; solid                           |
+| `hair`           | integument | strands | A mantle behind the head, below the brim; strand noise                                                                                      |
+| `beard`          | integument | strands | Jaw mass, side tufts, a tapering fall down the chest, moustache, eyebrows; strand noise                                                     |
+| `robe`           | integument | hatch   | Sloping shoulder cones, arms, chest and a rolled collar, cut flat at the bust base; fold noise                                              |
+| `head`           | integument | hatch   | Cranium and face ellipsoids, cheeks, brow, nose, ears, neck; eye sockets carved out                                                         |
+| `skull`          | skeleton   | stipple | Vault and facial bones, hollowed by the cranial cavity; orbits, nasal aperture, foramen, the Third Fontanelle and the sinus chamber cut out |
+| `tongue`         | organs     | hatch   | A tilted ellipsoid with ridges along its length                                                                                             |
+| `sinus`          | organs     | rings   | A three-lobed chamber behind the nose                                                                                                       |
+| `mandible`       | skeleton   | stipple | Two bodies meeting at the chin, with rami up to the condyles                                                                                |
+| `spine`          | skeleton   | stipple | Cervical vertebrae down the neck: bodies, spinous and transverse processes                                                                  |
+| `girdle`         | skeleton   | stipple | Curved clavicles; the Familiar's Perch on the left, a shelf that breaks the robe's surface                                                  |
+| `brain`          | organs     | gyri    | Cerebrum, cerebellum and stem, with ridged noise pressed in for folds                                                                       |
+| `focus-gems`     | organs     | glow    | Five octahedra just under the cortex                                                                                                        |
+| `ethereal-gland` | organs     | stipple | A small double lobe behind the core                                                                                                         |
+| `eyes`           | organs     | glow    | Two spheres in the sockets                                                                                                                  |
+| `vessels`        | arcane     | glow    | Branching tubes from the core down the neck to shoulders and arms, and forward to the eyes, trimmed to stay inside skin and robe            |
+| `lattice`        | arcane     | glow    | A trunk from the core through the fontanelle up the hat's spine, with branches, trimmed to stay inside the hat                              |
+| `aetheric-core`  | arcane     | glow    | A sphere at the centre of the brain                                                                                                         |
+
+Shell fields that others need are exported: `headSkinField`, `robeField`, `hatField` and `hatSpine` keep vessels and the lattice inside the body; `cranialCavity` is shared by skull and brain.
+
+### Growth
+
+`growth/branches.ts` builds tubes as tapered segments: `curve` makes a trunk along a quadratic Bézier, and `sprout` grows seeded random side branches (with lean, a directional bias and recursive depth) from existing segments. `segmentsField` turns a list into one smooth SDF. It buckets segments in a 0.1-unit grid so each sample only tests nearby ones; where none are near, it returns the bucket size, a safe lower bound. `growth/random.ts` is a seeded PRNG (mulberry32).
+
+`intersectLazy(shape, container, skipBeyond)` skips the expensive container (noisy skin) where the cheap shape is already far away.
 
 ### SDF toolkit
 
@@ -53,11 +73,11 @@ Meshes are closed as long as the surface stays inside the part's bounds; the mes
 
 ### Bake and format
 
-`scripts/bake.ts` meshes every part and writes `generated/specimen/` (git-ignored): `manifest.json` (parts, layers, looks, counts, bounds, landmarks) and one `<part>.bin` each. A part file holds Float32 positions, normalised Int8 normals (padded to 4 bytes) and Uint16 or Uint32 indices (`format/specimen-format.ts`). Output goes to a temporary folder that replaces the old one at the end.
+`scripts/bake.ts` meshes every part in parallel worker threads (`scripts/bake-worker.ts`), drops disconnected pieces under 60 triangles (noise islands; `mesh/components.ts`), and writes `generated/specimen/` (git-ignored): `manifest.json` (parts, layers, looks, counts, bounds, landmarks) and one `<part>.bin` each. A part file holds Float32 positions, normalised Int8 normals (padded to 4 bytes) and Uint16 or Uint32 indices (`format/specimen-format.ts`). Output goes to a temporary folder that replaces the old one at the end.
 
 `vite-plugins/bake.ts` runs the bake in a child process when the dev server starts and whenever a file in `src/procedural/` changes, serves `generated/specimen/` at `/specimen/`, and reloads the page. In builds it emits the files into `dist/specimen/`; `npm run build` bakes first.
 
-Current output: about 140k triangles and 1.8 MB (before gzip) across six parts, baked in about 7 s.
+Current output: about 312k triangles and 4.1 MB (before gzip) across 18 parts, baked in about 9 s on 16 cores.
 
 ### Loading
 
@@ -75,6 +95,8 @@ The scene is drawn as **pigment on white** (the scene background is white), then
    - `glow` (0–1) makes a part self-lit: pale centre, saturated rim, slow pulse. Used for arcane parts.
 2. **`OutlineEffect`** (`rendering/effects/`): reads the depth buffer. Large relative depth jumps draw silhouettes; spikes in depth curvature draw fainter crease lines. Sample positions wobble and line width varies with screen-space noise.
 3. **`PaperEffect`**: multiplies the result onto procedural paper fixed to the screen (mottling, fibres, foxing, vignette). Pigment density is modulated by grain noise (granulation). Empty areas (white) become plain paper.
+
+**Part edges.** Surface and cap materials write a per-part id (manifest index + 1; `specimen/part-id.ts`) to the alpha channel, and the outline effect also inks wherever that id changes between neighbouring pixels. This outlines each tissue on a cut face, where caps are coplanar and depth alone shows nothing, and separates overlapping parts. Helpers that blend (the plane's guide lines) leave alpha untouched.
 
 Both effects use `BlendFunction.SET` and run in one merged pass, outline first. Shared noise functions are in `shaders/lib/noise.glsl` (prefixed `pw`).
 

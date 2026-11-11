@@ -17,6 +17,9 @@ Milestones are defined in [PLAN.md](PLAN.md#8-milestones).
 
 ## Known issues
 
+- The specimen is about 312k triangles and 4.1 MB before compression, over the 300k / 3 MB budget; quantising positions and normals is planned for the M6 performance pass.
+- Sub-pixel slivers along silhouettes occasionally leave tiny `+`-shaped ink specks (the outline's four-neighbour sampling around a single odd pixel). They read as ink dust; to revisit in M6.
+
 - The hat mesh has one pinched edge (shared by four triangles) on the brim. It is still closed, so slice caps are unaffected.
 
 - React Three Fiber logs a `THREE.Clock` deprecation warning (inside the library; harmless).
