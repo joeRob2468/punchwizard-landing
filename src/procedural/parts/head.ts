@@ -15,7 +15,6 @@ import {
   halfSpace,
   intersect,
   mirrorX,
-  offset,
   roundCone,
   shell,
   smoothSubtract,
@@ -37,60 +36,83 @@ const [EX, EY, EZ] = L.eyeLeft;
 const EYE_OPENING_HALF_WIDTH = 0.076;
 const EYE_OPENING_HALF_HEIGHT = 0.029;
 
+/** How far each eye turns away from the nose (radians), so the outer corner sits further back. */
+const EYE_YAW = 0.17;
+
 /**
- * The almond opening between the lids, as a prism along z (both eyes; x is mirrored),
- * its outer corner a touch lower than the inner.
+ * Evaluates a field built for the left eye in its own frame (looking along +z, before
+ * the yaw) for both eyes: mirrors x, then turns the point into the eye's frame.
+ */
+function eyeFrame(local: Sdf): Sdf {
+  const c = Math.cos(EYE_YAW);
+  const s = Math.sin(EYE_YAW);
+  return mirrorX((x, y, z) => {
+    const dx = x - EX;
+    const dz = z - EZ;
+    return local(EX + dx * c - dz * s, y, EZ + dx * s + dz * c);
+  });
+}
+
+/**
+ * The almond opening between the lids, in the eye's frame: a prism along z, the
+ * inner corner (toward the nose) at -x, the outer corner a touch lower.
  */
 const eyeOpening: Sdf = (x, y) => {
-  const u = (Math.abs(x) - EX) / EYE_OPENING_HALF_WIDTH;
+  const u = (x - EX) / EYE_OPENING_HALF_WIDTH;
   const centreY = EY - 0.005 - 0.01 * u;
   const halfHeight = EYE_OPENING_HALF_HEIGHT * Math.max(0, 1 - u * u);
   return Math.max(Math.abs(y - centreY) - halfHeight, (Math.abs(u) - 1) * EYE_OPENING_HALF_WIDTH);
 };
 
+/** Points in front of the eyeball's surface, in the eye's frame. */
+const frontOfBall: Sdf = (x, y, z) => {
+  const dx = x - EX;
+  const dy = y - EY;
+  const ballFront = EZ + Math.sqrt(Math.max(0, EYE_RADIUS * EYE_RADIUS - dx * dx - dy * dy));
+  return ballFront - 0.003 - z;
+};
+
 /**
- * Eyelids: one sheet of skin wrapping the front of each eyeball, with an almond
- * opening (narrow and slightly hooded, as on an old man), a thin rim along the
- * opening, the fold of the upper lid above it, and a puffy bag below with the
- * tear-trough crease that sets it off from the cheek.
+ * Eyelids: one sheet of skin wrapping the front of each eyeball with a softened
+ * almond opening, the fold of the upper lid above it, a fleshy pad filling the
+ * inner corner (so it can't read as a crevice), and a puffy bag below.
  */
 function eyelids(): Sdf {
   const lid = shell(sphere(L.eyeLeft, EYE_RADIUS + 0.008), 0.014);
   const front = halfSpace([0, 0, EZ - 0.02], [0, 0, -1]);
-  const opening = eyeOpening;
-  const sheet = subtract(intersect(lid, front), opening);
-  // The rim: the band of lid within 6 mm of the opening, outside it.
-  const outsideOpening: Sdf = (x, y, z) => -opening(x, y, z);
-  const rim = intersect(
-    shell(sphere(L.eyeLeft, EYE_RADIUS + 0.012), 0.008),
-    front,
-    offset(opening, 0.006),
-    outsideOpening,
-  );
+  const sheet = smoothSubtract(0.005, intersect(lid, front), eyeOpening);
   const fold = smoothUnion(
     0.02,
     roundCone(
-      [EX - 0.055, EY + 0.038, EZ + 0.05],
-      [EX + 0.02, EY + 0.033, EZ + 0.052],
+      [EX - 0.06, EY + 0.042, EZ + 0.056],
+      [EX + 0.02, EY + 0.038, EZ + 0.06],
       0.013,
       0.015,
     ),
     roundCone(
-      [EX + 0.02, EY + 0.033, EZ + 0.052],
-      [EX + 0.08, EY + 0.015, EZ + 0.032],
+      [EX + 0.02, EY + 0.038, EZ + 0.06],
+      [EX + 0.085, EY + 0.018, EZ + 0.038],
       0.015,
       0.012,
     ),
   );
-  const eye = smoothUnion(0.008, sheet, rim, fold);
-  const bag = ellipsoid([EX + 0.01, EY - 0.062, EZ + 0.038], [0.068, 0.024, 0.03]);
-  return mirrorX(smoothUnion(0.02, eye, bag));
+  const innerCorner = ellipsoid(
+    [EX - EYE_OPENING_HALF_WIDTH * 0.92, EY - 0.006, EZ + EYE_RADIUS * 0.62],
+    [0.02, 0.014, 0.022],
+  );
+  const bag = ellipsoid([EX + 0.01, EY - 0.066, EZ + 0.045], [0.07, 0.025, 0.03]);
+  return eyeFrame(smoothUnion(0.02, smoothUnion(0.01, sheet, fold, innerCorner), bag));
 }
 
 /** The tear-trough crease under each bag. */
 const tearTroughs = (): Sdf =>
-  mirrorX(
-    roundCone([EX - 0.06, EY - 0.094, EZ + 0.05], [EX + 0.075, EY - 0.1, EZ + 0.03], 0.004, 0.003),
+  eyeFrame(
+    roundCone(
+      [EX - 0.06, EY - 0.098, EZ + 0.055],
+      [EX + 0.075, EY - 0.104, EZ + 0.034],
+      0.004,
+      0.003,
+    ),
   );
 
 function nose(): Sdf {
@@ -189,13 +211,7 @@ export function headSkinField(): Sdf {
   // Only inside the visible opening and only down to the eyeball's own front surface,
   // so there is always eyeball behind it: a wider carve left a gap behind the lid
   // (a hole) and, at the corners beyond the ball, deep pits.
-  const frontOfBall: Sdf = (x, y, z) => {
-    const dx = Math.abs(x) - EX;
-    const dy = y - EY;
-    const ballFront = EZ + Math.sqrt(Math.max(0, EYE_RADIUS * EYE_RADIUS - dx * dx - dy * dy));
-    return ballFront - 0.003 - z;
-  };
-  solid = subtract(solid, intersect(eyeOpening, frontOfBall));
+  solid = subtract(solid, eyeFrame(intersect(eyeOpening, frontOfBall)));
   const skin = smoothSubtract(0.014, smoothUnion(0.012, solid, eyelids()), tearTroughs());
 
   return displace(skin, wrinkles);
@@ -230,15 +246,18 @@ export function eyesPart(): PartDefinition {
 
 /** The crystalline iris: a glowing cap on the front of each eyeball. */
 export function irisPart(): PartDefinition {
-  const cap = intersect(
-    sphere(L.eyeLeft, EYE_RADIUS + 0.003),
-    sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.038),
+  // Looks straight ahead, not along the turned lids (that reads as wall-eyed).
+  const cap = mirrorX(
+    intersect(
+      sphere(L.eyeLeft, EYE_RADIUS + 0.003),
+      sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.038),
+    ),
   );
   return {
     id: 'iris',
     layer: 'organs',
     look: { wash: 'arcaneMana', glow: 0.7, section: { pattern: 'glow' } },
-    field: union(mirrorX(cap)),
+    field: union(cap),
     bounds: eyeBounds(0.1),
     cellSize: 0.004,
   };
@@ -246,15 +265,18 @@ export function irisPart(): PartDefinition {
 
 /** The pupil: a small dark cap at the centre of the iris. */
 export function pupilPart(): PartDefinition {
-  const cap = intersect(
-    sphere(L.eyeLeft, EYE_RADIUS + 0.005),
-    sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.013),
+  // Looks straight ahead, not along the turned lids (that reads as wall-eyed).
+  const cap = mirrorX(
+    intersect(
+      sphere(L.eyeLeft, EYE_RADIUS + 0.005),
+      sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.013),
+    ),
   );
   return {
     id: 'pupil',
     layer: 'organs',
     look: { wash: 'ink', section: { pattern: 'stipple' } },
-    field: mirrorX(cap),
+    field: cap,
     bounds: eyeBounds(0.1),
     cellSize: 0.003,
   };

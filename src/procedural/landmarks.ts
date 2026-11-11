@@ -11,7 +11,7 @@ import type { Vec3 } from './sdf/types.ts';
 export const LANDMARKS = {
   crown: [0, 0.68, -0.05],
   browCentre: [0, 0.2, 0.47],
-  eyeLeft: [0.16, 0.1, 0.365],
+  eyeLeft: [0.16, 0.1, 0.385],
   noseBridge: [0, 0.12, 0.49],
   noseTip: [0, -0.06, 0.64],
   mouth: [0, -0.27, 0.45],
