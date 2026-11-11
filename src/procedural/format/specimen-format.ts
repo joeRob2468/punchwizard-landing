@@ -27,6 +27,8 @@ export type SectionPattern = 'hatch' | 'stipple' | 'rings' | 'glow' | 'gyri' | '
 export interface PartLook {
   readonly wash: string;
   readonly glow?: number;
+  /** Hatching style: cross-contour (default) or lines along hanging strands (hair). */
+  readonly hatch?: 'contour' | 'strands';
   readonly section?: {
     readonly pattern: SectionPattern;
     /** Centre for `rings` (rings are drawn around the vertical axis through it). */

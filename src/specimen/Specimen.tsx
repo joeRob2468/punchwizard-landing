@@ -36,6 +36,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           useOcclusion: true,
           wash: isPaletteKey(entry.look.wash) ? PALETTE[entry.look.wash] : PALETTE.ink,
           glow: entry.look.glow ?? 0,
+          strands: entry.look.hatch === 'strands',
         });
         material.clippingPlanes = [plane];
         return { id: entry.id, geometry, material, pivot: entry.gazePivot };

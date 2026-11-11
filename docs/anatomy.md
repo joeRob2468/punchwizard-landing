@@ -45,4 +45,4 @@ The Common Punchwizard's anatomy is entirely fictional. This file is the source 
 
 ## Supporting structures
 
-Unnumbered parts that frame the above: `head` (skin and flesh), `skull`, `mandible`, `spine` (cervical vertebrae), `girdle` (clavicles), `brain`, `hair`, `robe`.
+Unnumbered parts that frame the above: `head` (skin and flesh), `skull`, `mandible`, `spine` (cervical vertebrae), `girdle` (clavicles), `brain`, `hair`, `moustache`, `eyebrows`, `robe`.

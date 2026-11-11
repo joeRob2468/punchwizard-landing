@@ -8,7 +8,9 @@
 // - Hatching follows the form (cross-contour): rings of constant height on upright
 //   surfaces, concentric rings on flat ones, and in deeper shadow a spiral
 //   cross-hatch around the vertical axis. Lines thicken as the tone darkens, like
-//   an engraving, and keep a steady on-screen spacing at any zoom.
+//   an engraving, and keep a steady on-screen spacing at any zoom. Hair hatches
+//   along its strands instead: wavy, roughly vertical lines that start in the
+//   mid-tones and crowd together in shadow.
 //
 // Colours are "pigment on white": the paper effect multiplies them onto paper.
 
@@ -22,6 +24,7 @@ uniform float uHatchScale; // hatch lines per object-space unit
 uniform float uGlow; // 0 = ordinary pigment, 1 = self-lit arcane wash
 uniform float uTime;
 uniform float uPartId; // written to alpha for the outline effect's part edges
+uniform float uStrands; // 1 = hatch along hanging strands (hair)
 
 varying vec3 vViewNormal;
 varying vec3 vObjectPosition;
@@ -104,6 +107,18 @@ void main() {
     upright
   );
   float hatch = max(contour * firstLayer, engravedLines(spiral, perPixel, wobble, width * 0.8) * secondLayer);
+
+  // Strands: lines of constant x on surfaces facing front or back, constant z on
+  // those facing the sides (sharp blend, so the two sets barely cross), bent by
+  // noise stretched along y so they wave like hair.
+  vec3 sn = pow(an, vec3(4.0));
+  float facingSide = sn.x / max(sn.x + sn.z, 1e-4);
+  float bend = (pwFbm3(p * vec3(5.0, 1.2, 5.0)) - 0.5) * 0.35;
+  float across = (facingSide > 0.5 ? p.z : p.x) * uHatchScale * 1.4 + bend * uHatchScale * 0.15;
+  float strandWidth = mix(0.08, 0.3, darkness);
+  float strandLines = engravedLines(across, perPixel, wobble * 0.5, strandWidth)
+    * smoothstep(0.3, 0.6, darkness);
+  hatch = mix(hatch, strandLines, uStrands);
   colour = mix(colour, uInk, hatch * 0.62);
 
   // Arcane parts are self-lit: pale at the heart, saturated at the rim, pulsing.

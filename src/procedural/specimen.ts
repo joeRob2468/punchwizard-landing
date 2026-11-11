@@ -8,7 +8,7 @@ import { LANDMARKS } from './landmarks.ts';
 import { latticePart, vesselsPart } from './parts/arcane.ts';
 import { aethericCorePart, brainPart, etherealGlandPart, focusGemsPart } from './parts/brain.ts';
 import { sinusPart, tonguePart } from './parts/face-organs.ts';
-import { beardPart, hairPart } from './parts/hair.ts';
+import { beardPart, eyebrowsPart, hairPart, moustachePart } from './parts/hair.ts';
 import { eyesPart, headPart, irisPart, pupilPart } from './parts/head.ts';
 import { hatPart } from './parts/hat.ts';
 import type { PartDefinition } from './parts/part.ts';
@@ -19,6 +19,8 @@ export function specimenParts(): PartDefinition[] {
   return [
     // Integument
     hatPart(),
+    eyebrowsPart(),
+    moustachePart(),
     hairPart(),
     beardPart(),
     robePart(),

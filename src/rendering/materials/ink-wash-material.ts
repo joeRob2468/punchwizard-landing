@@ -24,6 +24,8 @@ export interface InkWashOptions {
   readonly partId?: number;
   /** Read the baked `occlusion` vertex attribute (specimen parts have it). */
   readonly useOcclusion?: boolean;
+  /** Hatch along hanging strands (hair) instead of across the form. */
+  readonly strands?: boolean;
 }
 
 export class InkWashMaterial extends ShaderMaterial {
@@ -35,6 +37,7 @@ export class InkWashMaterial extends ShaderMaterial {
     hatchScale = RENDER.hatchScale,
     partId = 255,
     useOcclusion = false,
+    strands = false,
   }: InkWashOptions) {
     const time = { value: 0 };
     super({
@@ -50,6 +53,7 @@ export class InkWashMaterial extends ShaderMaterial {
         uTime: time,
         uPartId: { value: partId },
         uUseOcclusion: { value: useOcclusion ? 1 : 0 },
+        uStrands: { value: strands ? 1 : 0 },
       },
     });
     this.name = 'InkWashMaterial';

@@ -1,12 +1,12 @@
 /**
  * Branching tubes (vessels, nerves, the hat's conduit lattice) as lists of tapered
  * segments, plus an SDF for a whole list that stays fast with hundreds of
- * segments by skipping those whose bounding box is farther than the best hit.
+ * segments by bucketing them in a grid so each sample tests only nearby ones.
  */
 import { add, bezier, length, lerp, scale, sub } from '../sdf/math.ts';
 import { smoothMin } from '../sdf/operators.ts';
 import { roundCone } from '../sdf/primitives.ts';
-import type { Sdf, Vec3 } from '../sdf/types.ts';
+import type { Bounds, Sdf, Vec3 } from '../sdf/types.ts';
 import { between, type Random } from './random.ts';
 
 export interface Segment {
@@ -179,6 +179,24 @@ export function segmentsField(segments: readonly Segment[], k = 0.012, bucket = 
       d = d === Infinity ? fd : smoothMin(d, fd, k);
     }
     return Math.min(d, bucket);
+  };
+}
+
+/** Box around every segment (radius included) and `include`, padded by `pad`. */
+export function segmentsBounds(segments: readonly Segment[], include: Bounds, pad = 0.03): Bounds {
+  const min = [...include.min];
+  const max = [...include.max];
+  for (const s of segments) {
+    const r = Math.max(s.ra, s.rb);
+    for (let i = 0; i < 3; i++) {
+      min[i] = Math.min(min[i] ?? 0, (s.a[i] ?? 0) - r, (s.b[i] ?? 0) - r);
+      max[i] = Math.max(max[i] ?? 0, (s.a[i] ?? 0) + r, (s.b[i] ?? 0) + r);
+    }
+  }
+  const at = (v: number[], i: number, d: number) => (v[i] ?? 0) + d;
+  return {
+    min: [at(min, 0, -pad), at(min, 1, -pad), at(min, 2, -pad)],
+    max: [at(max, 0, pad), at(max, 1, pad), at(max, 2, pad)],
   };
 }
 
