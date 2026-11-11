@@ -8,10 +8,60 @@ How the site works. The rationale and roadmap are in [PLAN.md](PLAN.md); this fi
 
 `<App>` (`src/app/App.tsx`) stacks two layers in one full-viewport `<main>`:
 
-1. **Scene** (`<Canvas>`): camera rig, specimen (currently `scene/TestBust`, a primitive stand-in) and the post-processing stack. The renderer runs with no tone mapping (`flat`) so palette colours stay exact, DPR capped at 2.
+1. **Scene** (`<Canvas>`): camera rig, the specimen (`specimen/Specimen`, inside `<Suspense>` while it loads) and the post-processing stack. The renderer runs with no tone mapping (`flat`) so palette colours stay exact, DPR capped at 2.
 2. **Overlay**: DOM above the canvas, `pointer-events: none` by default. Holds the printed double rule (`ui/PlateBorder`) and the title block (`ui/PlateHeader`).
 
-`<Fallback>` shows the same border and title on CSS paper (`ui/PaperBackdrop`).
+`<Fallback>` shows the same border and title on CSS paper (`ui/PaperBackdrop`). It's used when WebGL 2 is missing and, through `ui/ErrorBoundary`, when the plate fails to render (for example, the specimen can't be fetched).
+
+In dev, `scene/DevHandle` exposes the R3F state getter as `window.__plate` for inspection.
+
+## Procedural specimen
+
+Everything the wizard is made of is generated in `src/procedural/` (pure TypeScript, no DOM) and meshed ahead of time by the **bake**.
+
+### Space and landmarks
+
+Specimen space: origin near the centre of the head, y up, the face looking along +z, +x on the wizard's left; one unit is about a head's height. `landmarks.ts` names the reference points (eyes, nose tip, chin, ears, neck, shoulders, brim centre, hat tip, beard tip, bust base). Parts are positioned from them, and label anchors will refer to them.
+
+### Parts
+
+Each part (`parts/*.ts`) is a `PartDefinition`: an id, a layer, a look (palette key and optional glow), a signed distance field, the bounds the surface must fit in, and a cell size for meshing. `specimen.ts` lists the parts in draw order.
+
+| Part    | Layer      | Built from                                                                                                                             |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `robe`  | integument | Sloping shoulder cones, arms, chest ellipsoid and a rolled collar, cut flat at the bust base; vertical fold noise                      |
+| `head`  | integument | Cranium and face ellipsoids, cheeks, brow ridge, nose cone and nostrils, ears, neck; eye sockets carved out; fine noise                |
+| `eyes`  | organs     | Two spheres in the sockets, glowing cyan                                                                                               |
+| `hair`  | integument | A mantle behind the head, below the brim; strand noise                                                                                 |
+| `beard` | integument | Jaw mass, side tufts, a tapering fall down the chest along a curve, moustache and eyebrows; strand noise                               |
+| `hat`   | integument | A rounded disc brim that droops and ripples, and a cone of tapering segments along a spine that bends at the tip; solid (lore: a horn) |
+
+### SDF toolkit
+
+`sdf/` has primitives (after Inigo Quilez's distance functions), hard and smooth booleans, offsets, shells, rotations, mirroring, displacement, domain warps and seeded value noise (`fbm`). Fields take three numbers and return one, so sampling doesn't allocate.
+
+### Meshing
+
+`mesh/surface-nets.ts` meshes a field on a regular grid:
+
+1. Sample the field in 4×4×4 blocks; a block whose centre is far from the surface (beyond twice its half-diagonal) takes the centre's value instead of sampling every point.
+2. One vertex per cell the surface crosses, at the average of its edge crossings.
+3. One quad per grid edge with a sign change, joining the four cells around it, wound so the normal points outward.
+4. Each vertex is pulled onto the surface with Newton steps; normals come from the field's gradient.
+
+Meshes are closed as long as the surface stays inside the part's bounds; the mesher throws `SurfaceOutOfBoundsError` if it reaches the grid edge. Features thinner than about three cells can pinch (an edge shared by four triangles); keep thin parts (brim, hat tip) at least that thick.
+
+### Bake and format
+
+`scripts/bake.ts` meshes every part and writes `generated/specimen/` (git-ignored): `manifest.json` (parts, layers, looks, counts, bounds, landmarks) and one `<part>.bin` each. A part file holds Float32 positions, normalised Int8 normals (padded to 4 bytes) and Uint16 or Uint32 indices (`format/specimen-format.ts`). Output goes to a temporary folder that replaces the old one at the end.
+
+`vite-plugins/bake.ts` runs the bake in a child process when the dev server starts and whenever a file in `src/procedural/` changes, serves `generated/specimen/` at `/specimen/`, and reloads the page. In builds it emits the files into `dist/specimen/`; `npm run build` bakes first.
+
+Current output: about 140k triangles and 1.8 MB (before gzip) across six parts, baked in about 7 s.
+
+### Loading
+
+`specimen/load-specimen.ts` fetches the manifest and buffers (started at module load, so it overlaps start-up) and builds a `BufferGeometry` per part with a bounding sphere from the part's bounds. `specimen/Specimen.tsx` creates an `InkWashMaterial` per part from its look and advances material time each frame.
 
 ## Render pipeline
 
