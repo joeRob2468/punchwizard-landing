@@ -11,4 +11,9 @@ export interface PartDefinition {
   readonly bounds: Bounds;
   /** Grid spacing for meshing, in specimen units. Smaller is finer and slower. */
   readonly cellSize: number;
+  /**
+   * Through-holes the part is meant to have (the skull's openings into its cavity).
+   * The bake warns when a part has more than this; stray holes show on screen.
+   */
+  readonly intendedHoles?: number;
 }

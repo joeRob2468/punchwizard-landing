@@ -79,27 +79,24 @@ function eyelids(): Sdf {
   );
   const eye = smoothUnion(0.008, sheet, rim, fold);
   const bag = ellipsoid([EX + 0.01, EY - 0.06, EZ + 0.048], [0.07, 0.025, 0.032]);
-  return mirrorX(smoothUnion(0.014, eye, bag));
+  return mirrorX(smoothUnion(0.03, eye, bag));
 }
 
 /** The tear-trough crease under each bag. */
 const tearTroughs = (): Sdf =>
   mirrorX(
-    roundCone(
-      [EX - 0.065, EY - 0.09, EZ + 0.05],
-      [EX + 0.082, EY - 0.098, EZ + 0.026],
-      0.005,
-      0.004,
-    ),
+    roundCone([EX - 0.06, EY - 0.094, EZ + 0.05], [EX + 0.075, EY - 0.1, EZ + 0.03], 0.004, 0.003),
   );
 
 function nose(): Sdf {
   return smoothUnion(
     0.035,
-    roundCone([0, 0.16, 0.465], [0, -0.03, 0.6], 0.036, 0.05), // bridge
+    roundCone([0, 0.16, 0.455], [0, -0.03, 0.59], 0.038, 0.05), // bridge, seated on the face
     sphere([0, 0.06, 0.545], 0.034), // the hump
     sphere([0, -0.055, 0.615], 0.052), // bulbous tip
-    mirrorX(ellipsoid([0.05, -0.085, 0.55], [0.038, 0.032, 0.042])), // nostril wings
+    // Nostril wings, each one lobe running back into the cheek: a wing that met the
+    // face in two places left a tunnel behind it.
+    mirrorX(ellipsoid([0.052, -0.085, 0.525], [0.04, 0.033, 0.065])),
   );
 }
 
@@ -140,7 +137,11 @@ function wrinkles(x: number, y: number, z: number): number {
   // A vertical frown line between the brows.
   groove += 0.006 * Math.exp(-((ax / 0.012) ** 2)) * Math.exp(-(((y - 0.21) / 0.05) ** 2)) * front;
 
-  return groove + fbm(SEED, x * 14, y * 14, z * 14) * 0.006;
+  // Fine skin texture, faded out around the eyes: the lids are thin enough that it
+  // would punch holes through them.
+  const nearEye = Math.hypot(ax - EX, y - EY, z - EZ);
+  const texture = fbm(SEED, x * 14, y * 14, z * 14) * 0.006 * smoothstep(0.09, 0.13, nearEye);
+  return groove + texture;
 }
 
 /** The skin of head and neck as a field (also used to keep internals inside it). */
@@ -161,25 +162,33 @@ export function headSkinField(): Sdf {
   solid = smoothSubtract(0.08, solid, mirrorX(sphere([0.47, 0.2, 0.17], 0.09)));
   solid = smoothSubtract(0.06, solid, mirrorX(sphere([0.3, -0.13, 0.36], 0.065)));
   solid = smoothUnion(0.04, solid, brow, cheekbones, ears());
-  solid = smoothUnion(0.03, solid, nose(), lips());
+  // The nose blends in generously: the face curves away beneath the bridge, and a
+  // tight blend left a tunnel under it.
+  solid = smoothUnion(0.06, solid, nose());
+  solid = smoothUnion(0.03, solid, lips());
 
   // Nasolabial folds, from the nostril wings toward the corners of the mouth.
-  const folds = mirrorX(capsule([0.08, -0.07, 0.535], [0.135, -0.27, 0.44], 0.01));
+  const folds = mirrorX(capsule([0.105, -0.085, 0.5], [0.14, -0.27, 0.43], 0.009));
   solid = smoothSubtract(0.015, solid, folds);
-  // Nostrils.
-  solid = smoothSubtract(0.008, solid, mirrorX(sphere([0.03, -0.1, 0.585], 0.016)));
-
-  // Sockets hug the eyeball; the lids then wrap it.
-  // The orbit: open the face in front of each eye, so the eyeball shows and the lids
-  // (which overlap the opening's edge) wrap it. Then hollow a socket for the ball.
-  const orbits = mirrorX(ellipsoid([EX, EY + 0.005, EZ + 0.035], [0.084, 0.062, 0.07]));
-  solid = smoothSubtract(0.025, solid, orbits);
-  const sockets = mirrorX(sphere(L.eyeLeft, EYE_RADIUS + 0.006));
-  const skin = smoothSubtract(
-    0.014,
-    smoothUnion(0.012, subtract(solid, sockets), eyelids()),
-    tearTroughs(),
+  // Nostrils: shallow openings on the underside of the tip, well inside the
+  // wings so they can't break through them.
+  solid = smoothSubtract(
+    0.006,
+    solid,
+    mirrorX(ellipsoid([0.024, -0.114, 0.578], [0.011, 0.006, 0.016])),
   );
+
+  // The orbit: open the face in front of each eye so the eyeball (a separate part)
+  // shows, and let the lids wrap it. The carve stays inside the lid's outer surface,
+  // so the lid always seals it. There is deliberately no socket hollowed behind the
+  // eye: a socket wider than the ball broke out beside the nose bridge.
+  const lidReach = mirrorX(sphere(L.eyeLeft, EYE_RADIUS + 0.012));
+  const orbits = intersect(
+    mirrorX(ellipsoid([EX, EY + 0.005, EZ + 0.035], [0.084, 0.062, 0.07])),
+    lidReach,
+  );
+  solid = subtract(solid, orbits);
+  const skin = smoothSubtract(0.014, smoothUnion(0.012, solid, eyelids()), tearTroughs());
 
   return displace(skin, wrinkles);
 }

@@ -63,6 +63,8 @@ export function skullPart(): PartDefinition {
     look: BONE,
     field: skull,
     bounds: { min: [-0.48, -0.42, -0.6], max: [0.48, 0.68, 0.55] },
+    // Fontanelle, foramen, nasal aperture and two orbits all open into one cavity.
+    intendedHoles: 4,
     cellSize: 0.016,
   };
 }

@@ -57,6 +57,11 @@ async function bake(): Promise<void> {
     console.log(
       `  ${part.id.padEnd(15)} ${String(triangles).padStart(7)} tris  ${kb(result.bytes.byteLength)}  ${Math.round(result.ms)} ms`,
     );
+    if (result.handles > (part.intendedHoles ?? 0)) {
+      console.warn(
+        `  warning: "${part.id}" has ${result.handles} through-hole(s); look for parts that touch in two places, or carves/noise deeper than the skin is thick`,
+      );
+    }
   }
 
   const manifest: SpecimenManifest = {

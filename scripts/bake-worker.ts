@@ -7,6 +7,8 @@ import { parentPort, workerData } from 'node:worker_threads';
 import { encodePart } from '../src/procedural/format/specimen-format.ts';
 import { dropSmallComponents } from '../src/procedural/mesh/components.ts';
 import { bakeOcclusion } from '../src/procedural/mesh/occlusion.ts';
+import { orientOutward } from '../src/procedural/mesh/orient.ts';
+import { countHandles } from '../src/procedural/mesh/topology.ts';
 import { meshSdf } from '../src/procedural/mesh/surface-nets.ts';
 import { union } from '../src/procedural/sdf/operators.ts';
 import { specimenParts } from '../src/procedural/specimen.ts';
@@ -18,6 +20,8 @@ export interface BakeResult {
   readonly indexType: 'uint16' | 'uint32';
   readonly vertexCount: number;
   readonly indexCount: number;
+  /** Through-holes in the mesh; anything above 0 shows as a hole on screen. */
+  readonly handles: number;
   readonly ms: number;
 }
 
@@ -46,7 +50,7 @@ for (const index of indices) {
       meshSdf(part.field, part.bounds, part.cellSize),
       MIN_PIECE_TRIANGLES,
     );
-    const mesh = await simplifyMesh(raw, part.cellSize * SIMPLIFY_ERROR);
+    const { mesh } = orientOutward(await simplifyMesh(raw, part.cellSize * SIMPLIFY_ERROR));
     const occlusion = part.layer === 'integument' ? bakeOcclusion(mesh, outerField) : null;
     const { bytes, indexType } = encodePart(mesh, part.bounds, occlusion);
     const result: BakeResult = {
@@ -55,6 +59,7 @@ for (const index of indices) {
       indexType,
       vertexCount: mesh.positions.length / 3,
       indexCount: mesh.indices.length,
+      handles: countHandles(raw),
       ms: performance.now() - started,
     };
     parentPort?.postMessage(result, [bytes.buffer]);
