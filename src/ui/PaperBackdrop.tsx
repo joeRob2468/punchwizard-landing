@@ -1,6 +1,6 @@
 /**
- * Stand-in paper background in plain CSS. Replaced by the procedural paper
- * effect in the render pipeline (M1), which also tints the model.
+ * Paper in plain CSS, for the no-WebGL fallback. With WebGL the paper effect draws
+ * the paper instead.
  */
 import styles from './PaperBackdrop.module.css';
 

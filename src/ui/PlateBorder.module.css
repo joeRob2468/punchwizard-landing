@@ -1,0 +1,7 @@
+.border {
+  position: absolute;
+  inset: clamp(10px, 2.5vmin, 28px);
+  border: 1px solid var(--ink-faint);
+  outline: 1px solid var(--ink-faint);
+  outline-offset: 4px;
+}
