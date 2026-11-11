@@ -1,0 +1,14 @@
+/** What a procedural part generator returns: a field plus how to mesh and paint it. */
+import type { Layer, PartLook } from '../format/specimen-format.ts';
+import type { Bounds, Sdf } from '../sdf/types.ts';
+
+export interface PartDefinition {
+  readonly id: string;
+  readonly layer: Layer;
+  readonly look: PartLook;
+  readonly field: Sdf;
+  /** Box the surface must fit inside; the mesher pads it. */
+  readonly bounds: Bounds;
+  /** Grid spacing for meshing, in specimen units. Smaller is finer and slower. */
+  readonly cellSize: number;
+}
