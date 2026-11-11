@@ -7,7 +7,7 @@ uniform vec3 uWash;
 uniform vec3 uInk;
 uniform vec3 uNormal; // plane normal, world space
 uniform vec3 uCentre; // rings centre
-uniform int uPattern; // 0 hatch, 1 stipple, 2 rings, 3 glow
+uniform int uPattern; // 0 hatch, 1 stipple, 2 rings, 3 glow, 4 gyri, 5 strands
 uniform float uTime;
 uniform float uPartId;
 
@@ -37,6 +37,17 @@ void main() {
     float r = length(r2) + (vWorldPosition.y - uCentre.y) * 0.18;
     float d = fract(r * 13.0 + pwNoise2(uv * 5.0) * 0.4);
     ink = (1.0 - smoothstep(0.06, 0.16, abs(d - 0.5))) * 0.5;
+  } else if (uPattern == 4) {
+    // Meandering folds, like the cortex in section.
+    float w = uv.y * 22.0 + sin(uv.x * 26.0 + pwNoise2(uv * 6.0) * 4.0) * 1.4;
+    float d = fract(w);
+    ink = (1.0 - smoothstep(0.08, 0.2, abs(d - 0.5))) * 0.42;
+  } else if (uPattern == 5) {
+    // Long wavy strokes falling downward: hair in section.
+    vec3 world = vWorldPosition;
+    float w = dot(world, t) * 30.0 + sin(world.y * 9.0 + pwNoise2(uv * 4.0) * 3.0) * 0.8;
+    float d = fract(w);
+    ink = (1.0 - smoothstep(0.05, 0.13, abs(d - 0.5))) * 0.4;
   } else {
     float pulse = 0.5 + 0.5 * sin(uTime * 1.3);
     colour = mix(vec3(1.0), uWash, 0.45 + 0.2 * pulse);

@@ -15,11 +15,13 @@ import {
   smoothUnion,
   sphere,
 } from '../sdf/index.ts';
+import type { Sdf } from '../sdf/types.ts';
 import type { PartDefinition } from './part.ts';
 
 const SEED = 11;
 
-export function headPart(): PartDefinition {
+/** The skin of head and neck as a field (also used to keep internals inside it). */
+export function headSkinField(): Sdf {
   const cranium = ellipsoid([0, 0.17, -0.05], [0.45, 0.52, 0.54]);
   const face = ellipsoid([0, -0.13, 0.15], [0.35, 0.42, 0.37]);
   const cheek = mirrorX(ellipsoid([0.21, -0.02, 0.32], [0.13, 0.1, 0.12]));
@@ -37,12 +39,15 @@ export function headPart(): PartDefinition {
     sphere([L.eyeLeft[0], L.eyeLeft[1], L.eyeLeft[2] + 0.02], EYE_RADIUS + 0.03),
   );
   const skin = smoothSubtract(0.05, solid, sockets);
+  return displace(skin, (x, y, z) => fbm(SEED, x * 9, y * 9, z * 9) * 0.012);
+}
 
+export function headPart(): PartDefinition {
   return {
     id: 'head',
     layer: 'integument',
     look: { wash: 'washFlesh', section: { pattern: 'hatch' } },
-    field: displace(skin, (x, y, z) => fbm(SEED, x * 9, y * 9, z * 9) * 0.012),
+    field: headSkinField(),
     bounds: { min: [-0.6, -1.15, -0.7], max: [0.6, 0.78, 0.75] },
     cellSize: 0.02,
   };

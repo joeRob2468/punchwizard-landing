@@ -14,11 +14,13 @@ import {
   smoothUnion,
   torus,
 } from '../sdf/index.ts';
+import type { Sdf } from '../sdf/types.ts';
 import type { PartDefinition } from './part.ts';
 
 const SEED = 53;
 
-export function robePart(): PartDefinition {
+/** The robed bust as a field (also used to keep internals inside it). */
+export function robeField(): Sdf {
   const [, baseY] = L.bustBase;
   const [sx, sy, sz] = L.shoulderLeft;
 
@@ -31,12 +33,16 @@ export function robePart(): PartDefinition {
   const body = smoothUnion(0.06, smoothUnion(0.22, slope, arm, chest), collar);
   const cut = halfSpace([0, baseY, 0], [0, -1, 0]);
   const folds = (x: number, y: number, z: number) => fbm(SEED, x * 6, y * 1.2, z * 6) * 0.05;
+  return intersect(displace(body, folds), cut);
+}
 
+export function robePart(): PartDefinition {
+  const [, baseY] = L.bustBase;
   return {
     id: 'robe',
     layer: 'integument',
     look: { wash: 'washOchre', section: { pattern: 'hatch' } },
-    field: intersect(displace(body, folds), cut),
+    field: robeField(),
     bounds: { min: [-1.3, baseY - 0.02, -0.55], max: [1.3, -0.6, 0.5] },
     cellSize: 0.03,
   };

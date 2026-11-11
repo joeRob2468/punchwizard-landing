@@ -17,7 +17,7 @@ export const LAYERS = ['integument', 'musculature', 'skeleton', 'organs', 'arcan
 export type Layer = (typeof LAYERS)[number];
 
 /** Fill pattern for a part's cut face when the specimen is sectioned. */
-export type SectionPattern = 'hatch' | 'stipple' | 'rings' | 'glow';
+export type SectionPattern = 'hatch' | 'stipple' | 'rings' | 'glow' | 'gyri' | 'strands';
 
 /** How a part is painted. `wash` is a key of PALETTE. */
 export interface PartLook {
@@ -50,7 +50,7 @@ export interface SpecimenManifest {
 const align4 = (n: number) => (n + 3) & ~3;
 
 export function encodePart(mesh: MeshData): {
-  bytes: Uint8Array;
+  bytes: Uint8Array<ArrayBuffer>;
   indexType: PartEntry['indexType'];
 } {
   const vertexCount = mesh.positions.length / 3;

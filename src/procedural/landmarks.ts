@@ -25,6 +25,13 @@ export const LANDMARKS = {
   hatTip: [0.78, 1.98, -0.22],
   beardTip: [0.04, -1.32, 0.46],
   bustBase: [0, -1.65, 0],
+  aethericCore: [0, 0.1, -0.06],
+  etherealGland: [0, 0.0, -0.17],
+  fontanelle: [0, 0.6, -0.06],
+  foramen: [0, -0.2, -0.13],
+  sinus: [0, 0.03, 0.3],
+  tongue: [0, -0.31, 0.22],
+  familiarsPerch: [0.5, -0.9, -0.02],
 } as const satisfies Record<string, Vec3>;
 
 export type LandmarkName = keyof typeof LANDMARKS;

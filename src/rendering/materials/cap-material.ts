@@ -24,6 +24,8 @@ const PATTERN_IDS: Readonly<Record<SectionPattern, number>> = {
   stipple: 1,
   rings: 2,
   glow: 3,
+  gyri: 4,
+  strands: 5,
 };
 
 export interface CapOptions {

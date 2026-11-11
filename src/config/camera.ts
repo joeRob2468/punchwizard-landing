@@ -5,7 +5,7 @@
 export const CAMERA = {
   fov: 30,
   /** Initial three-quarter view. */
-  position: [4.4, 1.6, 8.0] as const,
+  position: [6.6, 1.5, 5.6] as const,
   target: [0, 0.2, 0] as const,
   minDistance: 2.2,
   maxDistance: 11,

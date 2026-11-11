@@ -10,8 +10,21 @@ import type { PartDefinition } from './part.ts';
 
 const SEED = 23;
 
-export function hatPart(): PartDefinition {
+/** Points along the hat's spine, base to tip, with the cone's radius at each. */
+export function hatSpine(): { points: Vec3[]; radii: number[] } {
   const [bx, by, bz] = L.brimCentre;
+  const points: Vec3[] = [];
+  const base: Vec3 = [bx, by + 0.02, bz - 0.02];
+  const shoulder: Vec3 = [0.12, 1.65, -0.2];
+  for (let i = 0; i <= 6; i++) points.push(bezier(base, [0.0, 1.15, -0.1], shoulder, i / 6));
+  for (let i = 1; i <= 3; i++) points.push(bezier(shoulder, [0.38, 2.1, -0.25], L.hatTip, i / 3));
+  const radii = points.map((_, i) => 0.47 * (1 - i / (points.length - 1)) ** 1.25 + 0.035);
+  return { points, radii };
+}
+
+/** The hat as a field (also used to keep the conduit lattice inside it). */
+export function hatField(): Sdf {
+  const [bx, , bz] = L.brimCentre;
 
   // Brim: a flat disc whose edge droops and ripples.
   const flatBrim = roundedCylinder(L.brimCentre, 1.0, 0.0, 0.045);
@@ -22,13 +35,7 @@ export function hatPart(): PartDefinition {
   });
 
   // Cone: tapering round-cone segments along a curved spine that bends at the tip.
-  const spine: Vec3[] = [];
-  const base: Vec3 = [bx, by + 0.02, bz - 0.02];
-  const shoulder: Vec3 = [0.12, 1.65, -0.2];
-  for (let i = 0; i <= 6; i++) spine.push(bezier(base, [0.0, 1.15, -0.1], shoulder, i / 6));
-  for (let i = 1; i <= 3; i++) spine.push(bezier(shoulder, [0.38, 2.1, -0.25], L.hatTip, i / 3));
-  const radii = spine.map((_, i) => 0.47 * (1 - i / (spine.length - 1)) ** 1.25 + 0.035);
-
+  const { points: spine, radii } = hatSpine();
   const segments: Sdf[] = [];
   for (let i = 0; i < spine.length - 1; i++) {
     const a = spine[i];
@@ -40,11 +47,15 @@ export function hatPart(): PartDefinition {
   const cone = smoothUnion(0.04, ...segments);
 
   const hat = smoothUnion(0.12, brim, cone);
+  return displace(hat, (x, y, z) => fbm(SEED + 1, x * 4, y * 4, z * 4) * 0.02);
+}
+
+export function hatPart(): PartDefinition {
   return {
     id: 'hat',
     layer: 'integument',
     look: { wash: 'washVein', section: { pattern: 'rings', centre: L.brimCentre } },
-    field: displace(hat, (x, y, z) => fbm(SEED + 1, x * 4, y * 4, z * 4) * 0.02),
+    field: hatField(),
     bounds: { min: [-1.2, -0.2, -1.2], max: [1.2, 2.15, 1.15] },
     cellSize: 0.024,
   };

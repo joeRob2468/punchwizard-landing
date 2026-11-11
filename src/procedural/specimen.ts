@@ -5,14 +5,41 @@
  * innermost (an overlapping beard must not paint over the face it grows from).
  */
 import { LANDMARKS } from './landmarks.ts';
+import { latticePart, vesselsPart } from './parts/arcane.ts';
+import { aethericCorePart, brainPart, etherealGlandPart, focusGemsPart } from './parts/brain.ts';
+import { sinusPart, tonguePart } from './parts/face-organs.ts';
 import { beardPart, hairPart } from './parts/hair.ts';
 import { eyesPart, headPart } from './parts/head.ts';
 import { hatPart } from './parts/hat.ts';
 import type { PartDefinition } from './parts/part.ts';
 import { robePart } from './parts/robe.ts';
+import { girdlePart, mandiblePart, skullPart, spinePart } from './parts/skeleton.ts';
 
 export function specimenParts(): PartDefinition[] {
-  return [hatPart(), hairPart(), beardPart(), robePart(), headPart(), eyesPart()];
+  return [
+    // Integument
+    hatPart(),
+    hairPart(),
+    beardPart(),
+    robePart(),
+    headPart(),
+    // Bone, then the soft organs it houses
+    skullPart(),
+    tonguePart(),
+    sinusPart(),
+    mandiblePart(),
+    spinePart(),
+    girdlePart(),
+    // Brain and what is set in it
+    brainPart(),
+    focusGemsPart(),
+    etherealGlandPart(),
+    eyesPart(),
+    // Arcane systems last so they read on top of everything they pass through
+    vesselsPart(),
+    latticePart(),
+    aethericCorePart(),
+  ];
 }
 
 export { LANDMARKS };
