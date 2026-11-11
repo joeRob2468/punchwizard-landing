@@ -121,14 +121,17 @@ Parts are capped in manifest order with `LessEqual` depth, so later caps win whe
 
 `scene/CameraRig` wraps drei's `<CameraControls>` (the `camera-controls` library). Settings are in `src/config/camera.ts`.
 
-| Input                         | Action                                         |
-| ----------------------------- | ---------------------------------------------- |
-| Left-drag                     | Orbit                                          |
-| Right-drag, Shift + left-drag | Pan (target kept inside a box around the bust) |
-| Wheel, middle-drag, pinch     | Zoom (distance clamped)                        |
-| Arrow keys                    | Orbit in steps                                 |
-| `+` / `-`                     | Zoom in steps                                  |
-| `R`, double-click             | Reset to the initial three-quarter view        |
+| Input                         | Action                                                     |
+| ----------------------------- | ---------------------------------------------------------- |
+| Left-drag                     | Orbit                                                      |
+| Right-drag, Shift + left-drag | Pan (target kept inside a box around the bust)             |
+| Wheel, middle-drag, pinch     | Zoom (distance clamped)                                    |
+| Arrow keys                    | Orbit in steps                                             |
+| `+` / `-`                     | Zoom in steps                                              |
+| `R`, double-click, reset mark | Reset the view and ease the cut back to its resting offset |
+| Drag the plane's knob         | Move the cut                                               |
+| `[` / `]`                     | Move the cut in steps                                      |
+| `S`, section name             | Change the section axis                                    |
 
 The polar angle is clamped so the camera can look down on the hat but not up from under the shoulders. After 8 s without input the camera turns slowly; this is off when `prefers-reduced-motion` is set (`hooks/use-prefers-reduced-motion`).
 
