@@ -1,6 +1,6 @@
 # Punchwizard Landing — Project Plan
 
-> Status: **agreed; M0–M5 done, M6 started** · 2026-11-11. This is the roadmap. Once work begins,
+> Status: **M0–M5 done; realism revision (§8a) in progress** · 2026-11-11. This is the roadmap. Once work begins,
 > current state lives in `status.md` and how things work in `design.md`; this file
 > keeps only what is still ahead.
 
@@ -420,6 +420,16 @@ on the look at the end of M1 and M2.
 M2 and M4 are the largest (most art iteration). M3 and M5 are mostly engineering.
 
 ---
+
+## 8a. Revision after M5 review (2026-11-11)
+
+The owner found the model too cartoonish and added more realistic references (weathered old faces, long hair and beards in locks, hats with bands and buckles, layered robes with trim and high collars). Decisions:
+
+- **Realism, procedural first.** Push the outer shell much further in code: facial planes, deep-set eyes with lids, wrinkles, a long nose, big ears; hair, beard and moustache as hundreds of individual locks over a solid core; a creased hat with a band and buckle; a layered robe with a high collar, trim and a clasp. If that still doesn't line up with the references, bring the imported-sculpt pipeline (§6) forward.
+- **Shading: tonal watercolour with hatching.** Replace the three flat bands with soft glazed tones, ambient occlusion baked per vertex from the specimen's own fields, and cross-contour hatching that wraps around forms (like the pencil-sketch reference).
+- **Touch slicing:** two-finger vertical drag moves the cut; pinch zooms; one finger orbits.
+- **Already done:** the wheel moves the cut (Ctrl/⌘ + wheel zooms) and the drag knob is gone; the flickering outline specks are fixed.
+- **Possible later step:** a further stylisation pass — dark background, more monotone colouring and textures, internals rendered like an MRI scan. To be decided after the realism pass.
 
 ## 9. Still open (not blocking)
 
