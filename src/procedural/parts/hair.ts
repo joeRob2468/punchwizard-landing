@@ -41,7 +41,13 @@ export function beardPart(): PartDefinition {
   }
 
   const moustache = mirrorX(roundCone([0.03, -0.17, 0.57], [0.27, -0.34, 0.45], 0.05, 0.022));
-  const eyebrow = mirrorX(roundCone([0.06, 0.23, 0.5], [0.34, 0.3, 0.38], 0.055, 0.03));
+  const eyebrow = mirrorX(
+    smoothUnion(
+      0.02,
+      roundCone([0.05, 0.215, 0.49], [0.17, 0.235, 0.47], 0.024, 0.026),
+      roundCone([0.17, 0.235, 0.47], [0.31, 0.25, 0.39], 0.026, 0.014),
+    ),
+  );
 
   const beard = smoothUnion(0.03, smoothUnion(0.12, jaw, sides, ...fall), moustache, eyebrow);
   return {

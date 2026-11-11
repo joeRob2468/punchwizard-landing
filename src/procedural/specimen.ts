@@ -9,7 +9,7 @@ import { latticePart, vesselsPart } from './parts/arcane.ts';
 import { aethericCorePart, brainPart, etherealGlandPart, focusGemsPart } from './parts/brain.ts';
 import { sinusPart, tonguePart } from './parts/face-organs.ts';
 import { beardPart, hairPart } from './parts/hair.ts';
-import { eyesPart, headPart, irisPart } from './parts/head.ts';
+import { eyesPart, headPart, irisPart, pupilPart } from './parts/head.ts';
 import { hatPart } from './parts/hat.ts';
 import type { PartDefinition } from './parts/part.ts';
 import { robePart } from './parts/robe.ts';
@@ -36,6 +36,7 @@ export function specimenParts(): PartDefinition[] {
     etherealGlandPart(),
     eyesPart(),
     irisPart(),
+    pupilPart(),
     // Arcane systems last so they read on top of everything they pass through
     vesselsPart(),
     latticePart(),

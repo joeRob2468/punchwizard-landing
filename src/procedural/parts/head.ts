@@ -15,6 +15,7 @@ import {
   halfSpace,
   intersect,
   mirrorX,
+  offset,
   roundCone,
   shell,
   smoothSubtract,
@@ -30,20 +31,53 @@ import type { PartDefinition } from './part.ts';
 const SEED = 11;
 const [EX, EY, EZ] = L.eyeLeft;
 
-/** Hooded upper lid and a thinner lower lid, as shells over the eyeball. */
+/**
+ * Eyelids: one sheet of skin wrapping the front of each eyeball, with an almond
+ * opening (narrow and slightly hooded, as on an old man), a thin rim along the
+ * opening, the fold of the upper lid above it, and a puffy bag below with the
+ * tear-trough crease that sets it off from the cheek.
+ */
 function eyelids(): Sdf {
-  const lidShell = shell(sphere(L.eyeLeft, EYE_RADIUS + 0.009), 0.016);
-  const front = halfSpace([0, 0, EZ - 0.015], [0, 0, -1]);
-  // Upper lid covers the top of the eye, its edge tilting down toward the outer corner.
-  const upperEdge: Sdf = (x, y) => -(y - (EY + 0.008 - 0.12 * (Math.abs(x) - EX)));
-  const upper = intersect(lidShell, front, upperEdge);
-  const lowerEdge: Sdf = (_x, y) => y - (EY - 0.036);
-  const lower = intersect(lidShell, front, lowerEdge);
-  // The fold of skin that hangs over the upper lid, and the bag beneath.
-  const hood = ellipsoid([EX + 0.01, EY + 0.055, EZ - 0.005], [0.065, 0.022, 0.04]);
-  const bag = ellipsoid([EX + 0.005, EY - 0.07, EZ - 0.01], [0.055, 0.024, 0.035]);
-  return mirrorX(smoothUnion(0.02, upper, lower, hood, bag));
+  const lid = shell(sphere(L.eyeLeft, EYE_RADIUS + 0.008), 0.014);
+  const front = halfSpace([0, 0, EZ - 0.02], [0, 0, -1]);
+  // The opening, as a prism along z: half-width 0.05, half-height up to 0.017,
+  // its outer corner a touch lower than the inner one.
+  const opening: Sdf = (x, y) => {
+    const u = (Math.abs(x) - EX) / 0.05;
+    const centreY = EY - 0.004 - 0.008 * u;
+    const halfHeight = 0.017 * Math.max(0, 1 - u * u);
+    return Math.max(Math.abs(y - centreY) - halfHeight, Math.abs(u) * 0.05 - 0.05);
+  };
+  const sheet = subtract(intersect(lid, front), opening);
+  // The rim: the band of lid within 6 mm of the opening, outside it.
+  const outsideOpening: Sdf = (x, y, z) => -opening(x, y, z);
+  const rim = intersect(
+    shell(sphere(L.eyeLeft, EYE_RADIUS + 0.012), 0.008),
+    front,
+    offset(opening, 0.006),
+    outsideOpening,
+  );
+  const fold = roundCone(
+    [EX - 0.045, EY + 0.03, EZ + 0.035],
+    [EX + 0.055, EY + 0.02, EZ + 0.025],
+    0.012,
+    0.009,
+  );
+  const eye = smoothUnion(0.008, sheet, rim, fold);
+  const bag = ellipsoid([EX + 0.008, EY - 0.05, EZ + 0.038], [0.056, 0.022, 0.03]);
+  return mirrorX(smoothUnion(0.012, eye, bag));
 }
+
+/** The tear-trough crease under each bag. */
+const tearTroughs = (): Sdf =>
+  mirrorX(
+    roundCone(
+      [EX - 0.05, EY - 0.074, EZ + 0.042],
+      [EX + 0.065, EY - 0.08, EZ + 0.022],
+      0.0045,
+      0.0035,
+    ),
+  );
 
 function nose(): Sdf {
   return smoothUnion(
@@ -123,7 +157,11 @@ export function headSkinField(): Sdf {
 
   // Sockets hug the eyeball; the lids then wrap it.
   const sockets = mirrorX(sphere(L.eyeLeft, EYE_RADIUS + 0.006));
-  const skin = smoothUnion(0.012, subtract(solid, sockets), eyelids());
+  const skin = smoothSubtract(
+    0.014,
+    smoothUnion(0.012, subtract(solid, sockets), eyelids()),
+    tearTroughs(),
+  );
 
   return displace(skin, wrinkles);
 }
@@ -158,8 +196,8 @@ export function eyesPart(): PartDefinition {
 /** The crystalline iris: a glowing cap on the front of each eyeball. */
 export function irisPart(): PartDefinition {
   const cap = intersect(
-    sphere(L.eyeLeft, EYE_RADIUS + 0.004),
-    sphere([EX, EY, EZ + EYE_RADIUS], 0.032),
+    sphere(L.eyeLeft, EYE_RADIUS + 0.003),
+    sphere([EX, EY - 0.003, EZ + EYE_RADIUS], 0.021),
   );
   return {
     id: 'iris',
@@ -168,6 +206,22 @@ export function irisPart(): PartDefinition {
     field: union(mirrorX(cap)),
     bounds: eyeBounds(0.1),
     cellSize: 0.004,
+  };
+}
+
+/** The pupil: a small dark cap at the centre of the iris. */
+export function pupilPart(): PartDefinition {
+  const cap = intersect(
+    sphere(L.eyeLeft, EYE_RADIUS + 0.005),
+    sphere([EX, EY - 0.003, EZ + EYE_RADIUS], 0.009),
+  );
+  return {
+    id: 'pupil',
+    layer: 'organs',
+    look: { wash: 'ink', section: { pattern: 'stipple' } },
+    field: mirrorX(cap),
+    bounds: eyeBounds(0.1),
+    cellSize: 0.003,
   };
 }
 
