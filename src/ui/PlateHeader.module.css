@@ -1,0 +1,56 @@
+.header {
+  position: absolute;
+  top: clamp(24px, 5vmin, 56px);
+  left: clamp(24px, 5vmin, 64px);
+  max-width: min(22rem, calc(100vw - 48px));
+}
+
+.species {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.6vmin + 0.6rem, 2.2rem);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.vernacular {
+  margin: 0.15em 0 0;
+  font-size: clamp(0.85rem, 1vmin + 0.5rem, 1.05rem);
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+}
+
+.subtitle {
+  margin: 0.6em 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-faint);
+}
+
+.taxonomy {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.1em 1em;
+  margin: 1em 0 0;
+  font-size: 0.75rem;
+}
+
+.rank {
+  display: contents;
+}
+
+.rank dt {
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+}
+
+.rank dd {
+  margin: 0;
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .taxonomy {
+    display: none;
+  }
+}

@@ -1,0 +1,26 @@
+/*
+ * Palette and typography tokens. The same palette is mirrored for shaders in
+ * src/config/palette.ts; keep the two in step.
+ */
+:root {
+  /* Paper and ink */
+  --paper: #efe4cc;
+  --paper-shadow: #d9c7a3;
+  --ink: #3b2a1a;
+  --ink-faint: rgb(59 42 26 / 0.55);
+
+  /* Deyrolle washes */
+  --wash-flesh: #e8b9a0;
+  --wash-muscle: #b9504a;
+  --wash-bone: #efe6cf;
+  --wash-brain: #c9a3a0;
+  --wash-ochre: #c99a4a;
+  --wash-verdigris: #6f9a86;
+  --wash-vein: #4f6f9a;
+
+  /* Arcane accents */
+  --arcane-mana: #4fc3c9;
+  --arcane-garnet: #9b2335;
+
+  --font-plate: 'IM Fell English', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+}

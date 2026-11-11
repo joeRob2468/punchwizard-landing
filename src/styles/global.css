@@ -1,0 +1,29 @@
+@import '@fontsource/im-fell-english/400.css';
+@import '@fontsource/im-fell-english/400-italic.css';
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-plate);
+  -webkit-font-smoothing: antialiased;
+}
+
+.noscript {
+  margin: 2rem;
+  font-family: var(--font-plate);
+}

@@ -15,6 +15,7 @@ it sits at the root domain and links nowhere.
 ## 1. Goals and non-goals
 
 ### Goals
+
 - **The specimen is the page.** Full-viewport 3D scene, almost no chrome.
 - **Hand-tinted plate look.** Bold ink outlines and flat watercolour washes in a
   Deyrolle-style palette, on aged paper. Heavily stylised, so simple geometry reads as
@@ -31,6 +32,7 @@ it sits at the root domain and links nowhere.
   apply.
 
 ### Non-goals
+
 - Realistic or medically accurate anatomy (all anatomy is fictional).
 - Automated tests. Pure modules stay testable so `vitest` can be added later.
 - CMS, backend, analytics. Static site only.
@@ -41,41 +43,44 @@ it sits at the root domain and links nowhere.
 ## 2. Experience
 
 ### 2.1 Layout
+
 - Paper background fills the viewport (procedural: fibres, foxing, vignette, faint
   ruled border).
 - Wizard centred, three-quarter view on load.
 - Plate header in an old-style serif, small, top-left: the species name as title,
-  ***Pugnomagus pileatus*** ("hatted fist-wizard"; *pugnus* fist + *magus*,
-  *pileatus* capped), with the vernacular name beneath it as in a field guide —
-  **"The Common Punchwizard"** — then the subtitle *"Sectio capitis et humerorum"*
-  and a small Hudspeth-style taxonomy block (Kingdom *Animalia* … Family *Magidae* …
-  Species *P. pileatus*).
+  _**Pugnomagus pileatus**_ ("hatted fist-wizard"; _pugnus_ fist + _magus_,
+  _pileatus_ capped), with the vernacular name beneath it as in a field guide —
+  **"The Common Punchwizard"** — then the subtitle _"Sectio capitis et humerorum"_
+  and a small Hudspeth-style taxonomy block (Kingdom _Animalia_ … Family _Magidae_ …
+  Species _P. pileatus_).
 - Labels in left and right margin columns, Hudspeth-style, joined to the model by
   thin ink leader lines.
 - The only persistent UI: a slice-axis glyph and a reset glyph, drawn as small ink
   marks in a corner.
 
 ### 2.2 Controls
+
 Standard web 3D viewer conventions (three.js, Sketchfab, `<model-viewer>`). Bindings
 live in one config module.
 
-| Input | Action |
-|---|---|
-| Left-drag | Orbit |
-| Right-drag, or Shift + left-drag | Pan |
-| Wheel / pinch | Zoom (clamped) |
-| Left-drag on the slice handle | Move the cut plane along its normal |
-| Hover label or feature | Highlight feature, show tooltip |
-| Click label or feature | Pin tooltip; click elsewhere to dismiss |
-| Double-click empty space | Reset view |
-| Touch: 1 finger / 2 fingers | Orbit / pinch-zoom + pan |
-| Keyboard | Arrows orbit, `+`/`-` zoom, `[`/`]` move slice, `S` cycle slice axis, `R` reset, Tab cycles labels |
+| Input                            | Action                                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Left-drag                        | Orbit                                                                                              |
+| Right-drag, or Shift + left-drag | Pan                                                                                                |
+| Wheel / pinch                    | Zoom (clamped)                                                                                     |
+| Left-drag on the slice handle    | Move the cut plane along its normal                                                                |
+| Hover label or feature           | Highlight feature, show tooltip                                                                    |
+| Click label or feature           | Pin tooltip; click elsewhere to dismiss                                                            |
+| Double-click empty space         | Reset view                                                                                         |
+| Touch: 1 finger / 2 fingers      | Orbit / pinch-zoom + pan                                                                           |
+| Keyboard                         | Arrows orbit, `+`/`-` zoom, `[`/`]` move slice, `S` cycle slice axis, `R` reset, Tab cycles labels |
 
 Orbit clamped so the camera never goes under the shoulders; zoom clamped between
 "whole bust" and "eye close-up"; damping on. Slow idle auto-rotate after ~8 s without
 input, stopping on interaction; off under `prefers-reduced-motion`.
 
 ### 2.3 Slicing
+
 - One cut plane with three axis presets: **sagittal** (default, left/right halves),
   **coronal** (front/back), **transverse** (top/bottom). `S` or the axis glyph cycles.
 - Drawn as a faint ink rectangle with one drag handle (a pin glyph).
@@ -86,6 +91,7 @@ input, stopping on interaction; off under `prefers-reduced-motion`.
   teach the interaction.
 
 ### 2.4 Labels and tooltips
+
 - Each feature: id, common name, Latin name, short lore, 3D anchor, layer.
 - Shown when its anchor is on the kept side of the plane and not hidden behind other
   geometry. Fades in and out.
@@ -94,6 +100,7 @@ input, stopping on interaction; off under `prefers-reduced-motion`.
 - Leader lines have a slight hand-inked wobble.
 
 ### 2.5 Polish
+
 - Idle motion: slight breathing in the shoulders, hat-tip sway, slow mana pulse.
 - Load: paper first, then the specimen "inks in" (outlines, then washes).
 - `<noscript>` / no-WebGL fallback: static plate image.
@@ -106,20 +113,20 @@ input, stopping on interaction; off under `prefers-reduced-motion`.
 Draft. Final names and lore go in `docs/anatomy.md` and `src/anatomy/registry.ts`.
 Descriptions only; the registry has no link field (easy to add later if wanted).
 
-| # | Common name | Latin | Layer | Notes |
-|---|---|---|---|---|
-| 1 | The Hat | *Pileus arcanus* | Integument | Not clothing: a laminated keratin horn grown from the crown. Section shows growth rings. |
-| 2 | Conduit Lattice | *Rete pilei* | Arcane | Branching mana fibres up the inside of the hat; discharge point at the tip. |
-| 3 | Third Fontanelle | *Fonticulus tertius* | Skeleton | Opening in the crown that never closes; vents surplus mana into the hat. |
-| 4 | Aetheric Core | *Nucleus aethericus* | Organs | Glowing nodule deep in the brain where mana is stored. |
-| 5 | Ethereal Gland | *Glandula aetheris* | Organs | Regulates spell potency; cause of "wizard burnout". |
-| 6 | Focus Gems | *Gemmae cogitationis* | Organs | Garnet-like crystals in the cortex; more accrue over a lifetime of study. |
-| 7 | Crystalline Eye | *Oculus crystallinus* | Organs | Faceted lens; sees ley lines. |
-| 8 | Incantatory Sinus | *Sinus incantatorius* | Skeleton | Resonance chamber behind the nose that tunes spoken spells. |
-| 9 | Glossal Arcanum | *Lingua sigillata* | Organs | Sigil-ridged tongue muscle for precise incantation. |
-| 10 | Mnemonic Beard | *Barba mnemonica* | Integument | Each follicle stores one memory; root plexus along the jaw. |
-| 11 | Aetherial Vessels | *Vasa aetheria* | Arcane | Cyan vessels from the core down the neck to the shoulders. |
-| 12 | Familiar's Perch | *Processus familiaris* | Skeleton | Bony shelf on the clavicle where a familiar sits. |
+| #   | Common name       | Latin                  | Layer      | Notes                                                                                    |
+| --- | ----------------- | ---------------------- | ---------- | ---------------------------------------------------------------------------------------- |
+| 1   | The Hat           | _Pileus arcanus_       | Integument | Not clothing: a laminated keratin horn grown from the crown. Section shows growth rings. |
+| 2   | Conduit Lattice   | _Rete pilei_           | Arcane     | Branching mana fibres up the inside of the hat; discharge point at the tip.              |
+| 3   | Third Fontanelle  | _Fonticulus tertius_   | Skeleton   | Opening in the crown that never closes; vents surplus mana into the hat.                 |
+| 4   | Aetheric Core     | _Nucleus aethericus_   | Organs     | Glowing nodule deep in the brain where mana is stored.                                   |
+| 5   | Ethereal Gland    | _Glandula aetheris_    | Organs     | Regulates spell potency; cause of "wizard burnout".                                      |
+| 6   | Focus Gems        | _Gemmae cogitationis_  | Organs     | Garnet-like crystals in the cortex; more accrue over a lifetime of study.                |
+| 7   | Crystalline Eye   | _Oculus crystallinus_  | Organs     | Faceted lens; sees ley lines.                                                            |
+| 8   | Incantatory Sinus | _Sinus incantatorius_  | Skeleton   | Resonance chamber behind the nose that tunes spoken spells.                              |
+| 9   | Glossal Arcanum   | _Lingua sigillata_     | Organs     | Sigil-ridged tongue muscle for precise incantation.                                      |
+| 10  | Mnemonic Beard    | _Barba mnemonica_      | Integument | Each follicle stores one memory; root plexus along the jaw.                              |
+| 11  | Aetherial Vessels | _Vasa aetheria_        | Arcane     | Cyan vessels from the core down the neck to the shoulders.                               |
+| 12  | Familiar's Perch  | _Processus familiaris_ | Skeleton   | Bony shelf on the clavicle where a familiar sits.                                        |
 
 **Layers**, outside in: Integument → Musculature (simplified, optional) → Skeleton →
 Organs → Arcane. Toggleable in code and by keyboard; no visible layer UI.
@@ -134,6 +141,7 @@ shaders.
 ## 4. Technical approach
 
 ### 4.1 Stack
+
 - **Vite + React + TypeScript** (strict), ESM, **npm**, Node 24 (`.nvmrc`).
 - **@react-three/fiber** for the scene; **@react-three/drei** for camera controls and
   helpers; **@react-three/postprocessing** (pmndrs `postprocessing`) for the effect
@@ -142,7 +150,7 @@ shaders.
   values (label screen positions, plane drag) are read with `getState()` in
   `useFrame` and written straight to DOM refs — no React re-render per frame.
 - **CSS Modules** for the DOM overlay; theme tokens as CSS custom properties.
-- **Fonts** self-hosted via `@fontsource` (e.g. *IM Fell English*). No font CDN calls.
+- **Fonts** self-hosted via `@fontsource` (e.g. _IM Fell English_). No font CDN calls.
 - **Tooling:** ESLint (typescript-eslint `strictTypeChecked` + `stylisticTypeChecked`,
   react-hooks), Prettier (100 cols, single quotes, trailing commas), `tsc --noEmit`,
   EditorConfig. `npm run check` = format:check + lint + typecheck; must pass before
@@ -150,6 +158,7 @@ shaders.
 - **tsx** to run the bake script in Node.
 
 ### 4.2 Procedural geometry: signed distance fields → meshes
+
 Each procedural part (shell, skull, brain, organs) is a **signed distance field**: a
 function giving the distance from any point to the part's surface. Parts combine
 primitives (spheres, capsules, ellipsoids, cones, rounded boxes) with smooth union,
@@ -157,6 +166,7 @@ subtraction and intersection, plus domain warps for organic irregularity. All
 randomness is seeded, so builds are identical.
 
 Why SDFs:
+
 - **Watertight by construction**, which slice caps require.
 - **Layers derive from each other:** skin = shell offset inward; skull inside that;
   brain inside the skull's cavity. Reshape the head and everything inside follows.
@@ -181,6 +191,7 @@ landmarks, bounds). Simpler than glTF and needs no exporter in Node; imported sh
 from Blender still come in as `.glb` and are converted at bake.
 
 ### 4.3 Rendering: ink + flat watercolour
+
 1. **Geometry pass** with a custom `InkWashMaterial`:
    - Tone from a fixed key light, **quantised into 2–3 flat wash steps** per part
      colour (cel-style), with edges broken up by paper-grain noise so they look
@@ -199,6 +210,7 @@ GLSL lives in `.glsl` files imported via Vite. Effects are `postprocessing` `Eff
 subclasses wrapped as R3F components.
 
 ### 4.4 Slicing
+
 - One `THREE.Plane` set as the clipping plane on every specimen material.
 - **Caps** with the standard stencil technique per part: back faces increment,
   front faces decrement, so non-zero stencil marks that part's interior at the cut;
@@ -208,6 +220,7 @@ subclasses wrapped as R3F components.
   model's bounds. Handle drags stop propagation so they don't orbit.
 
 ### 4.5 Labels
+
 - **Registry** (`anatomy/registry.ts`): pure data. Anchors are defined relative to
   named landmarks, so they move with the geometry.
 - **Visibility**, throttled (~10 Hz, only when camera or plane changed): clip-side
@@ -220,6 +233,7 @@ subclasses wrapped as R3F components.
   SVG layer. Positions written to refs each frame.
 
 ### 4.6 Performance budget
+
 - 60 fps on a mid-range laptop; usable on recent phones.
 - < ~300k triangles total; baked data < ~3 MB (gzip-served by nginx).
 - DPR capped at 2 (`<Canvas dpr={[1, 2]}>`); post-processing scales down on weak GPUs
@@ -275,6 +289,7 @@ punchwizard-landing/
 ```
 
 **Architecture rules**
+
 - `procedural/` and `anatomy/` are pure: no DOM, React or scene objects (three's math
   types allowed). They run the same in Node (bake) and the browser.
 - Rendering, slicing and labels depend on `specimen/` interfaces, not on how parts
@@ -289,6 +304,7 @@ namespaces); no `any`; kebab-case file names except `PascalCase.tsx` for compone
 short "why" docblock per module, JSDoc on non-obvious exports, no narrating comments.
 
 **Git**
+
 - `git init` locally; `main` only; public GitHub repo later (push only with the
   owner's go-ahead), which the server pulls from.
 - **Conventional Commits** (`feat(slicing): …`, `fix(labels): …`, `docs: …`,
@@ -307,16 +323,16 @@ commit as the change they describe.
 ## 6. Outer shell: AI image-to-3D and Blender
 
 **Procedural shell ships first.** AI image-to-3D (Meshy, Tripo, Rodin, …) is
-reasonable for the *outer shell only*, as a later swap-in (M7). Its problems and the
+reasonable for the _outer shell only_, as a later swap-in (M7). Its problems and the
 answers:
 
-| Problem | Answer |
-|---|---|
-| Messy topology (holes, self-intersections) breaks slice caps | Bake converts the mesh to an SDF and re-meshes it: watertight |
-| One fused mesh (hat + head + beard + robe) | Generate parts separately, or split in Blender |
-| Baked lighting textures | Discarded — the shader reads geometry only |
-| Internals must fit an arbitrary head | Internals placed from landmarks; skin and skull derived from the shell's SDF |
-| Licensing and uploads to a third party | Owner checks the tool's terms; uploads happen outside this repo |
+| Problem                                                      | Answer                                                                       |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Messy topology (holes, self-intersections) breaks slice caps | Bake converts the mesh to an SDF and re-meshes it: watertight                |
+| One fused mesh (hat + head + beard + robe)                   | Generate parts separately, or split in Blender                               |
+| Baked lighting textures                                      | Discarded — the shader reads geometry only                                   |
+| Internals must fit an arbitrary head                         | Internals placed from landmarks; skin and skull derived from the shell's SDF |
+| Licensing and uploads to a third party                       | Owner checks the tool's terms; uploads happen outside this repo              |
 
 **Blender via Blender MCP (M7):** clean-up (voxel remesh, fill holes, decimate,
 scale/orient), part separation, landmarks as named empties (`LM_eye_L`, `LM_crown`, …)
@@ -336,6 +352,7 @@ Same pattern as `discord-stream-recorder`. Server facts below were checked over 
 (read-only) on 2026-11-11.
 
 **Server as found**
+
 - Traefik v3 (in the `docker-media-stack` project) on the external `media_network`;
   entrypoints `web` (redirects to HTTPS) and `websecure`; certificate resolver
   `letsencrypt` via Cloudflare DNS challenge, already issuing a cert for
@@ -347,6 +364,7 @@ Same pattern as `discord-stream-recorder`. Server facts below were checked over 
   (`Host github-dsr` → `~/.ssh/discord-disco-archive_deploy`).
 
 **In the repo**
+
 - **Dockerfile**, multi-stage: `node:24-alpine` runs `npm ci` and `npm run build`
   (bake + Vite) → `nginx:alpine` serves `dist/` with `deploy/nginx.conf` (gzip, long
   cache for hashed assets, no-cache for `index.html`, `/healthz` for the healthcheck).
@@ -355,7 +373,7 @@ Same pattern as `discord-stream-recorder`. Server facts below were checked over 
   `restart: unless-stopped`.
 - **compose.server.yaml** (overlay): `ports: !reset []`, joins `media_network`, labels:
   - router `pw-landing`: `Host(\`${DOMAIN}\`) || Host(\`www.${DOMAIN}\`)`,
-    entrypoint `websecure`;
+entrypoint `websecure`;
   - middleware `pw-landing-www`: `redirectregex` from `^https://www\.(.*)` to
     `https://$1`, permanent — so `www.` 301s to the apex;
   - service port 8080 (unprivileged nginx).
@@ -364,6 +382,7 @@ Same pattern as `discord-stream-recorder`. Server facts below were checked over 
 
 **One-time setup on the server and DNS** (owner does these, or approves each step;
 written up in `operations.md`)
+
 1. Cloudflare DNS: apex `@` CNAME → `media.<domain>` (Cloudflare flattens it) and
    `www` CNAME → `media.<domain>`, both **DNS only**, matching the other subdomains.
 2. GitHub: create the public repo and add a read-only deploy key.
@@ -387,17 +406,17 @@ Each milestone is several feature commits, ends in a runnable state, and closes 
 a status.md update. Visual checks happen in the local dev server; the owner signs off
 on the look at the end of M1 and M2.
 
-| # | Milestone | Deliverable |
-|---|---|---|
-| M0 | **Scaffold** | git init, .gitignore (incl. `moodboard/`), Vite + React + TS strict, ESLint/Prettier, `npm run check`, folder layout, CLAUDE.md, README, docs stubs. Paper background renders. |
-| M1 | **Render pipeline** | Canvas, camera controls (§2.2), `InkWashMaterial`, outline + paper effects, palette tokens — on test primitives. **Look sign-off.** |
-| M2 | **SDF toolkit + bake** | SDF primitives/ops, surface nets, binary format + manifest, bake script + Vite plugin, landmarks. Procedural shell: head, nose, ears, brow, shoulders/robe, hat, beard mass. **Shape sign-off.** |
-| M3 | **Slicing** | Clip plane, stencil caps with per-tissue patterns, drag handle, axis cycling, intro slide-in. |
-| M4 | **Internals** | Skin layer, skull/mandible/vertebrae/clavicles, brain, eyes, tongue, sinus, fantasy organs, vessel and lattice growth. |
-| M5 | **Labels** | Registry, visibility + occlusion, margin layout, leader lines, tooltips, keyboard navigation. |
-| M6 | **Polish** | Idle motion, ink-in load, touch tuning, reduced motion, fallback, performance pass. Docker + compose + nginx, tested locally only. |
-| M7 | *(optional)* **Imported shell** | Blender MCP setup, `ImportedShell`, `art/` export scripts, landmark empties, AI or sculpted bust trial. |
-| M8 | **Deploy** | Last step, once the owner calls the site final: §7 one-time setup, first deploy, operations.md verified against the live server. |
+| #   | Milestone                       | Deliverable                                                                                                                                                                                      |
+| --- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| M0  | **Scaffold**                    | git init, .gitignore (incl. `moodboard/`), Vite + React + TS strict, ESLint/Prettier, `npm run check`, folder layout, CLAUDE.md, README, docs stubs. Paper background renders.                   |
+| M1  | **Render pipeline**             | Canvas, camera controls (§2.2), `InkWashMaterial`, outline + paper effects, palette tokens — on test primitives. **Look sign-off.**                                                              |
+| M2  | **SDF toolkit + bake**          | SDF primitives/ops, surface nets, binary format + manifest, bake script + Vite plugin, landmarks. Procedural shell: head, nose, ears, brow, shoulders/robe, hat, beard mass. **Shape sign-off.** |
+| M3  | **Slicing**                     | Clip plane, stencil caps with per-tissue patterns, drag handle, axis cycling, intro slide-in.                                                                                                    |
+| M4  | **Internals**                   | Skin layer, skull/mandible/vertebrae/clavicles, brain, eyes, tongue, sinus, fantasy organs, vessel and lattice growth.                                                                           |
+| M5  | **Labels**                      | Registry, visibility + occlusion, margin layout, leader lines, tooltips, keyboard navigation.                                                                                                    |
+| M6  | **Polish**                      | Idle motion, ink-in load, touch tuning, reduced motion, fallback, performance pass. Docker + compose + nginx, tested locally only.                                                               |
+| M7  | _(optional)_ **Imported shell** | Blender MCP setup, `ImportedShell`, `art/` export scripts, landmark empties, AI or sculpted bust trial.                                                                                          |
+| M8  | **Deploy**                      | Last step, once the owner calls the site final: §7 one-time setup, first deploy, operations.md verified against the live server.                                                                 |
 
 M2 and M4 are the largest (most art iteration). M3 and M5 are mostly engineering.
 
