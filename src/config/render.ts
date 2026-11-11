@@ -10,4 +10,6 @@ export const RENDER = {
   outlineWidth: 1.6,
   /** 0–1: how dark outlines are drawn. */
   outlineStrength: 0.9,
+  /** 0–1: lines between different parts (including tissues on a cut face). */
+  partEdgeStrength: 0.75,
 } as const;

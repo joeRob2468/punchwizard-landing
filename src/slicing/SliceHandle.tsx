@@ -7,11 +7,16 @@ import { type ThreeEvent, useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import {
   BufferGeometry,
+  CustomBlending,
   Float32BufferAttribute,
   type Group,
   LineBasicMaterial,
   LineLoop,
+  OneFactor,
+  OneMinusSrcAlphaFactor,
+  SrcAlphaFactor,
   Vector3,
+  ZeroFactor,
 } from 'three';
 
 import { PALETTE } from '../config/palette.ts';
@@ -43,8 +48,13 @@ export function SliceHandle({ bounds }: SliceHandleProps) {
         color: PALETTE.ink,
         transparent: true,
         opacity: 0.35,
-        // Lines stay out of the depth buffer so the outline effect doesn't trace them.
+        // Keep out of depth and alpha (part ids) so the outline effect ignores the lines.
         depthWrite: false,
+        blending: CustomBlending,
+        blendSrc: SrcAlphaFactor,
+        blendDst: OneMinusSrcAlphaFactor,
+        blendSrcAlpha: ZeroFactor,
+        blendDstAlpha: OneFactor,
       }),
     [],
   );

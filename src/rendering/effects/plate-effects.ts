@@ -21,6 +21,7 @@ export class OutlineEffect extends Effect {
         ['uInk', new Uniform(new Color(PALETTE.ink))],
         ['uWidth', new Uniform(RENDER.outlineWidth)],
         ['uStrength', new Uniform(RENDER.outlineStrength)],
+        ['uPartEdgeStrength', new Uniform(RENDER.partEdgeStrength)],
       ]),
     });
   }

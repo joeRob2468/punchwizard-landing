@@ -30,13 +30,15 @@ export interface CapOptions {
   readonly wash: string;
   readonly pattern: SectionPattern;
   readonly centre?: Vec3;
+  /** Same id as the part's surface material (see InkWashOptions.partId). */
+  readonly partId: number;
 }
 
 export class CapMaterial extends ShaderMaterial {
   readonly #time: { value: number };
   readonly #normal: { value: Vector3 };
 
-  constructor({ wash, pattern, centre = [0, 0, 0] }: CapOptions) {
+  constructor({ wash, pattern, centre = [0, 0, 0], partId }: CapOptions) {
     const time = { value: 0 };
     const normal = { value: new Vector3(0, 0, 1) };
     super({
@@ -58,6 +60,7 @@ export class CapMaterial extends ShaderMaterial {
         uCentre: { value: new Vector3(...centre) },
         uPattern: { value: PATTERN_IDS[pattern] },
         uTime: time,
+        uPartId: { value: partId },
       },
     });
     this.name = 'CapMaterial';

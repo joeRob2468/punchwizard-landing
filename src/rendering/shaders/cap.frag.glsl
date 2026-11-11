@@ -9,6 +9,7 @@ uniform vec3 uNormal; // plane normal, world space
 uniform vec3 uCentre; // rings centre
 uniform int uPattern; // 0 hatch, 1 stipple, 2 rings, 3 glow
 uniform float uTime;
+uniform float uPartId;
 
 varying vec3 vWorldPosition;
 
@@ -42,6 +43,6 @@ void main() {
   }
 
   colour = mix(colour, uInk, ink);
-  gl_FragColor = vec4(colour, 1.0);
+  gl_FragColor = vec4(colour, uPartId / 255.0);
   #include <colorspace_fragment>
 }

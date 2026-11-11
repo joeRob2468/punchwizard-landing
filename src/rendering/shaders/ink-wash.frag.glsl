@@ -11,6 +11,7 @@ uniform vec3 uLightDirection; // view space, normalised
 uniform float uHatchScale; // hatch lines per object-space unit
 uniform float uGlow; // 0 = ordinary pigment, 1 = self-lit arcane wash
 uniform float uTime;
+uniform float uPartId; // written to alpha for the outline effect's part edges
 
 varying vec3 vViewNormal;
 varying vec3 vObjectPosition;
@@ -69,6 +70,6 @@ void main() {
   vec3 glow = mix(mix(vec3(1.0), uWash, 0.25 + 0.15 * pulse), uWash, smoothstep(0.2, 0.9, rim));
   colour = mix(colour, glow, uGlow);
 
-  gl_FragColor = vec4(colour, 1.0);
+  gl_FragColor = vec4(colour, uPartId / 255.0);
   #include <colorspace_fragment>
 }

@@ -17,12 +17,17 @@ export interface InkWashOptions {
   readonly glow?: number;
   /** Hatch lines per object-space unit. */
   readonly hatchScale?: number;
+  /**
+   * 1–254, unique per part. Written to the alpha channel so the outline effect can
+   * ink boundaries between parts; 255 is reserved for the background and helpers.
+   */
+  readonly partId?: number;
 }
 
 export class InkWashMaterial extends ShaderMaterial {
   readonly #time: { value: number };
 
-  constructor({ wash, glow = 0, hatchScale = RENDER.hatchScale }: InkWashOptions) {
+  constructor({ wash, glow = 0, hatchScale = RENDER.hatchScale, partId = 255 }: InkWashOptions) {
     const time = { value: 0 };
     super({
       vertexShader: vertex,
@@ -35,6 +40,7 @@ export class InkWashMaterial extends ShaderMaterial {
         uHatchScale: { value: hatchScale },
         uGlow: { value: glow },
         uTime: time,
+        uPartId: { value: partId },
       },
     });
     this.name = 'InkWashMaterial';

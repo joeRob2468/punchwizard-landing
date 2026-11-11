@@ -5,6 +5,7 @@
 uniform vec3 uInk;
 uniform float uWidth;
 uniform float uStrength;
+uniform float uPartEdgeStrength;
 
 float viewDistance(const in vec2 uv) {
   return -getViewZ(readDepth(uv));
@@ -26,9 +27,18 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   float jump = max(max(abs(dl - d), abs(dr - d)), max(abs(du - d), abs(dd - d))) * scale;
   float curvature = abs(dl + dr + du + dd - 4.0 * d) * scale;
 
+  // Part ids live in alpha (see InkWashMaterial): ink where they change, which
+  // separates tissues on coplanar section caps and overlapping parts generally.
+  float a = texture2D(inputBuffer, c).a;
+  float idChange = max(
+    max(abs(texture2D(inputBuffer, c - vec2(o.x, 0.0)).a - a), abs(texture2D(inputBuffer, c + vec2(o.x, 0.0)).a - a)),
+    max(abs(texture2D(inputBuffer, c + vec2(0.0, o.y)).a - a), abs(texture2D(inputBuffer, c - vec2(0.0, o.y)).a - a))
+  );
+  float partEdge = step(0.5 / 255.0, idChange) * uPartEdgeStrength;
+
   float silhouette = smoothstep(0.015, 0.04, jump);
   float crease = smoothstep(0.004, 0.01, curvature) * 0.55;
-  float ink = max(silhouette, crease) * uStrength;
+  float ink = max(max(silhouette, crease), partEdge) * uStrength;
 
   outputColor = vec4(mix(inputColor.rgb, uInk, ink), inputColor.a);
 }

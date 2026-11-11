@@ -28,6 +28,7 @@ import {
 
 import { PALETTE, type PaletteKey } from '../config/palette.ts';
 import { CapMaterial } from '../rendering/materials/cap-material.ts';
+import { partIdFor } from '../specimen/part-id.ts';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
 import { useClipPlane } from './clip-plane.tsx';
 
@@ -47,7 +48,7 @@ export function SectionCaps({ parts }: SectionCapsProps) {
 
   const layers = useMemo(
     () =>
-      parts.map(({ entry, geometry }) => {
+      parts.map(({ entry, geometry }, index) => {
         const section = entry.look.section ?? { pattern: 'hatch' as const };
         const wash = isPaletteKey(entry.look.wash) ? PALETTE[entry.look.wash] : PALETTE.ink;
         return {
@@ -55,7 +56,12 @@ export function SectionCaps({ parts }: SectionCapsProps) {
           geometry,
           back: stencilMaterial(plane, BackSide, IncrementWrapStencilOp),
           front: stencilMaterial(plane, FrontSide, DecrementWrapStencilOp),
-          cap: new CapMaterial({ wash, pattern: section.pattern, centre: section.centre }),
+          cap: new CapMaterial({
+            wash,
+            pattern: section.pattern,
+            centre: section.centre,
+            partId: partIdFor(index),
+          }),
         };
       }),
     [parts, plane],

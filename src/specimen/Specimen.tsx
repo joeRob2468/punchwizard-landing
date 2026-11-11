@@ -13,6 +13,7 @@ import { SectionCaps } from '../slicing/SectionCaps.tsx';
 import { SliceController } from '../slicing/SliceController.tsx';
 import { SliceHandle } from '../slicing/SliceHandle.tsx';
 import type { LoadedSpecimen } from './load-specimen.ts';
+import { partIdFor } from './part-id.ts';
 
 interface SpecimenProps {
   readonly specimen: Promise<LoadedSpecimen>;
@@ -24,8 +25,9 @@ export function Specimen({ specimen }: SpecimenProps) {
 
   const meshes = useMemo(
     () =>
-      parts.map(({ entry, geometry }) => {
+      parts.map(({ entry, geometry }, index) => {
         const material = new InkWashMaterial({
+          partId: partIdFor(index),
           wash: isPaletteKey(entry.look.wash) ? PALETTE[entry.look.wash] : PALETTE.ink,
           glow: entry.look.glow ?? 0,
         });
