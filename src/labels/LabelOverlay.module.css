@@ -1,0 +1,167 @@
+.labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.leader {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  opacity: 0.8;
+  transition:
+    opacity 0.35s,
+    stroke-width 0.2s;
+}
+
+.dot {
+  fill: var(--ink);
+  transition: opacity 0.35s;
+}
+
+.leader[data-visible='false'],
+.dot[data-visible='false'] {
+  opacity: 0;
+}
+
+.leader[data-active] {
+  stroke-width: 1.6;
+  opacity: 1;
+}
+
+.label {
+  position: absolute;
+  display: flex;
+  gap: 0.45em;
+  align-items: baseline;
+  padding: 0.15em 0.1em;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 0.95rem var(--font-plate);
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateY(-50%);
+  transition: opacity 0.35s;
+}
+
+.label[data-side='left'] {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.label[data-visible='false'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.label:focus-visible {
+  outline: 1px dashed var(--ink);
+  outline-offset: 3px;
+}
+
+/* Each label is its own stacking context (transform); lift the active one. */
+.label:hover,
+.label:focus-visible,
+.label[data-pinned] {
+  z-index: 2;
+}
+
+.number {
+  font-variant-numeric: oldstyle-nums;
+  font-size: 0.85em;
+  color: var(--ink-faint);
+}
+
+.name {
+  font-style: italic;
+}
+
+.label:hover .name,
+.label[data-pinned] .name {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.tooltip {
+  position: absolute;
+  top: calc(100% + 6px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  width: max-content;
+  max-width: min(17rem, 40vw);
+  padding: 0.6em 0.75em;
+  border: 1px solid var(--ink-faint);
+  background: color-mix(in srgb, var(--paper) 94%, white);
+  box-shadow: 0 1px 0 var(--paper-shadow);
+  font-size: 0.85rem;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.label[data-side='left'] .tooltip {
+  right: 0;
+}
+
+.label[data-side='right'] .tooltip {
+  left: 0;
+}
+
+.label:hover .tooltip,
+.label:focus-visible .tooltip,
+.label[data-pinned] .tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.latin {
+  font-style: italic;
+}
+
+/* The name is already on the label except in compact mode. */
+.tooltipName {
+  display: none;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+
+.labels[data-compact] .tooltipName {
+  display: block;
+}
+
+.description {
+  line-height: 1.35;
+}
+
+/* Narrow screens: numbers only; the tooltip carries the name. */
+.labels[data-compact] .name {
+  display: none;
+}
+
+.labels[data-compact] .number {
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.labels[data-compact] .tooltip {
+  max-width: 60vw;
+}

@@ -14,7 +14,7 @@ const TAXONOMY: readonly (readonly [rank: string, name: string])[] = [
 
 export function PlateHeader() {
   return (
-    <header className={styles.header}>
+    <header className={styles.header} data-plate-header>
       <h1 className={styles.species}>Pugnomagus pileatus</h1>
       <p className={styles.vernacular}>The Common Punchwizard</p>
       <p className={styles.subtitle}>Sectio capitis et humerorum</p>

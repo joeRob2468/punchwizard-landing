@@ -7,6 +7,8 @@ import { useFrame } from '@react-three/fiber';
 import { use, useEffect, useMemo } from 'react';
 
 import { PALETTE, type PaletteKey } from '../config/palette.ts';
+import type { LabelChannel } from '../labels/label-channel.ts';
+import { LabelTracker } from '../labels/LabelTracker.tsx';
 import { InkWashMaterial } from '../rendering/materials/ink-wash-material.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
 import { SectionCaps } from '../slicing/SectionCaps.tsx';
@@ -17,10 +19,12 @@ import { partIdFor } from './part-id.ts';
 
 interface SpecimenProps {
   readonly specimen: Promise<LoadedSpecimen>;
+  readonly labels: LabelChannel;
 }
 
-export function Specimen({ specimen }: SpecimenProps) {
-  const { parts, bounds } = use(specimen);
+export function Specimen({ specimen, labels }: SpecimenProps) {
+  const loaded = use(specimen);
+  const { parts, bounds } = loaded;
   const { plane } = useClipPlane();
 
   const meshes = useMemo(
@@ -63,6 +67,7 @@ export function Specimen({ specimen }: SpecimenProps) {
       <SectionCaps parts={parts} />
       <SliceController bounds={bounds} />
       <SliceHandle bounds={bounds} />
+      <LabelTracker specimen={loaded} channel={labels} />
     </>
   );
 }

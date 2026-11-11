@@ -2,9 +2,12 @@
  * Composition root: the WebGL plate (scene, camera, effects) and the DOM overlay.
  */
 import { Canvas } from '@react-three/fiber';
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 
+import { ANATOMY } from '../anatomy/registry.ts';
 import { CAMERA } from '../config/camera.ts';
+import { LabelChannel } from '../labels/label-channel.ts';
+import { LabelOverlay } from '../labels/LabelOverlay.tsx';
 import { PlateEffects } from '../rendering/effects/PlateEffects.tsx';
 import { CameraRig } from '../scene/CameraRig.tsx';
 import { ClipPlaneProvider } from '../slicing/clip-plane.tsx';
@@ -20,6 +23,7 @@ import styles from './App.module.css';
 const specimen = loadSpecimen(`${import.meta.env.BASE_URL}specimen/`);
 
 export function App() {
+  const labels = useMemo(() => new LabelChannel(ANATOMY.length), []);
   return (
     <main className={styles.plate}>
       <Canvas
@@ -38,7 +42,7 @@ export function App() {
         <CameraRig />
         <ClipPlaneProvider>
           <Suspense fallback={null}>
-            <Specimen specimen={specimen} />
+            <Specimen specimen={specimen} labels={labels} />
           </Suspense>
         </ClipPlaneProvider>
         <PlateEffects />
@@ -47,6 +51,7 @@ export function App() {
       <div className={styles.overlay}>
         <PlateBorder />
         <PlateHeader />
+        <LabelOverlay channel={labels} />
         <SliceControls />
       </div>
     </main>
