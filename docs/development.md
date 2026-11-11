@@ -28,7 +28,11 @@ npm run dev
 src/
   main.tsx        entry: WebGL check, mounts App or Fallback
   app/            composition root
-  procedural/     pure: SDF toolkit, mesher, format, landmarks, parts (bake inputs)
+  anatomy/        the labelled features (data)
+  labels/         label tracking (scene), layout and overlay (DOM)
+  procedural/     pure: SDF toolkit, mesher, growth, format, landmarks, parts (bake inputs)
+  slicing/        clip plane, section caps, slice controller and handle
+  state/          zustand store
   specimen/       loads the baked specimen and renders it
   config/         palette, render and camera tunables
   hooks/          shared React hooks
