@@ -34,8 +34,8 @@ const [EX, EY, EZ] = L.eyeLeft;
  * Eye opening, after real proportions: about a fifth of the face's width (the gap
  * between the eyes is about one eye-width), and hooded to roughly a third as tall.
  */
-const EYE_OPENING_HALF_WIDTH = 0.072;
-const EYE_OPENING_HALF_HEIGHT = 0.022;
+const EYE_OPENING_HALF_WIDTH = 0.076;
+const EYE_OPENING_HALF_HEIGHT = 0.029;
 
 /**
  * The almond opening between the lids, as a prism along z (both eyes; x is mirrored),
@@ -186,14 +186,16 @@ export function headSkinField(): Sdf {
   // The orbit: open the face in front of each eye so the eyeball (a separate part)
   // shows. There is deliberately no socket hollowed behind the eye: a socket wider
   // than the ball broke out beside the nose bridge.
-  // Only in front of the visible opening (plus a margin the lid rim covers), so the
-  // skin always meets the lid: a wider carve left a gap behind the lid that looped
-  // round to the outside as a hole.
-  const orbits = intersect(
-    mirrorX(ellipsoid([EX, EY, EZ + 0.04], [0.09, 0.06, 0.075])),
-    offset(eyeOpening, 0.01),
-  );
-  solid = smoothSubtract(0.012, solid, orbits);
+  // Only inside the visible opening and only down to the eyeball's own front surface,
+  // so there is always eyeball behind it: a wider carve left a gap behind the lid
+  // (a hole) and, at the corners beyond the ball, deep pits.
+  const frontOfBall: Sdf = (x, y, z) => {
+    const dx = Math.abs(x) - EX;
+    const dy = y - EY;
+    const ballFront = EZ + Math.sqrt(Math.max(0, EYE_RADIUS * EYE_RADIUS - dx * dx - dy * dy));
+    return ballFront - 0.003 - z;
+  };
+  solid = subtract(solid, intersect(eyeOpening, frontOfBall));
   const skin = smoothSubtract(0.014, smoothUnion(0.012, solid, eyelids()), tearTroughs());
 
   return displace(skin, wrinkles);
@@ -230,7 +232,7 @@ export function eyesPart(): PartDefinition {
 export function irisPart(): PartDefinition {
   const cap = intersect(
     sphere(L.eyeLeft, EYE_RADIUS + 0.003),
-    sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.034),
+    sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.038),
   );
   return {
     id: 'iris',
@@ -246,7 +248,7 @@ export function irisPart(): PartDefinition {
 export function pupilPart(): PartDefinition {
   const cap = intersect(
     sphere(L.eyeLeft, EYE_RADIUS + 0.005),
-    sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.011),
+    sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.013),
   );
   return {
     id: 'pupil',
