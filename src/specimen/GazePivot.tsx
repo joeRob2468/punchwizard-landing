@@ -22,7 +22,7 @@ export function GazePivot({ gaze, pivot, children }: GazePivotProps) {
 
   useFrame(() => {
     const rotation = gaze.rotation(key);
-    if (group.current && rotation) group.current.quaternion.copy(rotation);
+    group.current?.quaternion.copy(rotation);
   });
 
   return (

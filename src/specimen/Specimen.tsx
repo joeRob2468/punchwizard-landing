@@ -55,18 +55,36 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   // Irises and pupils follow the pointer.
   const gaze = useMemo(() => new GazeRig(), []);
   const domElement = useThree((state) => state.gl.domElement);
+  // Tracked over the whole page (labels included), relative to the canvas; the eyes
+  // return to neutral when the pointer leaves the window.
   useEffect(() => {
-    const onMove = () => {
-      gaze.pointerMoved(performance.now());
+    const onMove = (event: PointerEvent) => {
+      const rect = domElement.getBoundingClientRect();
+      gaze.pointerAt(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1,
+      );
     };
-    domElement.addEventListener('pointermove', onMove);
+    const onLeave = () => {
+      gaze.pointerLeft();
+    };
+    const onOut = (event: PointerEvent) => {
+      if (event.relatedTarget === null) gaze.pointerLeft();
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerout', onOut);
+    window.addEventListener('blur', onLeave);
+    document.documentElement.addEventListener('pointerleave', onLeave);
     return () => {
-      domElement.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerout', onOut);
+      window.removeEventListener('blur', onLeave);
+      document.documentElement.removeEventListener('pointerleave', onLeave);
     };
   }, [domElement, gaze]);
 
-  useFrame(({ clock, camera, pointer }, delta) => {
-    gaze.update(camera, pointer, delta, performance.now());
+  useFrame(({ clock, camera }, delta) => {
+    gaze.update(camera, delta);
     const t = clock.getElapsedTime();
     meshes.forEach(({ material }) => {
       material.time = t;

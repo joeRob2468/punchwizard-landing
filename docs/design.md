@@ -107,7 +107,7 @@ Tunables (light direction, hatch density, outline width and strength) are in `sr
 
 ### Gaze
 
-The irises and pupils are separate left and right parts that carry a `gazePivot` (the eyeball's centre) in the manifest. `specimen/gaze.ts` (`GazeRig`) turns each one every frame toward a point on the pointer's ray, 60% of the way from the camera to the eye, clamped to 0.5 rad from straight ahead and smoothed; after 5 s without pointer movement the eyes settle on the camera. `specimen/GazePivot` applies the rotation about the pivot, in the specimen and to the parts' section-cap stencils, so cut faces stay correct.
+The irises and pupils are separate left and right parts that carry a `gazePivot` (the eyeball's centre) in the manifest. `specimen/gaze.ts` (`GazeRig`) computes one rotation shared by both eyes, so they always move together: toward a point on the pointer's ray, 60% of the way from the camera to the point between the eyes, clamped to 0.5 rad from straight ahead and smoothed. The pointer is tracked over the whole page (labels included); when it leaves the window, the eyes ease back to straight ahead. `specimen/GazePivot` applies the rotation about the pivot, in the specimen and to the parts' section-cap stencils, so cut faces stay correct.
 
 ## Sectioning
 

@@ -1,11 +1,12 @@
 /**
  * Makes the irises (and pupils) follow the pointer, as if the wizard were looking
- * around. Each eye turns about its own centre toward a point on the pointer's ray,
- * part-way between camera and face, clamped to a natural range and smoothed. When
- * the pointer has been still for a while, the eyes settle on the viewer.
+ * around. Both eyes share one rotation, aimed from the point between them, so they
+ * always move together. The target is a point on the pointer's ray part-way between
+ * camera and face; the turn is clamped to a natural range and smoothed. While the
+ * pointer is outside the window the eyes ease back to straight ahead.
  */
-import type { Camera, Vector2 } from 'three';
-import { Quaternion, Raycaster, Vector3 } from 'three';
+import type { Camera } from 'three';
+import { Quaternion, Raycaster, Vector2, Vector3 } from 'three';
 
 import type { Vec3 } from '../procedural/sdf/types.ts';
 
@@ -15,59 +16,63 @@ const FORWARD = new Vector3(0, 0, 1);
 const MAX_ANGLE = 0.5;
 /** How quickly the eyes catch up (per second). */
 const RESPONSIVENESS = 7;
-/** Where along the pointer ray they look, as a fraction of the camera-to-eye distance. */
+/** Where along the pointer ray they look, as a fraction of the camera-to-eyes distance. */
 const FOCUS = 0.6;
-/** After this long without pointer movement (ms), the eyes return to the viewer. */
-const IDLE_MS = 5000;
+const IDENTITY = new Quaternion();
 
 export class GazeRig {
-  readonly #rotations = new Map<string, Quaternion>();
+  readonly #rotation = new Quaternion();
   readonly #pivots = new Map<string, Vector3>();
+  readonly #between = new Vector3();
+  readonly #pointer = new Vector2();
+  #pointerInside = false;
   readonly #raycaster = new Raycaster();
   readonly #target = new Vector3();
   readonly #direction = new Vector3();
   readonly #desired = new Quaternion();
-  #lastPointerMove = -Infinity;
 
   /** Registers a pivot (eye centre); returns its key. */
   add(pivot: Vec3): string {
     const key = pivot.join(',');
     if (!this.#pivots.has(key)) {
       this.#pivots.set(key, new Vector3(...pivot));
-      this.#rotations.set(key, new Quaternion());
+      this.#between.set(0, 0, 0);
+      for (const p of this.#pivots.values()) this.#between.add(p);
+      this.#between.divideScalar(this.#pivots.size);
     }
     return key;
   }
 
-  rotation(key: string): Quaternion | undefined {
-    return this.#rotations.get(key);
+  /** The shared rotation (the key is accepted so callers needn't care that it's shared). */
+  rotation(_key: string): Quaternion {
+    return this.#rotation;
   }
 
-  pointerMoved(now: number): void {
-    this.#lastPointerMove = now;
+  /** Pointer position in normalised device coordinates of the canvas. */
+  pointerAt(x: number, y: number): void {
+    this.#pointer.set(x, y);
+    this.#pointerInside = true;
   }
 
-  update(camera: Camera, pointer: Vector2, delta: number, now: number): void {
-    const followPointer = now - this.#lastPointerMove < IDLE_MS;
-    if (followPointer) this.#raycaster.setFromCamera(pointer, camera);
-    const k = 1 - Math.exp(-delta * RESPONSIVENESS);
+  pointerLeft(): void {
+    this.#pointerInside = false;
+  }
 
-    for (const [key, pivot] of this.#pivots) {
-      const current = this.#rotations.get(key);
-      if (!current) continue;
-      if (followPointer) {
-        const reach = camera.position.distanceTo(pivot) * FOCUS;
-        this.#raycaster.ray.at(reach, this.#target);
-      } else {
-        this.#target.copy(camera.position);
-      }
-      this.#direction.subVectors(this.#target, pivot).normalize();
-      // Behind the head, or far off to the side: turn only as far as an eye can.
+  update(camera: Camera, delta: number): void {
+    if (this.#pivots.size === 0) return;
+    if (this.#pointerInside) {
+      this.#raycaster.setFromCamera(this.#pointer, camera);
+      this.#raycaster.ray.at(camera.position.distanceTo(this.#between) * FOCUS, this.#target);
+      this.#direction.subVectors(this.#target, this.#between).normalize();
       this.#desired.setFromUnitVectors(FORWARD, this.#direction);
+      // Turn only as far as an eye can, even if the pointer is behind the head.
       const angle = 2 * Math.acos(Math.min(1, Math.abs(this.#desired.w)));
-      if (angle > MAX_ANGLE)
-        this.#desired.slerpQuaternions(new Quaternion(), this.#desired, MAX_ANGLE / angle);
-      current.slerp(this.#desired, k);
+      if (angle > MAX_ANGLE) {
+        this.#desired.slerpQuaternions(IDENTITY, this.#desired, MAX_ANGLE / angle);
+      }
+    } else {
+      this.#desired.identity();
     }
+    this.#rotation.slerp(this.#desired, 1 - Math.exp(-delta * RESPONSIVENESS));
   }
 }
