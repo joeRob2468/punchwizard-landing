@@ -11,15 +11,16 @@ npm run dev
 
 ## Scripts
 
-| Script              | What it does                                                                                    |
-| ------------------- | ----------------------------------------------------------------------------------------------- |
-| `npm run dev`       | Vite dev server with hot reload on `http://localhost:5173`                                      |
-| `npm run build`     | Production build into `dist/`                                                                   |
-| `npm run preview`   | Serve `dist/` locally                                                                           |
-| `npm run check`     | `format:check` + `lint` + `typecheck`; must pass before committing                              |
-| `npm run format`    | Prettier, writing changes                                                                       |
-| `npm run lint:fix`  | ESLint with autofix                                                                             |
-| `npm run typecheck` | `tsc` for the browser project (`tsconfig.app.json`) and the Node tooling (`tsconfig.node.json`) |
+| Script              | What it does                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| `npm run dev`       | Vite dev server with hot reload on `http://localhost:5173`                                          |
+| `npm run bake`      | Mesh the procedural specimen into `generated/specimen/` (the dev server and `build` run it for you) |
+| `npm run build`     | Bake, then production build into `dist/`                                                            |
+| `npm run preview`   | Serve `dist/` locally                                                                               |
+| `npm run check`     | `format:check` + `lint` + `typecheck`; must pass before committing                                  |
+| `npm run format`    | Prettier, writing changes                                                                           |
+| `npm run lint:fix`  | ESLint with autofix                                                                                 |
+| `npm run typecheck` | `tsc` for the browser project (`tsconfig.app.json`) and the Node tooling (`tsconfig.node.json`)     |
 
 ## Layout
 
@@ -27,6 +28,8 @@ npm run dev
 src/
   main.tsx        entry: WebGL check, mounts App or Fallback
   app/            composition root
+  procedural/     pure: SDF toolkit, mesher, format, landmarks, parts (bake inputs)
+  specimen/       loads the baked specimen and renders it
   config/         palette, render and camera tunables
   hooks/          shared React hooks
   rendering/      materials, post-processing effects, GLSL
@@ -36,6 +39,16 @@ src/
 ```
 
 More folders arrive with each milestone; see [PLAN.md](PLAN.md#5-repository-layout-and-conventions).
+
+## Working on the specimen
+
+The dev server re-bakes whenever a file in `src/procedural/` changes and reloads the page when it's done (about 7 s; progress is in the terminal). A bake error, such as a surface outside its part's bounds, is printed there and the previous bake stays in place.
+
+### Adding a part
+
+1. Add a generator in `src/procedural/parts/` returning a `PartDefinition`: a field built from `sdf/` and positioned from `LANDMARKS`, its layer, a look (a `PALETTE` key, optional `glow`), bounds with some margin, and a cell size (about 0.012–0.03; keep features at least three cells thick).
+2. Add it to `specimenParts()` in `src/procedural/specimen.ts`.
+3. Save; check the triangle count in the bake output (budget: about 300k in total).
 
 ## Tuning the look
 
