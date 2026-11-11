@@ -11,7 +11,7 @@ import type { Vec3 } from './sdf/types.ts';
 export const LANDMARKS = {
   crown: [0, 0.68, -0.05],
   browCentre: [0, 0.2, 0.47],
-  eyeLeft: [0.17, 0.1, 0.4],
+  eyeLeft: [0.16, 0.1, 0.375],
   noseBridge: [0, 0.12, 0.49],
   noseTip: [0, -0.06, 0.64],
   mouth: [0, -0.27, 0.45],
@@ -37,4 +37,4 @@ export const LANDMARKS = {
 export type LandmarkName = keyof typeof LANDMARKS;
 
 /** Eye radius, shared by the eyeball part and the head's eye sockets. */
-export const EYE_RADIUS = 0.058;
+export const EYE_RADIUS = 0.07;
