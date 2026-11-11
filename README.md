@@ -13,6 +13,14 @@ npm run dev      # http://localhost:5173
 npm run check    # format, lint, typecheck
 ```
 
+## Deploy
+
+Static site in a Docker image (Node bakes and builds, nginx serves), behind the home server's Traefik. See [docs/operations.md](docs/operations.md).
+
+```sh
+docker compose up --build    # local: http://localhost:8080
+```
+
 ## Docs
 
 - [docs/status.md](docs/status.md): what works, what's next

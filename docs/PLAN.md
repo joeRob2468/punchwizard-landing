@@ -1,6 +1,6 @@
 # Punchwizard Landing — Project Plan
 
-> Status: **agreed; M0 done, M1 next** · 2026-11-11. This is the roadmap. Once work begins,
+> Status: **agreed; M0–M5 done, M6 started** · 2026-11-11. This is the roadmap. Once work begins,
 > current state lives in `status.md` and how things work in `design.md`; this file
 > keeps only what is still ahead.
 
