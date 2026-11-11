@@ -12,8 +12,11 @@ import type { Vec3 } from '../procedural/sdf/types.ts';
 
 /** The eyes' rest direction in specimen space. */
 const FORWARD = new Vector3(0, 0, 1);
-/** Furthest the eyes turn from straight ahead (radians). */
-const MAX_ANGLE = 0.5;
+/**
+ * How far the eyes turn from straight ahead (radians). The limit is soft: turns
+ * approach it gradually, so the eyes keep responding near it instead of freezing.
+ */
+const MAX_ANGLE = 0.8;
 /** How quickly the eyes catch up (per second). */
 const RESPONSIVENESS = 7;
 /** Where along the pointer ray they look, as a fraction of the camera-to-eyes distance. */
@@ -30,6 +33,7 @@ export class GazeRig {
   readonly #target = new Vector3();
   readonly #direction = new Vector3();
   readonly #desired = new Quaternion();
+  readonly #limited = new Quaternion();
 
   /** Registers a pivot (eye centre); returns its key. */
   add(pivot: Vec3): string {
@@ -66,9 +70,13 @@ export class GazeRig {
       this.#direction.subVectors(this.#target, this.#between).normalize();
       this.#desired.setFromUnitVectors(FORWARD, this.#direction);
       // Turn only as far as an eye can, even if the pointer is behind the head.
+      // (Blend into a separate quaternion: slerpQuaternions copies its first
+      // argument into the target before reading the second.)
       const angle = 2 * Math.acos(Math.min(1, Math.abs(this.#desired.w)));
-      if (angle > MAX_ANGLE) {
-        this.#desired.slerpQuaternions(IDENTITY, this.#desired, MAX_ANGLE / angle);
+      if (angle > 1e-4) {
+        const limited = MAX_ANGLE * Math.tanh(angle / MAX_ANGLE);
+        this.#limited.slerpQuaternions(IDENTITY, this.#desired, limited / angle);
+        this.#desired.copy(this.#limited);
       }
     } else {
       this.#desired.identity();
