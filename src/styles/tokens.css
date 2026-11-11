@@ -6,17 +6,18 @@
   /* Paper and ink */
   --paper: #efe4cc;
   --paper-shadow: #d9c7a3;
+  --foxing: #b3854f;
   --ink: #3b2a1a;
   --ink-faint: rgb(59 42 26 / 0.55);
 
   /* Deyrolle washes */
-  --wash-flesh: #e8b9a0;
-  --wash-muscle: #b9504a;
-  --wash-bone: #efe6cf;
-  --wash-brain: #c9a3a0;
-  --wash-ochre: #c99a4a;
-  --wash-verdigris: #6f9a86;
-  --wash-vein: #4f6f9a;
+  --wash-flesh: #eda98a;
+  --wash-muscle: #b8423a;
+  --wash-bone: #f0e2c0;
+  --wash-brain: #d39a9c;
+  --wash-ochre: #d39a3c;
+  --wash-verdigris: #5f9e84;
+  --wash-vein: #3f66a8;
 
   /* Arcane accents */
   --arcane-mana: #4fc3c9;
