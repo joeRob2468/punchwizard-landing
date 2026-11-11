@@ -20,6 +20,8 @@ export const CAMERA = {
   idleDelay: 8,
   /** Radians per second for the idle turn. */
   idleSpeed: 0.08,
+  /** World units of zoom per pixel of Ctrl/⌘ + wheel. */
+  wheelZoom: 0.01,
   keyboard: {
     /** Radians per arrow-key press. */
     orbitStep: Math.PI / 16,

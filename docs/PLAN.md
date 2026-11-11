@@ -67,8 +67,7 @@ live in one config module.
 | -------------------------------- | -------------------------------------------------------------------------------------------------- |
 | Left-drag                        | Orbit                                                                                              |
 | Right-drag, or Shift + left-drag | Pan                                                                                                |
-| Wheel / pinch                    | Zoom (clamped)                                                                                     |
-| Left-drag on the slice handle    | Move the cut plane along its normal                                                                |
+| Wheel                            | Move the cut (Ctrl/⌘ + wheel or pinch: zoom)                                                       |
 | Hover label or feature           | Highlight feature, show tooltip                                                                    |
 | Click label or feature           | Pin tooltip; click elsewhere to dismiss                                                            |
 | Double-click empty space         | Reset view                                                                                         |

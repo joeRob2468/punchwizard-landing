@@ -1,9 +1,10 @@
 /**
  * Drives the sectioning plane: keeps the travel range in step with the axis,
  * eases the offset toward its target, runs the one-time intro, and writes the
- * shared clip plane each frame. Also binds the slice keys.
+ * shared clip plane each frame. Also binds the slice keys and the scroll wheel
+ * (scrolling down pushes the cut deeper; Ctrl/⌘ + wheel is left to the camera).
  */
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 
 import { SLICE } from '../config/slice.ts';
@@ -19,6 +20,7 @@ interface SliceControllerProps {
 
 export function SliceController({ bounds }: SliceControllerProps) {
   const clip = useClipPlane();
+  const domElement = useThree((state) => state.gl.domElement);
   const axis = usePlateStore((state) => state.slice.axis);
   const reducedMotion = usePrefersReducedMotion();
 
@@ -60,21 +62,39 @@ export function SliceController({ bounds }: SliceControllerProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) return;
+      event.preventDefault();
+      const { slice, setSliceTarget } = usePlateStore.getState();
+      if (!Number.isFinite(slice.targetOffset)) return;
+      setSliceTarget(slice.targetOffset - (wheelPixels(event) / 100) * SLICE.wheelStep);
+    };
+    domElement.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      domElement.removeEventListener('wheel', onWheel);
+    };
+  }, [domElement]);
+
   useFrame((_, delta) => {
-    const store = usePlateStore.getState();
-    const { slice } = store;
+    const { slice } = usePlateStore.getState();
     let { offset } = slice;
     if (!Number.isFinite(offset) || !Number.isFinite(slice.targetOffset)) return;
-    if (offset !== slice.targetOffset && !slice.handleActive) {
+    if (offset !== slice.targetOffset) {
       const k = reducedMotion ? 1 : 1 - Math.exp((-3 * delta) / SLICE.easeTime);
       offset += (slice.targetOffset - offset) * k;
       if (Math.abs(slice.targetOffset - offset) < 1e-4) offset = slice.targetOffset;
       usePlateStore.setState({ slice: { ...slice, offset } });
-    } else if (offset !== slice.targetOffset) {
-      store.setSliceOffset(offset);
     }
     clip.setOffset(offset);
   });
 
   return null;
+}
+
+/** Wheel distance in pixels, whatever unit the browser reports it in. */
+function wheelPixels(event: WheelEvent): number {
+  if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return event.deltaY * 16;
+  if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return event.deltaY * window.innerHeight;
+  return event.deltaY;
 }

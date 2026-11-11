@@ -93,7 +93,10 @@ The scene is drawn as **pigment on white** (the scene background is white), then
    - Pigment pools (darkens) along band edges, and wash density varies across the surface.
    - Below the deep-shadow threshold, ink hatching is projected triplanar in object space, so strokes stick to the surface as it turns.
    - `glow` (0–1) makes a part self-lit: pale centre, saturated rim, slow pulse. Used for arcane parts.
-2. **`OutlineEffect`** (`rendering/effects/`): reads the depth buffer. Large relative depth jumps draw silhouettes; spikes in depth curvature draw fainter crease lines. Sample positions wobble and line width varies with screen-space noise.
+2. **`OutlineEffect`** (`rendering/effects/`): reads the depth buffer and the part ids in alpha. A clearly farther neighbour draws a silhouette on the near side of the jump; spikes in depth curvature draw fainter creases; a change of part id draws a part edge (see below). Sample positions wobble and line width varies with screen-space noise.
+
+   Colour is multisampled but the depth texture has one sample per pixel, so sub-pixel slivers (thin edges at grazing angles, stray cap samples) appear in depth or alpha as single odd pixels. To keep them from being inked as flickering specks, a difference only counts if it persists two steps out in the same direction, and a pixel nearer than at least 7 of its 8 neighbours is never inked.
+
 3. **`PaperEffect`**: multiplies the result onto procedural paper fixed to the screen (mottling, fibres, foxing, vignette). Pigment density is modulated by grain noise (granulation). Empty areas (white) become plain paper.
 
 **Part edges.** Surface and cap materials write a per-part id (manifest index + 1; `specimen/part-id.ts`) to the alpha channel, and the outline effect also inks wherever that id changes between neighbouring pixels. This outlines each tissue on a cut face, where caps are coplanar and depth alone shows nothing, and separates overlapping parts. Helpers that blend (the plane's guide lines) leave alpha untouched.
@@ -133,9 +136,9 @@ Parts are capped in manifest order with `LessEqual` depth, so later caps win whe
 
 `CapMaterial` (`rendering/shaders/cap.*.glsl`) paints a deeper version of the part's wash plus its section pattern from the part's look: `hatch` (45° lines; flesh, robe), `stipple` (jittered dots; hair), `rings` (growth rings around a vertical axis; the hat) or `glow` (self-lit; eyes). Pattern coordinates are on the plane, so patterns don't swim as the plane moves.
 
-### Handle and controls
+### Controls
 
-`slicing/SliceHandle` draws a faint ink rectangle where the plane crosses the specimen's bounds (no depth writes, so the outline effect ignores it) and a garnet knob on its top edge (front edge for transverse). Hovering the knob sets `handleActive`, which disables the camera controls; dragging maps the pointer ray to the closest point on the plane's normal through the knob (`plane-math.offsetUnderRay`).
+The scroll wheel moves the cut: `SliceController` listens for wheel events on the canvas and moves the target offset by `SLICE.wheelStep` per 100 px (scrolling down pushes the cut deeper), eased like every other change. Ctrl/⌘ + wheel is left to the camera rig, which zooms with it; trackpad pinches arrive as Ctrl + wheel, so they zoom too. camera-controls' own wheel handling is switched off. There is no on-screen handle.
 
 `ui/SliceControls`, bottom right: the section's Latin name (click to change axis) and a reset mark (camera and cut).
 
@@ -166,17 +169,17 @@ Leaders are cubic curves from the label to the anchor with a small per-label wob
 
 `scene/CameraRig` wraps drei's `<CameraControls>` (the `camera-controls` library). Settings are in `src/config/camera.ts`.
 
-| Input                         | Action                                                     |
-| ----------------------------- | ---------------------------------------------------------- |
-| Left-drag                     | Orbit                                                      |
-| Right-drag, Shift + left-drag | Pan (target kept inside a box around the bust)             |
-| Wheel, middle-drag, pinch     | Zoom (distance clamped)                                    |
-| Arrow keys                    | Orbit in steps                                             |
-| `+` / `-`                     | Zoom in steps                                              |
-| `R`, double-click, reset mark | Reset the view and ease the cut back to its resting offset |
-| Drag the plane's knob         | Move the cut                                               |
-| `[` / `]`                     | Move the cut in steps                                      |
-| `S`, section name             | Change the section axis                                    |
+| Input                              | Action                                                     |
+| ---------------------------------- | ---------------------------------------------------------- |
+| Left-drag                          | Orbit                                                      |
+| Right-drag, Shift + left-drag      | Pan (target kept inside a box around the bust)             |
+| Middle-drag, pinch, Ctrl/⌘ + wheel | Zoom (distance clamped)                                    |
+| Arrow keys                         | Orbit in steps                                             |
+| `+` / `-`                          | Zoom in steps                                              |
+| `R`, double-click, reset mark      | Reset the view and ease the cut back to its resting offset |
+| Wheel                              | Move the cut (down: deeper)                                |
+| `[` / `]`                          | Move the cut in steps                                      |
+| `S`, section name                  | Change the section axis                                    |
 
 The polar angle is clamped so the camera can look down on the hat but not up from under the shoulders. After 8 s without input the camera turns slowly; this is off when `prefers-reduced-motion` is set (`hooks/use-prefers-reduced-motion`).
 

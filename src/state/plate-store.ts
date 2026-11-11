@@ -13,8 +13,6 @@ interface SliceState {
   readonly targetOffset: number;
   /** Travel range for the current axis: [fully cut, parked outside]. */
   readonly range: readonly [number, number];
-  /** Pointer is over the handle or dragging it; camera controls stand down. */
-  readonly handleActive: boolean;
 }
 
 interface PlateState {
@@ -29,7 +27,6 @@ interface PlateState {
   readonly setSliceOffset: (offset: number) => void;
   readonly stepSlice: (direction: 1 | -1) => void;
   readonly cycleSliceAxis: () => void;
-  readonly setHandleActive: (active: boolean) => void;
   readonly resetSlice: () => void;
 }
 
@@ -49,7 +46,6 @@ export const usePlateStore = create<PlateState>()((set, get) => ({
     offset: Infinity,
     targetOffset: Infinity,
     range: [-Infinity, Infinity],
-    handleActive: false,
   },
 
   setSliceRange: (range) => {
@@ -101,10 +97,6 @@ export const usePlateStore = create<PlateState>()((set, get) => ({
         },
       };
     });
-  },
-
-  setHandleActive: (active) => {
-    set(({ slice }) => ({ slice: { ...slice, handleActive: active } }));
   },
 
   resetSlice: () => {

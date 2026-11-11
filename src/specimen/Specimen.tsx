@@ -13,7 +13,6 @@ import { InkWashMaterial } from '../rendering/materials/ink-wash-material.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
 import { SectionCaps } from '../slicing/SectionCaps.tsx';
 import { SliceController } from '../slicing/SliceController.tsx';
-import { SliceHandle } from '../slicing/SliceHandle.tsx';
 import type { LoadedSpecimen } from './load-specimen.ts';
 import { partIdFor } from './part-id.ts';
 
@@ -66,7 +65,6 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
       </group>
       <SectionCaps parts={parts} />
       <SliceController bounds={bounds} />
-      <SliceHandle bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />
     </>
   );

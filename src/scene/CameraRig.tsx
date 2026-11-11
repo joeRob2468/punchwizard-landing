@@ -29,6 +29,8 @@ export function CameraRig() {
     c.setBoundary(
       new Box3(new Vector3(tx - bx, ty - by, tz - bz), new Vector3(tx + bx, ty + by, tz + bz)),
     );
+    // The wheel is ours: it moves the cut, or zooms with Ctrl/⌘ (see below).
+    c.mouseButtons.wheel = ACTION.NONE;
     void c.setLookAt(...CAMERA.position, ...CAMERA.target, false);
     c.saveState();
     lastInput.current = performance.now();
@@ -59,31 +61,36 @@ export function CameraRig() {
       usePlateStore.getState().resetView();
     };
 
+    // The plain wheel moves the cut (SliceController); Ctrl/⌘ + wheel, which is also
+    // how trackpad pinches arrive, zooms.
+    const onWheel = (event: WheelEvent) => {
+      markInput();
+      if (!(event.ctrlKey || event.metaKey) || !controls.current) return;
+      event.preventDefault();
+      void controls.current.dolly(-event.deltaY * CAMERA.wheelZoom, true);
+    };
+
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     domElement.addEventListener('dblclick', onDoubleClick);
     domElement.addEventListener('pointerdown', markInput);
-    domElement.addEventListener('wheel', markInput, { passive: true });
+    domElement.addEventListener('wheel', onWheel, { passive: false });
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       domElement.removeEventListener('dblclick', onDoubleClick);
       domElement.removeEventListener('pointerdown', markInput);
-      domElement.removeEventListener('wheel', markInput);
+      domElement.removeEventListener('wheel', onWheel);
     };
   }, [domElement]);
 
-  // Reset requests (keyboard, double-click, the reset glyph) and the slice handle.
+  // Reset requests (keyboard, double-click, the reset glyph).
   const viewResets = usePlateStore((state) => state.viewResets);
-  const handleActive = usePlateStore((state) => state.slice.handleActive);
   useEffect(() => {
     if (viewResets === 0) return;
     lastInput.current = performance.now();
     void controls.current?.reset(true);
   }, [viewResets]);
-  useEffect(() => {
-    if (controls.current) controls.current.enabled = !handleActive;
-  }, [handleActive]);
 
   useFrame((_, delta) => {
     const c = controls.current;
