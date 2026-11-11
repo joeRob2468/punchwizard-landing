@@ -1,6 +1,6 @@
 # Status
 
-Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after the M5 review is [PLAN.md §8a](PLAN.md#8a-revision-after-m5-review-2026-11-11). How things work is in [design.md](design.md).
+Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after the M5 review is [PLAN.md §8a](PLAN.md#8a-revision-after-m5-review-2026-11-11). How things work is in [design.md](design.md). **Before any visual work, check [references.md](references.md)** for which moodboard images inform it.
 
 ## Works
 

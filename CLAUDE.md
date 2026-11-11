@@ -14,6 +14,7 @@ The decorative landing page at the root of `<domain>`: a sliceable 3D wizard bus
 4. `docs/conventions.md`: code rules. **Follow it.**
 5. `docs/development.md`: scripts and local workflow.
 6. `docs/anatomy.md`: the fictional anatomy (names, lore, art notes).
+   6a. `docs/references.md`: which moodboard image to look at for each visual decision. Look at them before visual work.
 7. `docs/operations.md`: the server runbook.
 
 ## Commands
