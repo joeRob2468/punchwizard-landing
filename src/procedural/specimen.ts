@@ -35,8 +35,10 @@ export function specimenParts(): PartDefinition[] {
     focusGemsPart(),
     etherealGlandPart(),
     eyesPart(),
-    irisPart(),
-    pupilPart(),
+    irisPart('left'),
+    irisPart('right'),
+    pupilPart('left'),
+    pupilPart('right'),
     // Arcane systems last so they read on top of everything they pass through
     vesselsPart(),
     latticePart(),

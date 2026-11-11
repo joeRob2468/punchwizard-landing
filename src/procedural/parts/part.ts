@@ -1,6 +1,6 @@
 /** What a procedural part generator returns: a field plus how to mesh and paint it. */
 import type { Layer, PartLook } from '../format/specimen-format.ts';
-import type { Bounds, Sdf } from '../sdf/types.ts';
+import type { Bounds, Sdf, Vec3 } from '../sdf/types.ts';
 
 export interface PartDefinition {
   readonly id: string;
@@ -16,4 +16,6 @@ export interface PartDefinition {
    * The bake warns when a part has more than this; stray holes show on screen.
    */
   readonly intendedHoles?: number;
+  /** Turns about this point at runtime to follow the pointer (irises and pupils). */
+  readonly gazePivot?: Vec3;
 }

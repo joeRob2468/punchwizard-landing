@@ -105,6 +105,10 @@ Both effects use `BlendFunction.SET` and run in one merged pass, outline first. 
 
 Tunables (light direction, hatch density, outline width and strength) are in `src/config/render.ts`.
 
+### Gaze
+
+The irises and pupils are separate left and right parts that carry a `gazePivot` (the eyeball's centre) in the manifest. `specimen/gaze.ts` (`GazeRig`) turns each one every frame toward a point on the pointer's ray, 60% of the way from the camera to the eye, clamped to 0.5 rad from straight ahead and smoothed; after 5 s without pointer movement the eyes settle on the camera. `specimen/GazePivot` applies the rotation about the pivot, in the specimen and to the parts' section-cap stencils, so cut faces stay correct.
+
 ## Sectioning
 
 ### State

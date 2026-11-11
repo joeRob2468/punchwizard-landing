@@ -21,7 +21,6 @@ import {
   smoothUnion,
   sphere,
   subtract,
-  union,
 } from '../sdf/index.ts';
 import type { Sdf, Vec3 } from '../sdf/types.ts';
 import { mirrorPoint } from './mirror.ts';
@@ -244,41 +243,50 @@ export function eyesPart(): PartDefinition {
   };
 }
 
-/** The crystalline iris: a glowing cap on the front of each eyeball. */
-export function irisPart(): PartDefinition {
-  // Looks straight ahead, not along the turned lids (that reads as wall-eyed).
-  const cap = mirrorX(
-    intersect(
-      sphere(L.eyeLeft, EYE_RADIUS + 0.003),
-      sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.038),
-    ),
+type Side = 'left' | 'right';
+
+/** A cap on the front of one eyeball, looking straight ahead (+z). */
+function eyeCap(side: Side, lift: number, radius: number): Sdf {
+  const centre: Vec3 = side === 'left' ? L.eyeLeft : mirrorPoint(L.eyeLeft);
+  const [cx, cy, cz] = centre;
+  return intersect(
+    sphere(centre, EYE_RADIUS + lift),
+    sphere([cx, cy - 0.004, cz + EYE_RADIUS], radius),
   );
+}
+
+const sideBounds = (side: Side) => {
+  const [cx, cy, cz] = side === 'left' ? L.eyeLeft : mirrorPoint(L.eyeLeft);
+  const r = 0.1;
+  return { min: [cx - r, cy - r, cz - r] as Vec3, max: [cx + r, cy + r, cz + r] as Vec3 };
+};
+
+/**
+ * The crystalline iris of one eye: a glowing cap on the front of the eyeball. Each
+ * iris is its own part, turning about its eyeball's centre to follow the pointer.
+ */
+export function irisPart(side: Side): PartDefinition {
   return {
-    id: 'iris',
+    id: `iris-${side}`,
     layer: 'organs',
     look: { wash: 'arcaneMana', glow: 0.7, section: { pattern: 'glow' } },
-    field: union(cap),
-    bounds: eyeBounds(0.1),
+    field: eyeCap(side, 0.003, 0.038),
+    bounds: sideBounds(side),
     cellSize: 0.004,
+    gazePivot: side === 'left' ? L.eyeLeft : mirrorPoint(L.eyeLeft),
   };
 }
 
-/** The pupil: a small dark cap at the centre of the iris. */
-export function pupilPart(): PartDefinition {
-  // Looks straight ahead, not along the turned lids (that reads as wall-eyed).
-  const cap = mirrorX(
-    intersect(
-      sphere(L.eyeLeft, EYE_RADIUS + 0.005),
-      sphere([EX, EY - 0.004, EZ + EYE_RADIUS], 0.013),
-    ),
-  );
+/** The pupil of one eye: a small dark cap at the centre of the iris; turns with it. */
+export function pupilPart(side: Side): PartDefinition {
   return {
-    id: 'pupil',
+    id: `pupil-${side}`,
     layer: 'organs',
     look: { wash: 'ink', section: { pattern: 'stipple' } },
-    field: cap,
-    bounds: eyeBounds(0.1),
+    field: eyeCap(side, 0.005, 0.013),
+    bounds: sideBounds(side),
     cellSize: 0.003,
+    gazePivot: side === 'left' ? L.eyeLeft : mirrorPoint(L.eyeLeft),
   };
 }
 

@@ -43,6 +43,8 @@ export interface PartEntry {
   readonly indexCount: number;
   readonly indexType: 'uint16' | 'uint32';
   readonly bounds: Bounds;
+  /** Present on parts that turn to follow the pointer: the point they turn about. */
+  readonly gazePivot?: Vec3;
 }
 
 export interface SpecimenManifest {

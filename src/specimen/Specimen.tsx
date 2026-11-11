@@ -3,7 +3,7 @@
  * material its manifest entry asks for and clipped by the sectioning plane,
  * plus the section caps, plane controller and drag handle.
  */
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { use, useEffect, useMemo } from 'react';
 
 import { PALETTE, type PaletteKey } from '../config/palette.ts';
@@ -13,6 +13,8 @@ import { InkWashMaterial } from '../rendering/materials/ink-wash-material.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
 import { SectionCaps } from '../slicing/SectionCaps.tsx';
 import { SliceController } from '../slicing/SliceController.tsx';
+import { GazePivot } from './GazePivot.tsx';
+import { GazeRig } from './gaze.ts';
 import type { LoadedSpecimen } from './load-specimen.ts';
 import { partIdFor } from './part-id.ts';
 
@@ -36,7 +38,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           glow: entry.look.glow ?? 0,
         });
         material.clippingPlanes = [plane];
-        return { id: entry.id, geometry, material };
+        return { id: entry.id, geometry, material, pivot: entry.gazePivot };
       }),
     [parts, plane],
   );
@@ -50,7 +52,21 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
     [meshes],
   );
 
-  useFrame(({ clock }) => {
+  // Irises and pupils follow the pointer.
+  const gaze = useMemo(() => new GazeRig(), []);
+  const domElement = useThree((state) => state.gl.domElement);
+  useEffect(() => {
+    const onMove = () => {
+      gaze.pointerMoved(performance.now());
+    };
+    domElement.addEventListener('pointermove', onMove);
+    return () => {
+      domElement.removeEventListener('pointermove', onMove);
+    };
+  }, [domElement, gaze]);
+
+  useFrame(({ clock, camera, pointer }, delta) => {
+    gaze.update(camera, pointer, delta, performance.now());
     const t = clock.getElapsedTime();
     meshes.forEach(({ material }) => {
       material.time = t;
@@ -60,11 +76,18 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   return (
     <>
       <group name="specimen">
-        {meshes.map(({ id, geometry, material }) => (
-          <mesh key={id} name={id} geometry={geometry} material={material} />
-        ))}
+        {meshes.map(({ id, geometry, material, pivot }) => {
+          const mesh = <mesh key={id} name={id} geometry={geometry} material={material} />;
+          return pivot ? (
+            <GazePivot key={id} gaze={gaze} pivot={pivot}>
+              {mesh}
+            </GazePivot>
+          ) : (
+            mesh
+          );
+        })}
       </group>
-      <SectionCaps parts={parts} />
+      <SectionCaps parts={parts} gaze={gaze} />
       <SliceController bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />
     </>

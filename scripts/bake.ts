@@ -50,6 +50,7 @@ async function bake(): Promise<void> {
       indexCount: result.indexCount,
       indexType: result.indexType,
       bounds: part.bounds,
+      ...(part.gazePivot ? { gazePivot: part.gazePivot } : {}),
     });
     const triangles = result.indexCount / 3;
     totalTriangles += triangles;

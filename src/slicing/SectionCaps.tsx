@@ -29,6 +29,8 @@ import {
 import { PALETTE, type PaletteKey } from '../config/palette.ts';
 import { CapMaterial } from '../rendering/materials/cap-material.ts';
 import { partIdFor } from '../specimen/part-id.ts';
+import type { GazeRig } from '../specimen/gaze.ts';
+import { GazePivot } from '../specimen/GazePivot.tsx';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
 import { useClipPlane } from './clip-plane.tsx';
 
@@ -39,9 +41,11 @@ const FORWARD = new Vector3(0, 0, 1);
 
 interface SectionCapsProps {
   readonly parts: readonly LoadedPart[];
+  /** Parts that follow the pointer turn here too, so their stencils match. */
+  readonly gaze: GazeRig;
 }
 
-export function SectionCaps({ parts }: SectionCapsProps) {
+export function SectionCaps({ parts, gaze }: SectionCapsProps) {
   const { plane } = useClipPlane();
   const quad = useMemo(() => new PlaneGeometry(CAP_SIZE, CAP_SIZE), []);
   const capMeshes = useRef<(Mesh | null)[]>([]);
@@ -54,6 +58,7 @@ export function SectionCaps({ parts }: SectionCapsProps) {
         return {
           id: entry.id,
           geometry,
+          pivot: entry.gazePivot,
           back: stencilMaterial(plane, BackSide, IncrementWrapStencilOp),
           front: stencilMaterial(plane, FrontSide, DecrementWrapStencilOp),
           cap: new CapMaterial({
@@ -98,12 +103,23 @@ export function SectionCaps({ parts }: SectionCapsProps) {
 
   return (
     <group name="section-caps">
-      {layers.map(({ id, geometry, back, front, cap }, i) => {
+      {layers.map(({ id, geometry, back, front, cap, pivot }, i) => {
         const order = CAP_RENDER_ORDER_BASE + i * 2;
-        return (
-          <group key={id}>
+        const stencils = (
+          <>
             <mesh geometry={geometry} material={back} renderOrder={order} />
             <mesh geometry={geometry} material={front} renderOrder={order} />
+          </>
+        );
+        return (
+          <group key={id}>
+            {pivot ? (
+              <GazePivot gaze={gaze} pivot={pivot}>
+                {stencils}
+              </GazePivot>
+            ) : (
+              stencils
+            )}
             <mesh
               ref={(mesh) => {
                 capMeshes.current[i] = mesh;
