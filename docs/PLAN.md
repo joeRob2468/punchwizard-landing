@@ -429,6 +429,7 @@ The owner found the model too cartoonish and added more realistic references (we
 - **Shading: tonal watercolour with hatching.** Replace the three flat bands with soft glazed tones, ambient occlusion baked per vertex from the specimen's own fields, and cross-contour hatching that wraps around forms (like the pencil-sketch reference).
 - **Touch slicing:** two-finger vertical drag moves the cut; pinch zooms; one finger orbits.
 - **Already done:** the wheel moves the cut (Ctrl/⌘ + wheel zooms) and the drag knob is gone; the flickering outline specks are fixed.
+- **Progress (end of 2026-11-11):** wheel/touch slicing, speck fix, new shading (glazes, occlusion, engraved hatching), realistic face with pointer-following eyes are done; hair, hat and robe are next. See status.md.
 - **Possible later step:** a further stylisation pass — dark background, more monotone colouring and textures, internals rendered like an MRI scan. To be decided after the realism pass.
 
 ## 9. Still open (not blocking)

@@ -1,27 +1,36 @@
 # Status
 
-Milestones are defined in [PLAN.md](PLAN.md#8-milestones).
+Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after the M5 review is [PLAN.md §8a](PLAN.md#8a-revision-after-m5-review-2026-11-11). How things work is in [design.md](design.md).
 
 ## Works
 
-- **M0 scaffold:** Vite + React + TypeScript (strict), ESLint + Prettier (`npm run check`), docs, title block, no-WebGL fallback.
-
-- **M1 render pipeline (awaiting look sign-off):** ink-and-wash material, depth outlines, paper composite with granulation, and camera controls with keyboard, reset and idle turn, shown on a primitive test bust. Checked at desktop and phone widths.
-
-- **M2 procedural shell (awaiting shape sign-off):** SDF toolkit, surface-nets mesher, bake into a compact binary format (dev re-bake on save, emitted into builds), and the outer shell: head, glowing eyes, beard, hair, hat and robed bust, rendered in place of the test bust.
+- **M0–M5:** scaffold, render pipeline, procedural specimen with bake, sectioning with stencil caps, internals (skeleton, brain, fantasy organs, mana vessels, conduit lattice), twelve labelled features with leader lines and tooltips.
+- **Controls:** left-drag orbits, right-drag pans, the **wheel moves the cut** (Ctrl/⌘ + wheel or pinch zooms), two-finger drag moves the cut on touch, `S` / `[` `]` / `R` / arrows / `+` `-`, double-click resets. No on-screen slice handle.
+- **Shading:** four soft watercolour glazes, baked ambient occlusion, cross-contour engraved hatching at a steady screen spacing, depth and part-id outlines without flickering specks, paper composite.
+- **Face (realism pass, owner-approved):** an old man's face with large, forward-set eyes angled away from the nose, almond lids, fold, bags, filled inner corners, wrinkles. The head has no through-holes.
+- **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
+- **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 71k triangles, 0.8 MB, 20 s.
+- **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
 
-- **Sign-off** on the look (M1) and shape (M2).
-- **M3 slicing:** clip plane, stencil caps, drag handle, axis cycling.
+Realism pass, in this order (owner wants procedural first; an imported sculpt only if procedural can't get there):
+
+1. **Hair as locks:** beard, moustache, eyebrows and hair as many individual tapered locks (`growth/branches.ts` already has curve and segment-field tools) over a solid core, hanging with gravity, with simple collision against head and robe so hair drapes over the shoulders. The current eyebrows are slabs and the beard and hair are smooth masses: these are the most cartoonish things left.
+2. **Hat:** creased felt cone, more natural brim, a hat band (new part) and a buckle with a gem.
+3. **Robe:** layered mantle over an inner robe, high collar, trim along the opening (new part, gold/ochre), a clasp at the chest.
+4. Check labels and section anchors still land after the new parts (registry anchors, part names in `src/anatomy/registry.ts`).
+5. Then M6 polish (idle motion, ink-in on load, no-WebGL fallback image, touch tuning), building the Docker image (ask first: it pulls base images), and the optional stylisation step (dark background, monotone, MRI-like internals) if the owner wants it. Deploy (M8) only once the owner calls the site final.
+
+## Working notes
+
+- **Checking visuals:** the dev server runs on :5173; Chrome DevTools MCP is approved for localhost only. `window.__plate()` (dev builds) returns the R3F state: `.camera`, `.controls` (camera-controls: `setLookAt(...)`), `.scene` (`getObjectByName(partId)`). The uncut side of the head is visible after pressing `S` three times and scrolling the wheel up (parks the cut). The owner's real mouse over the tab sends pointer events, which can confuse gaze tests.
+- **Hunting holes:** `countHandles` (`src/procedural/mesh/topology.ts`) on a part's raw mesh gives its through-holes; to bisect, copy the part file into a scratch folder under `src/procedural/parts/` (fix its import paths), return early at successive construction steps, and measure each. Delete the scratch folder afterwards.
+- **Head pitfalls found so far:** shapes that touch the face in two places leave tunnels (blend generously or extend them into the face); carves wider than what covers them leave pits; fine noise must stay shallower than thin features (lids).
 
 ## Known issues
 
-- The specimen is about 312k triangles, 3.2 MB (2.4 MB gzipped): slightly over the 300k-triangle budget. Meshopt encoding could roughly halve the download if needed.
-
-- The hat mesh has one pinched edge (shared by four triangles) on the brim. It is still closed, so slice caps are unaffected.
-
 - React Three Fiber logs a `THREE.Clock` deprecation warning (inside the library; harmless).
-
-- The production bundle is one ~1.1 MB chunk (three.js); splitting is part of the M6 performance pass.
+- The production bundle is one ~1.1 MB chunk (three.js, about 310 KB gzipped); splitting wouldn't reduce what a visitor downloads, so the warning is silenced.
 - `npm audit` reports a moderate advisory in `minimatch`, used only by ESLint tooling (not shipped).
+- Under-eye tear-trough ends can leave a small dimple on one cheek; tidy in a later face pass.

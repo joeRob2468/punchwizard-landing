@@ -33,5 +33,6 @@ npm run format / npm run lint:fix
 - **Never commit `moodboard/`** (reference images; git-ignored).
 - **No automated tests** (owner's decision). Keep logic in pure modules so tests can be added later.
 - **Deploy is the last step**, only once the owner calls the site final.
+- **Before editing docs with scripts:** Prettier re-pads Markdown tables, so match table rows with whitespace-tolerant patterns and check the edit applied (several silent misses happened).
 - **Pinned versions:** TypeScript stays on 6.0.x until typescript-eslint supports 7.
 - **Docs describe the current state**, briefly: update status.md and design.md in the same commit as the change. Docs use placeholders (`<domain>`, `<server>`), not real hosts.

@@ -52,7 +52,7 @@ The dev server re-bakes whenever a file in `src/procedural/` changes and reloads
 
 1. Add a generator in `src/procedural/parts/` returning a `PartDefinition`: a field built from `sdf/` and positioned from `LANDMARKS`, its layer, a look (a `PALETTE` key, optional `glow`), bounds with some margin, and a cell size (about 0.012–0.03; keep features at least three cells thick).
 2. Add it to `specimenParts()` in `src/procedural/specimen.ts`.
-3. Save; check the triangle count in the bake output (budget: about 300k in total).
+3. Save; check the bake output for the part's triangle count (the specimen is about 71k after simplification) and any through-hole warning.
 
 ## Tuning the look
 
