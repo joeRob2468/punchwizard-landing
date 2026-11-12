@@ -26,7 +26,7 @@ import {
 import type { Sdf, Vec3 } from '../sdf/types.ts';
 import { mirrorPoint } from './mirror.ts';
 import { mucosaAirway } from './airways.ts';
-import { cranialCavity } from './skull.ts';
+import { cranialCavity } from './cranium.ts';
 import { canalField } from './spine-path.ts';
 import type { PartDefinition } from './part.ts';
 

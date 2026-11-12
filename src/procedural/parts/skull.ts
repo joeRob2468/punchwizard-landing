@@ -22,39 +22,11 @@ import {
 import type { Sdf, Vec3 } from '../sdf/types.ts';
 import { boneAirway, CHOANAE_Z, conchae, PALATE_TOP, septum } from './airways.ts';
 import type { PartDefinition } from './part.ts';
+import { cranialCavity, cranialFloor, smoothstep, vaultOuter } from './cranium.ts';
+import { headSkinField } from './head.ts';
 import { FORAMEN_MAGNUM } from './spine-path.ts';
 
 const BONE = { wash: 'washBone', section: { pattern: 'stipple' } } as const;
-
-const smoothstep = (a: number, b: number, x: number) => {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-};
-const mix = (a: number, b: number, t: number) => a + (b - a) * t;
-
-const VAULT_CENTRE: Vec3 = [0, 0.165, -0.06];
-const vaultOuter = ellipsoid(VAULT_CENTRE, [0.4, 0.46, 0.48]);
-const vaultInner = ellipsoid([0, 0.17, -0.06], [0.355, 0.415, 0.435]);
-
-/**
- * Height of the cranial floor under (x, z): the anterior fossa over the orbits
- * (lower at the midline cribriform plate), the sella and the middle fossae either
- * side of it, falling down the clivus to the posterior fossa.
- */
-function cranialFloor(x: number, z: number): number {
-  const ax = Math.abs(x);
-  const anterior = 0.165 + 0.045 * smoothstep(0.03, 0.13, ax);
-  const middle = mix(0.065, -0.035, smoothstep(0.07, 0.15, ax));
-  const posterior = -0.2;
-  // The clivus: the floor falls from the sella down to the front of the foramen magnum.
-  const backToMiddle = smoothstep(-0.11, 0.02, z);
-  const middleToFront = smoothstep(0.13, 0.2, z);
-  return mix(mix(posterior, middle, backToMiddle), anterior, middleToFront);
-}
-
-/** The cranial cavity (the brain fills it): the vault's inside above the floor. */
-export const cranialCavity: Sdf = (x, y, z) =>
-  Math.max(vaultInner(x, y, z), (cranialFloor(x, z) - y) * 0.7);
 
 /**
  * Underside of the skull base: bone below the floor is thin except the sphenoid
@@ -138,11 +110,18 @@ export function skullPart(): PartDefinition {
   );
   // The septum and conchae are bone inside the nasal cavity.
   skull = union(skull, intersect(union(septum, conchae), ellipsoid([0, 0, 0.3], [0.1, 0.2, 0.2])));
+  // Never through the skin: the orbit walls and zygomas reached past the face.
+  const skin = headSkinField();
+  const bone = skull;
+  const insideSkin: Sdf = (x, y, z) => {
+    const d = bone(x, y, z);
+    return d > 0.03 ? d : Math.max(d, skin(x, y, z) + 0.012);
+  };
   return {
     id: 'skull',
     layer: 'skeleton',
     look: BONE,
-    field: skull,
+    field: insideSkin,
     bounds: { min: [-0.46, -0.32, -0.6], max: [0.46, 0.66, 0.54] },
     // Fontanelle, foramen magnum, orbits and nasal aperture open into the cavities.
     intendedHoles: 6,

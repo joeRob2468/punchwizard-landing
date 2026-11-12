@@ -47,6 +47,15 @@ function getColliders() {
 
 const flipX = ([x, y, z]: Vec3): Vec3 => [-x, y, z];
 
+/** A field kept outside the head's skin (only evaluated near its surface). */
+function outsideHead(field: Sdf): Sdf {
+  const { head } = getColliders();
+  return (x, y, z) => {
+    const d = field(x, y, z);
+    return d > 0.03 ? d : Math.max(d, -(head(x, y, z) - 0.004));
+  };
+}
+
 /**
  * Grows clumps for both sides: `make` describes a left-side clump (+x); the right
  * side gets the same description mirrored, grown with its own random stream so
@@ -268,7 +277,11 @@ export function hairPart(): PartDefinition {
   });
 
   const field = intersect(
-    smoothUnion(0.06, displace(cap, strands(SEED + 5, 0.02)), segmentsField(locks, 0.022, 0.07)),
+    smoothUnion(
+      0.06,
+      outsideHead(displace(cap, strands(SEED + 5, 0.02))),
+      segmentsField(locks, 0.022, 0.07),
+    ),
     aboveBustBase,
   );
   return {

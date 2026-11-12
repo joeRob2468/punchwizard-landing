@@ -27,7 +27,7 @@ import {
 } from '../sdf/index.ts';
 import type { Sdf, Vec3 } from '../sdf/types.ts';
 import type { PartDefinition } from './part.ts';
-import { cranialCavity } from './skull.ts';
+import { cranialCavity } from './cranium.ts';
 import { CANAL_RADIUS, canalAt, canalField, CORD_RADIUS, FORAMEN_MAGNUM } from './spine-path.ts';
 
 const SEED = 71;

@@ -21,6 +21,7 @@ import {
 } from '../sdf/index.ts';
 import type { Sdf, Vec3 } from '../sdf/types.ts';
 import { framesBounds, inFrame, surfaceFrame, type SurfaceFrame } from './frame.ts';
+import { headSkinField } from './head.ts';
 import type { PartDefinition } from './part.ts';
 
 const SEED = 23;
@@ -104,12 +105,22 @@ function brimField(): Sdf {
 /** The hat as a field (also used to keep the conduit lattice inside it). */
 export function hatField(): Sdf {
   const hat = smoothUnion(0.1, brimField(), crownField());
-  // The cone's rounded base would bulge down into the head; stop it under the brim.
-  const intoHead: Sdf = (x, y, z) => Math.max(y - (BY - 0.06), Math.hypot(x - BX, z - BZ) - 0.6);
+  // Hollow where it sits on the head: the cone's rounded base and the brim's disc
+  // would otherwise run through the head (and show in its sections).
+  const intoHead: Sdf = (x, y, z) => Math.max(y - (BY + 0.06), Math.hypot(x - BX, z - BZ) - 0.42);
   return subtract(
     displace(hat, (x, y, z) => fbm(SEED + 1, x * 4, y * 4, z * 4) * 0.015),
     intoHead,
   );
+}
+
+/** A field kept outside the head's skin, which is only evaluated near its surface. */
+function outsideHead(field: Sdf): Sdf {
+  const head = headSkinField();
+  return (x, y, z) => {
+    const d = field(x, y, z);
+    return d > 0.03 ? d : Math.max(d, -(head(x, y, z) - 0.004));
+  };
 }
 
 export function hatPart(): PartDefinition {
@@ -117,7 +128,8 @@ export function hatPart(): PartDefinition {
     id: 'hat',
     layer: 'integument',
     look: { wash: 'washVein', section: { pattern: 'rings', centre: L.brimCentre } },
-    field: hatField(),
+    // Where the hat sits on the head, the head is inside it, not the hat.
+    field: outsideHead(hatField()),
     bounds: { min: [-1.25, -0.25, -1.25], max: [1.25, 2.15, 1.2] },
     cellSize: 0.018,
   };

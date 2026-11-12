@@ -78,7 +78,7 @@ Shell fields that others need are exported: `headSkinField`, `robeField`, `hatFi
 
 ### Air spaces
 
-`parts/airways.ts` defines the nasal cavity (a profile outline from the aperture to the choanae, narrow under the cribriform plate and wide over the palate, with the septum and conchae), the frontal sinus, and the pharynx, larynx and trachea along `AIRWAY_PATH`. Each tissue carves them differently so no two parts share a surface (shared surfaces flicker): bone carves them grown by the mucosa's thickness (`boneAirway`), the head carves the true air and wraps the septum and conchae in mucosa (`mucosaAirway`), and robe, mantle and torso carve them grown a little more (`tissueAirway`). Parts that would otherwise fill the head's inside (the hat's cone base, the hair cap, the beard core) are trimmed to stay outside it.
+`parts/airways.ts` defines the nasal cavity (a profile outline from the aperture to the choanae, narrow under the cribriform plate and wide over the palate, with the septum and conchae), the frontal sinus, and the pharynx, larynx and trachea along `AIRWAY_PATH`. Each tissue carves them differently so no two parts share a surface (shared surfaces flicker): bone carves them grown by the mucosa's thickness (`boneAirway`), the head carves the true air and wraps the septum and conchae in mucosa (`mucosaAirway`), and robe, mantle and torso carve them grown a little more (`tissueAirway`). Outer parts that would otherwise reach inside the head (the hat's brim and cone base, the hair cap, the beard core) are kept outside the head's skin field, and the skull is kept at least 12 mm inside it, so nothing shows through in a section or pokes out of the face. The cranial vault and cavity live in `parts/cranium.ts`, shared by skull, brain and head.
 
 ### Growth
 
@@ -172,7 +172,7 @@ Axes are in `src/config/slice.ts`. Each normal points away from the default came
 
 `slicing/SectionCaps` fills cut faces with the stencil technique, per part:
 
-1. The part's geometry is drawn twice with colour and depth writes off and the clip plane on: back faces increment the stencil, front faces decrement it. Where the plane cuts the part's interior, the count ends non-zero.
+1. The part's geometry is drawn once, double-sided, with colour and depth writes off and the clip plane on; every surface crossing behind the plane inverts the stencil. Where the plane cuts the part's interior, an odd number of crossings leaves it non-zero. Counting parity rather than back faces minus front faces makes caps immune to the few badly wound triangles simplification leaves, which otherwise drew specks (most visible with the plane parked between the camera and the specimen).
 2. A large quad on the plane draws with `CapMaterial` only where the stencil is non-zero, then resets it to 0.
 
 Parts are capped in manifest order with `LessEqual` depth, so later caps win where volumes overlap; `specimenParts()` therefore lists parts from outermost to innermost. The effect composer's buffers have a stencil attachment for this.
