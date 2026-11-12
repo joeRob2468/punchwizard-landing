@@ -36,13 +36,31 @@ export interface CapOptions {
   readonly partId: number;
 }
 
+/** How a cut face is painted under the current look (see config/looks.ts). */
+export interface CapPaint {
+  readonly wash: string;
+  /** Colour of the section pattern. */
+  readonly line: string;
+  readonly dark: boolean;
+  /** 0–1 multiplier on the section pattern. */
+  readonly section: number;
+}
+
 export class CapMaterial extends ShaderMaterial {
   readonly #time: { value: number };
   readonly #normal: { value: Vector3 };
+  readonly #wash: Color;
+  readonly #line: Color;
+  readonly #blank: Color;
+  readonly #section: { value: number };
 
   constructor({ wash, pattern, centre = [0, 0, 0], partId }: CapOptions) {
     const time = { value: 0 };
     const normal = { value: new Vector3(0, 0, 1) };
+    const washColour = new Color(wash);
+    const line = new Color(PALETTE.ink);
+    const blank = new Color(1, 1, 1);
+    const section = { value: 1 };
     super({
       vertexShader: vertex,
       fragmentShader: fragment.replace('#include <common>', `#include <common>\n${noise}`),
@@ -56,8 +74,10 @@ export class CapMaterial extends ShaderMaterial {
       stencilZFail: ReplaceStencilOp,
       stencilZPass: ReplaceStencilOp,
       uniforms: {
-        uWash: { value: new Color(wash) },
-        uInk: { value: new Color(PALETTE.ink) },
+        uWash: { value: washColour },
+        uInk: { value: line },
+        uBlank: { value: blank },
+        uSection: section,
         uNormal: normal,
         uCentre: { value: new Vector3(...centre) },
         uPattern: { value: PATTERN_IDS[pattern] },
@@ -68,6 +88,17 @@ export class CapMaterial extends ShaderMaterial {
     this.name = 'CapMaterial';
     this.#time = time;
     this.#normal = normal;
+    this.#wash = washColour;
+    this.#line = line;
+    this.#blank = blank;
+    this.#section = section;
+  }
+
+  paint({ wash, line, dark, section }: CapPaint) {
+    this.#wash.set(wash);
+    this.#line.set(line);
+    this.#blank.setScalar(dark ? 0 : 1);
+    this.#section.value = section;
   }
 
   set time(seconds: number) {

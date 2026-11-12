@@ -39,8 +39,27 @@ export interface InkWashOptions {
   readonly strands?: boolean;
 }
 
+/** How a part is painted under the current look (see config/looks.ts). */
+export interface SurfacePaint {
+  readonly wash: string;
+  /** Colour of hatch lines. */
+  readonly line: string;
+  /** Light laid on a dark ground rather than pigment on white. */
+  readonly dark: boolean;
+  /** 0–1 multiplier on hatching. */
+  readonly hatch: number;
+  /** Brightness of the surface against the ground (1 = as painted). */
+  readonly gain: number;
+}
+
 export class InkWashMaterial extends ShaderMaterial {
   readonly #time: { value: number };
+  readonly #wash: Color;
+  readonly #line: Color;
+  readonly #blank: Color;
+  readonly #dark: { value: number };
+  readonly #hatch: { value: number };
+  readonly #gain: { value: number };
 
   constructor({
     wash,
@@ -51,13 +70,23 @@ export class InkWashMaterial extends ShaderMaterial {
     strands = false,
   }: InkWashOptions) {
     const time = { value: 0 };
+    const washColour = new Color(wash);
+    const line = new Color(PALETTE.ink);
+    const blank = new Color(1, 1, 1);
+    const dark = { value: 0 };
+    const hatch = { value: 1 };
+    const gain = { value: 1 };
     super({
       vertexShader: vertex,
       fragmentShader: insertAfterCommon(fragment, noise),
       clipping: true,
       uniforms: {
-        uWash: { value: new Color(wash) },
-        uInk: { value: new Color(PALETTE.ink) },
+        uWash: { value: washColour },
+        uInk: { value: line },
+        uBlank: { value: blank },
+        uDark: dark,
+        uHatch: hatch,
+        uGain: gain,
         uLightDirection: { value: new Vector3(...RENDER.lightDirection).normalize() },
         uHatchScale: { value: hatchScale },
         uGlow: { value: glow },
@@ -69,6 +98,21 @@ export class InkWashMaterial extends ShaderMaterial {
     });
     this.name = 'InkWashMaterial';
     this.#time = time;
+    this.#wash = washColour;
+    this.#line = line;
+    this.#blank = blank;
+    this.#dark = dark;
+    this.#hatch = hatch;
+    this.#gain = gain;
+  }
+
+  paint({ wash, line, dark, hatch, gain }: SurfacePaint) {
+    this.#wash.set(wash);
+    this.#line.set(line);
+    this.#blank.setScalar(dark ? 0 : 1);
+    this.#dark.value = dark ? 1 : 0;
+    this.#hatch.value = hatch;
+    this.#gain.value = gain;
   }
 
   set time(seconds: number) {

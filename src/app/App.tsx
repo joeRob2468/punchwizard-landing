@@ -12,11 +12,13 @@ import { PlateEffects } from '../rendering/effects/PlateEffects.tsx';
 import { CameraRig } from '../scene/CameraRig.tsx';
 import { ClipPlaneProvider } from '../slicing/clip-plane.tsx';
 import { DevHandle } from '../scene/DevHandle.tsx';
+import { Ground } from '../scene/Ground.tsx';
 import { loadSpecimen } from '../specimen/load-specimen.ts';
 import { Specimen } from '../specimen/Specimen.tsx';
 import { PlateBorder } from '../ui/PlateBorder.tsx';
 import { PlateHeader } from '../ui/PlateHeader.tsx';
 import { LayerControls } from '../ui/LayerControls.tsx';
+import { LookSwitcher } from '../ui/LookSwitcher.tsx';
 import { SliceControls } from '../ui/SliceControls.tsx';
 import styles from './App.module.css';
 
@@ -43,8 +45,7 @@ export function App() {
           gl.localClippingEnabled = true;
         }}
       >
-        {/* White ground: the paper effect multiplies the scene onto paper. */}
-        <color attach="background" args={['#ffffff']} />
+        <Ground />
         <CameraRig />
         <ClipPlaneProvider>
           <Suspense fallback={null}>
@@ -60,6 +61,7 @@ export function App() {
         <LabelOverlay channel={labels} />
         <SliceControls />
         <LayerControls />
+        {import.meta.env.DEV && <LookSwitcher />}
       </div>
     </main>
   );

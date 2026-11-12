@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 
 import { LAYER_MODES, LAYER_PRESETS, type LayerModes } from '../config/layers.ts';
+import { DEFAULT_LOOK, type LookId } from '../config/looks.ts';
 import { SLICE, SLICE_AXES, type SliceAxis } from '../config/slice.ts';
 import type { Layer } from '../procedural/format/specimen-format.ts';
 
@@ -37,6 +38,9 @@ interface PlateState {
   readonly setLayers: (modes: LayerModes) => void;
   /** Applies the next preset (keyboard). */
   readonly cycleLayerPreset: () => void;
+  /** The plate's look (palette and ground); only switched in development. */
+  readonly look: LookId;
+  readonly setLook: (look: LookId) => void;
 }
 
 const clampTo = (value: number, [lo, hi]: readonly [number, number]) =>
@@ -49,6 +53,12 @@ export const usePlateStore = create<PlateState>()((set, get) => ({
   viewResets: 0,
 
   layers: firstPreset,
+
+  look: DEFAULT_LOOK,
+
+  setLook: (look) => {
+    set({ look });
+  },
 
   cycleLayer: (layer) => {
     set(({ layers }) => {

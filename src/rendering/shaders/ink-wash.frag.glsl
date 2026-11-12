@@ -12,7 +12,9 @@
 //   along its strands instead: wavy, roughly vertical lines that start in the
 //   mid-tones and crowd together in shadow.
 //
-// Colours are "pigment on white": the paper effect multiplies them onto paper.
+// Colours are "pigment on white": the paper effect multiplies them onto paper. On a
+// dark ground (uDark) they are light on black instead: the wash builds up from
+// black where lit, hatch lines are pale, and the paper effect screens them on.
 
 #include <common>
 #include <clipping_planes_pars_fragment>
@@ -25,6 +27,10 @@ uniform float uGlow; // 0 = ordinary pigment, 1 = self-lit arcane wash
 uniform float uTime;
 uniform float uPartId; // written to alpha for the outline effect's part edges
 uniform float uStrands; // 1 = hatch along hanging strands (hair)
+uniform vec3 uBlank; // the empty ground: white on paper, black on a dark ground
+uniform float uDark; // 1 = light on a dark ground
+uniform float uHatch; // 0–1 hatching strength
+uniform float uGain; // surface brightness against the ground
 
 varying vec3 vViewNormal;
 varying vec3 vObjectPosition;
@@ -76,9 +82,12 @@ void main() {
 
   vec3 lightWash = mix(vec3(1.0), uWash, 0.5);
   vec3 shadowWash = uWash * mix(vec3(1.0), uWash, 0.55) * 0.78;
-  vec3 colour = glazed > 0.5
+  vec3 pigment = glazed > 0.5
     ? mix(uWash, lightWash, (glazed - 0.5) * 2.0)
     : mix(shadowWash, uWash, glazed * 2.0);
+  // On a dark ground, light builds up from black: the full wash only where lit.
+  vec3 lit = mix(uWash * 0.08, mix(uWash, vec3(1.0), 0.15), smoothstep(0.15, 1.0, glazed));
+  vec3 colour = mix(pigment, lit, uDark);
 
   // A dried glaze leaves a darker rim; pigment also settles into crevices.
   float rim = 1.0 - smoothstep(0.0, 0.09, abs(edge - 0.5));
@@ -86,7 +95,7 @@ void main() {
   colour *= mix(0.82, 1.0, smoothstep(0.35, 0.9, occlusion));
 
   // Uneven wash density across the surface.
-  colour = mix(colour, vec3(1.0), 0.1 * pwFbm3(p * 1.7 + 4.0));
+  colour = mix(colour, uBlank, 0.1 * pwFbm3(p * 1.7 + 4.0));
 
   // Cross-contour hatching.
   vec3 an = abs(normalize(vObjectNormal));
@@ -119,7 +128,8 @@ void main() {
   float strandLines = engravedLines(across, perPixel, wobble * 0.5, strandWidth)
     * smoothstep(0.3, 0.6, darkness);
   hatch = mix(hatch, strandLines, uStrands);
-  colour = mix(colour, uInk, hatch * 0.62);
+  colour = mix(colour, uInk, hatch * 0.62 * uHatch);
+  colour = mix(uBlank, colour, uGain);
 
   // Arcane parts are self-lit: pale at the heart, saturated at the rim, pulsing.
   float pulse = 0.5 + 0.5 * sin(uTime * 1.3);

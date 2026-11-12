@@ -7,7 +7,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { use, useEffect, useMemo } from 'react';
 
 import { GHOST_OPACITY } from '../config/layers.ts';
-import { PALETTE, type PaletteKey } from '../config/palette.ts';
+import { LOOKS, washFor } from '../config/looks.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import type { LabelChannel } from '../labels/label-channel.ts';
 import { LabelTracker } from '../labels/LabelTracker.tsx';
@@ -37,12 +37,19 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
         const material = new InkWashMaterial({
           partId: ids[index] ?? partIdFor(index),
           useOcclusion: true,
-          wash: isPaletteKey(entry.look.wash) ? PALETTE[entry.look.wash] : PALETTE.ink,
+          wash: washFor(LOOKS.plate, entry.look.wash),
           glow: entry.look.glow ?? 0,
           strands: entry.look.hatch === 'strands',
         });
         material.clippingPlanes = [plane];
-        return { id: entry.id, layer: entry.layer, geometry, material, pivot: entry.gazePivot };
+        return {
+          id: entry.id,
+          layer: entry.layer,
+          wash: entry.look.wash,
+          geometry,
+          material,
+          pivot: entry.gazePivot,
+        };
       }),
     [parts, plane, ids],
   );
@@ -63,6 +70,19 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
       material.ghost = layers[layer] === 'ghost' ? GHOST_OPACITY : null;
     });
   }, [meshes, layers]);
+
+  const look = LOOKS[usePlateStore((state) => state.look)];
+  useEffect(() => {
+    meshes.forEach(({ layer, wash, material }) => {
+      material.paint({
+        wash: washFor(look, wash),
+        line: look.line,
+        dark: look.ground === 'dark',
+        hatch: look.hatch,
+        gain: look.layerGain?.[layer] ?? 1,
+      });
+    });
+  }, [meshes, look]);
 
   // Irises and pupils follow the pointer.
   const gaze = useMemo(() => new GazeRig(), []);
@@ -130,8 +150,4 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
       <LabelTracker specimen={loaded} channel={labels} />
     </>
   );
-}
-
-function isPaletteKey(key: string): key is PaletteKey {
-  return key in PALETTE;
 }

@@ -244,6 +244,15 @@ The polar angle is clamped so the camera can look down on the hat but not up fro
 
 Defined twice and kept in step: CSS custom properties in `src/styles/tokens.css`, and `PALETTE` in `src/config/palette.ts` for shaders. Washes are saturated Deyrolle-style pigments; arcane accents are cyan (mana) and garnet (gems).
 
+### Looks
+
+`src/config/looks.ts` defines candidate looks for comparison; one will ship. Each is a full palette, a line colour (outlines, hatching, section patterns), strengths for hatching, outlines and section patterns, optional per-layer surface brightness, and a ground:
+
+- **paper**: pigment on white, multiplied onto paper (Plate, Sepia).
+- **dark**: light on black (the scene background turns black), screened onto dark paper. The surface wash builds up from black where lit instead of thinning toward white (Nocturne, MRI).
+
+The look lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push it into their materials' and effects' uniforms (`paint(...)`), and `scene/Ground` sets the background, so switching needs no rebuild. The DOM chrome follows through `[data-look=…]` blocks in `tokens.css`. In development, `ui/LookSwitcher` (top centre, `V`, `?look=<id>`) switches between looks and sets `data-look`. Production always uses `DEFAULT_LOOK`.
+
 ## Typography
 
 _IM Fell English_ (regular and italic), self-hosted through `@fontsource/im-fell-english`.

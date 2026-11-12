@@ -1,0 +1,37 @@
+.switcher {
+  position: absolute;
+  top: clamp(10px, 2vmin, 20px);
+  left: 50%;
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.2rem 0.7rem;
+  border: 1px dashed var(--ink-faint);
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.look {
+  padding: 0.15em 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: var(--ink-faint);
+  font: 0.85rem var(--font-plate);
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.look[aria-pressed='true'] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.look:hover {
+  border-bottom-color: var(--ink-faint);
+}
+
+.look:focus-visible {
+  outline: 1px dashed var(--ink);
+  outline-offset: 4px;
+}

@@ -13,6 +13,13 @@ import outline from '../shaders/outline.frag.glsl?raw';
 import paper from '../shaders/paper.frag.glsl?raw';
 
 export class OutlineEffect extends Effect {
+  /** Sets the line colour and scales the outline strengths (1 = as configured). */
+  paint(line: string, strength: number) {
+    colourUniform(this, 'uInk').set(line);
+    numberUniform(this, 'uStrength').value = RENDER.outlineStrength * strength;
+    numberUniform(this, 'uPartEdgeStrength').value = RENDER.partEdgeStrength * strength;
+  }
+
   constructor() {
     super('OutlineEffect', `${noise}\n${outline}`, {
       attributes: EffectAttribute.DEPTH,
@@ -28,6 +35,14 @@ export class OutlineEffect extends Effect {
 }
 
 export class PaperEffect extends Effect {
+  /** Sets the paper colours, and whether the scene is pigment (multiplied) or light (screened). */
+  paint(paper: string, shadow: string, foxing: string, dark: boolean) {
+    colourUniform(this, 'uPaper').set(paper);
+    colourUniform(this, 'uPaperShadow').set(shadow);
+    colourUniform(this, 'uFoxing').set(foxing);
+    numberUniform(this, 'uDark').value = dark ? 1 : 0;
+  }
+
   constructor() {
     super('PaperEffect', `${noise}\n${paper}`, {
       blendFunction: BlendFunction.SET,
@@ -35,7 +50,20 @@ export class PaperEffect extends Effect {
         ['uPaper', new Uniform(new Color(PALETTE.paper))],
         ['uPaperShadow', new Uniform(new Color(PALETTE.paperShadow))],
         ['uFoxing', new Uniform(new Color(PALETTE.foxing))],
+        ['uDark', new Uniform(0)],
       ]),
     });
   }
+}
+
+function colourUniform(effect: Effect, name: string): Color {
+  const value: unknown = effect.uniforms.get(name)?.value;
+  if (!(value instanceof Color)) throw new Error(`${effect.name}: no colour uniform ${name}`);
+  return value;
+}
+
+function numberUniform(effect: Effect, name: string): Uniform<number> {
+  const uniform = effect.uniforms.get(name) as Uniform<number> | undefined;
+  if (typeof uniform?.value !== 'number') throw new Error(`${effect.name}: no uniform ${name}`);
+  return uniform;
 }

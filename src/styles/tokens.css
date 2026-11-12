@@ -1,6 +1,7 @@
 /*
  * Palette and typography tokens. The same palette is mirrored for shaders in
- * src/config/palette.ts; keep the two in step.
+ * src/config/palette.ts; keep the two in step. The `[data-look]` blocks mirror the
+ * candidate looks in src/config/looks.ts (paper and line colours only).
  */
 :root {
   /* Paper and ink */
@@ -28,4 +29,28 @@
   --arcane-garnet: #9b2335;
 
   --font-plate: 'IM Fell English', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+}
+
+:root[data-look='nocturne'] {
+  --paper: #17181c;
+  --paper-shadow: #09090b;
+  --foxing: #2b2620;
+  --ink: #e8dcc0;
+  --ink-faint: rgb(232 220 192 / 0.55);
+}
+
+:root[data-look='mri'] {
+  --paper: #060607;
+  --paper-shadow: #000000;
+  --foxing: #0b0c0d;
+  --ink: #c9d3d6;
+  --ink-faint: rgb(201 211 214 / 0.5);
+}
+
+:root[data-look='sepia'] {
+  --paper: #f1e6cf;
+  --paper-shadow: #dcc9a6;
+  --foxing: #b3854f;
+  --ink: #3a2414;
+  --ink-faint: rgb(58 36 20 / 0.55);
 }

@@ -17,13 +17,14 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Layers:** shown, see-through or hidden per layer, with presets (Omnia, Ossa, Viscera; `L`), bottom left. Internal features label from outside once what covers them is see-through or hidden.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 400k triangles, ~4 MB, a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).
+- **Looks (dev comparison):** Plate (current), Nocturne (plate colours on ink-black paper, chalk lines), MRI (greys by tissue, outside dimmed, mana the only colour) and Sepia (one brown ink). Switch with the dev switcher at top centre, `V`, or `?look=<id>`; see design.md § Looks.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
 
 Exterior, internal anatomy, fantasy organs, layers and framing are done and approved. In this order:
 
-1. **Stylisation checks:** try alternative colourings and a dark background (the MRI-like look in `images (5).jpg` and `gettyimages-2230129228-612x612.jpg`; see references.md). Build them as switchable variants (palette and paper in `src/config/palette.ts` + `src/styles/tokens.css`, paper in `rendering/shaders/paper.frag.glsl`) so the owner can compare side by side before choosing; ink on a dark ground likely needs light ink and inverted paper multiply.
+1. **Stylisation checks:** the owner compares the four looks and picks one (or asks for changes). Then make it `DEFAULT_LOOK`, and decide whether to drop the others and the switcher before shipping. Open points: MRI cut faces of hat, hair and robe are still mid-grey (could go black like air in a scan); Nocturne's chalk outlines are heavy on hair.
 2. **Optimise:** bake is ~100 s (head with horn core, hair, beard dominate; consider coarser cells or splitting the head's horn into its own part), ~400k triangles / ~4 MB (simplification error, fewer hair locks), and label tracking cost (BVHs for every part now).
 3. **Finalise (M6 polish):** idle motion, ink-in on load, no-WebGL fallback image, touch tuning, build and test the Docker image locally (ask first: it pulls base images). Deploy (M8) only once the owner calls the site final.
 

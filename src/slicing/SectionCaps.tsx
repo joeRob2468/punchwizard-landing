@@ -24,7 +24,7 @@ import {
   Vector3,
 } from 'three';
 
-import { PALETTE, type PaletteKey } from '../config/palette.ts';
+import { LOOKS, washFor } from '../config/looks.ts';
 import { CapMaterial } from '../rendering/materials/cap-material.ts';
 import { partIdFor, partIds } from '../specimen/part-id.ts';
 import type { GazeRig } from '../specimen/gaze.ts';
@@ -55,15 +55,15 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
     () =>
       parts.map(({ entry, geometry }, index) => {
         const section = entry.look.section ?? { pattern: 'hatch' as const };
-        const wash = isPaletteKey(entry.look.wash) ? PALETTE[entry.look.wash] : PALETTE.ink;
         return {
           id: entry.id,
           layer: entry.layer,
+          wash: entry.look.wash,
           geometry,
           pivot: entry.gazePivot,
           parity: stencilMaterial(plane),
           cap: new CapMaterial({
-            wash,
+            wash: washFor(LOOKS.plate, entry.look.wash),
             pattern: section.pattern,
             centre: section.centre,
             partId: ids[index] ?? partIdFor(index),
@@ -83,6 +83,18 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
     },
     [layers, quad],
   );
+
+  const look = LOOKS[usePlateStore((state) => state.look)];
+  useEffect(() => {
+    layers.forEach(({ wash, cap }) => {
+      cap.paint({
+        wash: washFor(look, wash),
+        line: look.line,
+        dark: look.ground === 'dark',
+        section: look.section,
+      });
+    });
+  }, [layers, look]);
 
   const point = useMemo(() => new Vector3(), []);
   const rotation = useMemo(() => new Quaternion(), []);
@@ -149,8 +161,4 @@ function stencilMaterial(plane: Plane): MeshBasicMaterial {
     stencilZFail: InvertStencilOp,
     stencilZPass: InvertStencilOp,
   });
-}
-
-function isPaletteKey(key: string): key is PaletteKey {
-  return key in PALETTE;
 }
