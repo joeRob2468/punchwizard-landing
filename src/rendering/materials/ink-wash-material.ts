@@ -13,6 +13,7 @@ import {
   OneFactor,
   OneMinusConstantAlphaFactor,
   ShaderMaterial,
+  Vector2,
   Vector3,
   ZeroFactor,
 } from 'three';
@@ -21,6 +22,7 @@ import noise from '../shaders/lib/noise.glsl?raw';
 import fragment from '../shaders/ink-wash.frag.glsl?raw';
 import vertex from '../shaders/ink-wash.vert.glsl?raw';
 import { RENDER } from '../../config/render.ts';
+import type { Vec3 } from '../../procedural/sdf/types.ts';
 import { SURFACES, type Surface } from '../../config/surfaces.ts';
 import swayChunk from '../shaders/lib/sway.glsl?raw';
 import { type SwayUniforms, swayUniforms } from './sway.ts';
@@ -41,6 +43,9 @@ export interface InkWashOptions {
   readonly surface?: Surface;
   /** The idle sway's shared uniforms (see materials/sway.ts); none if unset. */
   readonly sway?: SwayUniforms;
+  /** Whether heartbeat pulses of mana run through the part, and where they start. */
+  readonly carriesMana?: boolean;
+  readonly flowOrigin?: Vec3;
 }
 
 /** How a part is painted under the current look (see config/looks.ts). */
@@ -61,6 +66,7 @@ export class InkWashMaterial extends ShaderMaterial {
   readonly #flare: { value: number };
   readonly #pulse: { value: number };
   readonly #glowLevel: { value: number };
+  readonly #flowFronts: { value: Vector2 };
 
   constructor({
     wash,
@@ -69,6 +75,8 @@ export class InkWashMaterial extends ShaderMaterial {
     useOcclusion = false,
     surface = SURFACES.TISSUE,
     sway = swayUniforms(1e9, 2e9),
+    carriesMana = false,
+    flowOrigin = [0, 0, 0],
   }: InkWashOptions) {
     const time = { value: 0 };
     const washColour = new Color(wash);
@@ -77,6 +85,7 @@ export class InkWashMaterial extends ShaderMaterial {
     const flare = { value: 0 };
     const pulse = { value: 0.5 };
     const glowLevel = { value: 1 };
+    const flowFronts = { value: new Vector2(-1, -1) };
     super({
       vertexShader: vertex.replace('#include <sway>', swayChunk),
       fragmentShader: insertAfterCommon(fragment, noise),
@@ -102,6 +111,9 @@ export class InkWashMaterial extends ShaderMaterial {
         uFlare: flare,
         uPulse: pulse,
         uGlowLevel: glowLevel,
+        uFlowFronts: flowFronts,
+        uFlowOrigin: { value: new Vector3(...flowOrigin) },
+        uFlow: { value: carriesMana ? 1 : 0 },
         ...sway,
       },
     });
@@ -114,6 +126,7 @@ export class InkWashMaterial extends ShaderMaterial {
     this.#flare = flare;
     this.#pulse = pulse;
     this.#glowLevel = glowLevel;
+    this.#flowFronts = flowFronts;
     this.ghost = null;
   }
 
@@ -131,6 +144,11 @@ export class InkWashMaterial extends ShaderMaterial {
   /** 0–1: the glow's breath or heartbeat this frame (specimen/idle.ts). */
   set pulse(amount: number) {
     this.#pulse.value = amount;
+  }
+
+  /** Radii of this beat's two mana wavefronts from the core (negative: none). */
+  setFlowFronts(first: number, second: number) {
+    this.#flowFronts.value.set(first, second);
   }
 
   /** 0–1: dims the glow (1 normally; a blink takes it to 0). */

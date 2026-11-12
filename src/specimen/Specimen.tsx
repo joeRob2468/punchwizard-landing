@@ -21,8 +21,17 @@ import { useClipPlane } from '../slicing/clip-plane.tsx';
 import { SectionCaps } from '../slicing/SectionCaps.tsx';
 import { SliceController } from '../slicing/SliceController.tsx';
 import { GazePivot } from './GazePivot.tsx';
+import { HatSpark } from './HatSpark.tsx';
 import { GazeRig } from './gaze.ts';
-import { glowLevel, glowPulse, SWAY, swayAtTip } from './idle.ts';
+import {
+  FLOW_ORIGIN,
+  flowFronts,
+  glowLevel,
+  glowPulse,
+  MANA_CARRIERS,
+  SWAY,
+  swayAtTip,
+} from './idle.ts';
 import type { LoadedSpecimen } from './load-specimen.ts';
 import { partIdFor, partIds } from './part-id.ts';
 
@@ -53,6 +62,8 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           glow: entry.look.glow ?? 0,
           surface: surfaceFor(entry.id, entry.look.wash),
           sway,
+          carriesMana: MANA_CARRIERS.has(entry.id),
+          flowOrigin: FLOW_ORIGIN,
         });
         material.clippingPlanes = [plane];
         return {
@@ -139,11 +150,13 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
     const { highlight } = usePlateStore.getState();
     const ease = 1 - Math.exp(-delta * RENDER.flareRate);
     const [sx, sz] = reducedMotion ? [0, 0] : swayAtTip(t);
+    const [f1, f2] = reducedMotion ? [-1, -1] : flowFronts(t);
     sway.uSway.value.set(sx, sz);
     meshes.forEach(({ id, material }, i) => {
       material.time = t;
       material.pulse = glowPulse(id, i, t);
       material.glowLevel = reducedMotion ? 1 : glowLevel(id, t);
+      material.setFlowFronts(f1, f2);
       const current = flares[i] ?? 0;
       const next = current + ((id === highlight ? 1 : 0) - current) * ease;
       flares[i] = next;
@@ -175,6 +188,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           );
         })}
       </group>
+      <HatSpark />
       <SectionCaps parts={parts} gaze={gaze} sway={sway} />
       <SliceController bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />

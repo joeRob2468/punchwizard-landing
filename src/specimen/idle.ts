@@ -31,6 +31,25 @@ export function sinceBeat(t: number): number {
   return t % BEAT_PERIOD;
 }
 
+/** Where each heartbeat's mana pulses start: the Aetheric Core. */
+export const FLOW_ORIGIN = L.aethericCore;
+/** Parts the pulses run through. */
+export const MANA_CARRIERS: ReadonlySet<string> = new Set([
+  'aetheric-core',
+  'lattice',
+  'vessels',
+  'ganglia',
+]);
+/** Speed of the pulses (specimen units per second). */
+const FLOW_SPEED = 1.6;
+
+/** Radii of this beat's two wavefronts (lub, then dub) from the core; negative: not yet. */
+export function flowFronts(t: number): readonly [number, number] {
+  const s = sinceBeat(t);
+  const dub = s - 0.14 * BEAT_PERIOD;
+  return [s * FLOW_SPEED, dub >= 0 ? dub * FLOW_SPEED : -1];
+}
+
 /** 1 with the eyes open, falling to 0 for a blink every few seconds. */
 export function eyesOpen(t: number): number {
   const slot = 5.5;

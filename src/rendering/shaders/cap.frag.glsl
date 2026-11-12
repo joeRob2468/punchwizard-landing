@@ -14,6 +14,9 @@ uniform float uSection; // 0–1 section pattern strength
 uniform float uFlare; // 0–1: the part's label is hovered or pinned
 uniform float uPulse; // 0–1: the glow's breath or heartbeat (specimen/idle.ts)
 uniform float uGlowLevel; // 0–1: dims the glow (a blink)
+uniform vec3 uFlowOrigin; // the Aetheric Core, where mana pulses start
+uniform vec2 uFlowFronts; // radii of this beat's two wavefronts (negative: none)
+uniform float uFlow; // 1 for parts that carry mana
 uniform float uEmission; // how far past white glowing caps go (for bloom)
 
 varying vec3 vWorldPosition;
@@ -26,6 +29,16 @@ float stripe(float v, float width) {
   float fw = fwidth(v);
   float line = 1.0 - smoothstep(width - fw, width + fw, d);
   return mix(line, width * 2.0, smoothstep(0.25, 0.6, fw));
+}
+
+// A heartbeat's mana pulses: two fronts expanding from the core, fading with
+// distance (specimen/idle.ts).
+float manaWave(vec3 p) {
+  float d = distance(p, uFlowOrigin);
+  vec2 off = (d - uFlowFronts) / 0.07;
+  float wave = exp(-off.x * off.x) * step(0.0, uFlowFronts.x)
+    + 0.7 * exp(-off.y * off.y) * step(0.0, uFlowFronts.y);
+  return wave * uFlow * exp(-d * 0.5);
 }
 
 void main() {
@@ -65,7 +78,7 @@ void main() {
     colour = mix(vec3(1.0), uWash, 0.45 + 0.2 * pulse);
     vec3 emitted = uWash * (1.0 + uEmission * (0.6 + 0.4 * pulse));
     colour = mix(colour, emitted, 0.8 * min(uEmission, 1.0));
-    colour *= mix(0.15, 1.0, uGlowLevel);
+    colour *= mix(0.15, 1.0, uGlowLevel) * (1.0 + 2.2 * manaWave(vWorldPosition));
   }
 
   colour = mix(colour, uInk, ink * uSection);

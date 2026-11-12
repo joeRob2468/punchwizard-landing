@@ -9,6 +9,7 @@ import {
   NotEqualStencilFunc,
   ReplaceStencilOp,
   ShaderMaterial,
+  Vector2,
   Vector3,
 } from 'three';
 
@@ -34,6 +35,9 @@ export interface CapOptions {
   readonly centre?: Vec3;
   /** Same id as the part's surface material (see InkWashOptions.partId). */
   readonly partId: number;
+  /** Whether heartbeat pulses of mana run through the part, and where they start. */
+  readonly carriesMana?: boolean;
+  readonly flowOrigin?: Vec3;
 }
 
 /** How a cut face is painted under the current look (see config/looks.ts). */
@@ -57,8 +61,16 @@ export class CapMaterial extends ShaderMaterial {
   readonly #flare: { value: number };
   readonly #pulse: { value: number };
   readonly #glowLevel: { value: number };
+  readonly #flowFronts: { value: Vector2 };
 
-  constructor({ wash, pattern, centre = [0, 0, 0], partId }: CapOptions) {
+  constructor({
+    wash,
+    pattern,
+    centre = [0, 0, 0],
+    partId,
+    carriesMana = false,
+    flowOrigin = [0, 0, 0],
+  }: CapOptions) {
     const time = { value: 0 };
     const normal = { value: new Vector3(0, 0, 1) };
     const washColour = new Color(wash);
@@ -68,6 +80,7 @@ export class CapMaterial extends ShaderMaterial {
     const flare = { value: 0 };
     const pulse = { value: 0.5 };
     const glowLevel = { value: 1 };
+    const flowFronts = { value: new Vector2(-1, -1) };
     super({
       vertexShader: vertex,
       fragmentShader: fragment.replace('#include <common>', `#include <common>\n${noise}`),
@@ -88,6 +101,9 @@ export class CapMaterial extends ShaderMaterial {
         uFlare: flare,
         uPulse: pulse,
         uGlowLevel: glowLevel,
+        uFlowFronts: flowFronts,
+        uFlowOrigin: { value: new Vector3(...flowOrigin) },
+        uFlow: { value: carriesMana ? 1 : 0 },
         uNormal: normal,
         uCentre: { value: new Vector3(...centre) },
         uPattern: { value: PATTERN_IDS[pattern] },
@@ -105,6 +121,7 @@ export class CapMaterial extends ShaderMaterial {
     this.#flare = flare;
     this.#pulse = pulse;
     this.#glowLevel = glowLevel;
+    this.#flowFronts = flowFronts;
   }
 
   paint({ wash, line, section, emission }: CapPaint) {
@@ -126,6 +143,11 @@ export class CapMaterial extends ShaderMaterial {
   /** 0–1: the glow's breath or heartbeat this frame (specimen/idle.ts). */
   set pulse(amount: number) {
     this.#pulse.value = amount;
+  }
+
+  /** Radii of this beat's two mana wavefronts from the core (negative: none). */
+  setFlowFronts(first: number, second: number) {
+    this.#flowFronts.value.set(first, second);
   }
 
   /** 0–1: dims a glowing cut face (a blink). */

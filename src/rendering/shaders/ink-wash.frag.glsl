@@ -32,6 +32,9 @@ uniform float uMottle;
 uniform float uFlare; // 0–1: the part's label is hovered or pinned
 uniform float uPulse; // 0–1: the glow's breath or heartbeat (specimen/idle.ts)
 uniform float uGlowLevel; // 0–1: dims the glow (a blink)
+uniform vec3 uFlowOrigin; // the Aetheric Core, where mana pulses start
+uniform vec2 uFlowFronts; // radii of this beat's two wavefronts (negative: none)
+uniform float uFlow; // 1 for parts that carry mana
 
 varying vec3 vViewNormal;
 varying vec3 vViewPosition;
@@ -53,6 +56,16 @@ vec3 bumped(vec3 n, float height) {
   float det = dot(dpx, r1);
   vec3 grad = sign(det) * (dFdx(height) * r1 + dFdy(height) * r2);
   return normalize(abs(det) * n - grad);
+}
+
+// A heartbeat's mana pulses: two fronts expanding from the core, fading with
+// distance (specimen/idle.ts).
+float manaWave(vec3 p) {
+  float d = distance(p, uFlowOrigin);
+  vec2 off = (d - uFlowFronts) / 0.07;
+  float wave = exp(-off.x * off.x) * step(0.0, uFlowFronts.x)
+    + 0.7 * exp(-off.y * off.y) * step(0.0, uFlowFronts.y);
+  return wave * uFlow * exp(-d * 0.5);
 }
 
 void main() {
@@ -110,6 +123,7 @@ void main() {
   vec3 glow = mix(mix(vec3(1.0), uWash, 0.25 + 0.15 * pulse), uWash, smoothstep(0.2, 0.9, rimLight));
   vec3 emitted = uWash * (1.0 + uEmission * (0.6 + 0.4 * pulse));
   glow = mix(glow, emitted, 0.8 * min(uEmission, 1.0));
+  glow *= 1.0 + 2.2 * manaWave(p);
   colour = mix(colour, glow, uGlow * uGlowLevel);
 
   // Flare: brighter and lit from within in the part's own colour.

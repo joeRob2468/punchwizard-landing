@@ -31,7 +31,7 @@ import { CapMaterial } from '../rendering/materials/cap-material.ts';
 import { partIdFor, partIds } from '../specimen/part-id.ts';
 import type { GazeRig } from '../specimen/gaze.ts';
 import { GazePivot } from '../specimen/GazePivot.tsx';
-import { glowLevel, glowPulse } from '../specimen/idle.ts';
+import { FLOW_ORIGIN, flowFronts, glowLevel, glowPulse, MANA_CARRIERS } from '../specimen/idle.ts';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import { addSway, type SwayUniforms } from '../rendering/materials/sway.ts';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
@@ -75,6 +75,8 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
             pattern: section.pattern,
             centre: section.centre,
             partId: ids[index] ?? partIdFor(index),
+            carriesMana: MANA_CARRIERS.has(entry.id),
+            flowOrigin: FLOW_ORIGIN,
           }),
         };
       }),
@@ -117,12 +119,14 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
       mesh.quaternion.copy(rotation);
     });
     const { highlight } = usePlateStore.getState();
+    const [f1, f2] = reducedMotion ? [-1, -1] : flowFronts(t);
     const ease = 1 - Math.exp(-delta * RENDER.flareRate);
     layers.forEach(({ id, cap }, i) => {
       cap.time = t;
       cap.planeNormal = plane.normal;
       cap.pulse = glowPulse(id, i, t);
       cap.glowLevel = reducedMotion ? 1 : glowLevel(id, t);
+      cap.setFlowFronts(f1, f2);
       const current = flares[i] ?? 0;
       const next = current + ((id === highlight ? 1 : 0) - current) * ease;
       flares[i] = next;
