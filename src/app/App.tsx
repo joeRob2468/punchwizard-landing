@@ -15,6 +15,7 @@ import { DevHandle } from '../scene/DevHandle.tsx';
 import { RuneCircles } from '../scene/RuneCircles.tsx';
 import { loadSpecimen } from '../specimen/load-specimen.ts';
 import { Specimen } from '../specimen/Specimen.tsx';
+import { GlowKey } from '../ui/GlowKey.tsx';
 import { PlateBorder } from '../ui/PlateBorder.tsx';
 import { PlateHeader } from '../ui/PlateHeader.tsx';
 import { LayerControls } from '../ui/LayerControls.tsx';
@@ -60,6 +61,7 @@ export function App() {
       <div className={styles.overlay}>
         <PlateBorder />
         <PlateHeader />
+        <GlowKey />
         <LabelOverlay channel={labels} />
         <SliceControls />
         <LayerControls />

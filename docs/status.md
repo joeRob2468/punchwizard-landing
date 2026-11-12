@@ -22,6 +22,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Scrying cut:** the cut's outline glows where it meets the outer shell, and faint runes drift across the cut faces.
 - **Marginalia:** a faint slowly turning astrolabe, compass arcs and construction lines drawn into the paper behind the specimen.
 - **Border:** a band of runes in the double rule, corner medallions, and runes that catch the light now and then.
+- **Key of lights:** an inset (top right) with each magical organ's glow colour, number and Latin name (hover to flare it), and a scale.
 - **Idle life:** glows breathe on their own rhythms, the heart beats, the eyes' glow blinks now and then, the hat sways (cuts and labels follow); sway and blinks respect reduced motion.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 400k triangles, ~4 MB, a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).

@@ -32,9 +32,13 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
 
   useEffect(() => {
     let headerBottom = 0;
+    let insetBottom = 0;
     const measure = () => {
       headerBottom =
         document.querySelector('[data-plate-header]')?.getBoundingClientRect().bottom ?? 0;
+      // The inset study (top right) is hidden on small screens: then it has no box.
+      insetBottom =
+        document.querySelector('[data-plate-inset]')?.getBoundingClientRect().bottom ?? 0;
     };
     measure();
     window.addEventListener('resize', measure);
@@ -59,7 +63,7 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
         },
         right: {
           edge: compact ? width - margin - 18 : Math.min(width - margin - 150, width * 0.76),
-          top: margin + 12,
+          top: Math.max(margin + 12, insetBottom + 20),
           bottom: height - margin - 60,
         },
       });
