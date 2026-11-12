@@ -85,6 +85,16 @@
   stroke-width: 2.5;
 }
 
+/* The note may be wider than the key; let it wrap to the key's width. */
+.note {
+  margin-top: 0.45rem;
+}
+
+.note svg {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Only where there's room beside the specimen and its labels. */
 @media (max-width: 1100px), (max-height: 760px) {
   .inset {

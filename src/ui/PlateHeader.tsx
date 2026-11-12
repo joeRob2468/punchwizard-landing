@@ -1,7 +1,8 @@
 /**
  * The plate's title block: species name, vernacular name and a short
- * Hudspeth-style taxonomy.
+ * Hudspeth-style taxonomy, with a note in runes beneath.
  */
+import { CipherNote } from './CipherNote.tsx';
 import styles from './PlateHeader.module.css';
 
 const TAXONOMY: readonly (readonly [rank: string, name: string])[] = [
@@ -26,6 +27,7 @@ export function PlateHeader() {
           </div>
         ))}
       </dl>
+      <CipherNote latin="Cave: pileus mordet." className={styles.note} />
     </header>
   );
 }

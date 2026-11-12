@@ -1,0 +1,49 @@
+.note {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.runes path {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The Latin sits over the runes and shows as they fade. */
+.latin {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  white-space: nowrap;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 0.4s;
+}
+
+.runes {
+  display: block;
+  transition: opacity 0.4s;
+}
+
+.note:hover .runes,
+.note:focus-visible .runes {
+  opacity: 0;
+}
+
+.note:hover .latin,
+.note:focus-visible .latin {
+  opacity: 1;
+}
+
+.note:focus-visible {
+  outline: 1px dashed var(--ink-faint);
+  outline-offset: 3px;
+}

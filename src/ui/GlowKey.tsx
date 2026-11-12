@@ -1,10 +1,11 @@
 /**
  * Inset study, top right: the key of lights (each magical organ's glow, with its
  * plate number and Latin name, in the colour it glows in the current view) and a
- * small ruled scale. Hovering a row makes that organ flare, as its label does.
+ * small ruled scale, and a note in runes. Hovering a row makes that organ flare, as its label does.
  * The label overlay keeps its right-hand column below this inset.
  */
 import { usePlateStore } from '../state/plate-store.ts';
+import { CipherNote } from './CipherNote.tsx';
 import styles from './GlowKey.module.css';
 
 /** Glowing organs, by plate number: the part each glows from, and its Latin name. */
@@ -55,6 +56,7 @@ export function GlowKey() {
         </svg>
         <span>Scala · II palmi</span>
       </div>
+      <CipherNote latin="Mana per vasa fluit, cor aethericum pulsat." className={styles.note} />
     </aside>
   );
 }
