@@ -430,6 +430,7 @@ The owner found the model too cartoonish and added more realistic references (we
 - **Touch slicing:** two-finger vertical drag moves the cut; pinch zooms; one finger orbits.
 - **Already done:** the wheel moves the cut (Ctrl/⌘ + wheel zooms) and the drag knob is gone; the flickering outline specks are fixed.
 - **Progress (end of 2026-11-11):** wheel/touch slicing, speck fix, new shading (glazes, occlusion, engraved hatching), realistic face with pointer-following eyes are done; hair, hat and robe are next. See status.md.
+- **Progress (2026-11-12):** internal anatomy rebuilt from medical references, brain grown into the hat, fantasy organs added (19 labels), layer show/ghost/hide controls, adaptive start framing. Next: stylisation variants (dark background, alt colourings), then optimisation, then M6 polish.
 - **Possible later step:** a further stylisation pass — dark background, more monotone colouring and textures, internals rendered like an MRI scan. To be decided after the realism pass.
 
 ## 9. Still open (not blocking)

@@ -290,7 +290,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
   {
     id: 'superiority',
     number: 19,
-    name: 'Signature look of superiority',
+    name: 'Signature Look of Superiority',
     latin: 'Vultus superioritatis',
     description:
       'Perfected over centuries of looking down the nose at apprentices. Best delivered over the beard, in silence.',
