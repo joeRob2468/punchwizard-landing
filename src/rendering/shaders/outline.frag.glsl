@@ -6,7 +6,7 @@
 // - Part edges: where the part id (alpha, see InkWashMaterial) changes, which
 //   separates tissues on coplanar section caps and overlapping parts.
 //
-// Colour is multisampled but the depth texture holds one sample per pixel, so a
+// Depth and part ids hold one sample per pixel (there's no MSAA), so a
 // sub-pixel sliver (a thin edge at a grazing angle, a stray cap sample) can show up
 // in depth or alpha as a single odd pixel. Inking around it drew flickering `+`
 // specks. Two guards stop that: a difference only counts if it persists one step

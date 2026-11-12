@@ -59,7 +59,9 @@ export function PlateEffects() {
   });
 
   return (
-    <EffectComposer multisampling={4} stencilBuffer>
+    // No MSAA: SMAA looks the same, and ANGLE's multisampled depth-stencil resolve
+    // cost ~30 ms a frame (design.md § Post effects).
+    <EffectComposer multisampling={0} stencilBuffer>
       <primitive object={outline} />
       {/* Smooths jaggies on silhouettes and ink lines before the paper and bloom. */}
       <SMAA />

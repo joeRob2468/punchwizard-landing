@@ -142,7 +142,7 @@ The scene is drawn as **light on black** (the scene background is black), then p
    - `glow` (0–1) makes a part self-lit: pale centre, saturated rim, slow pulse. Used for arcane parts.
 2. **`OutlineEffect`** (`rendering/effects/`): reads the depth buffer and the part ids in alpha. A clearly farther neighbour draws a silhouette on the near side of the jump; spikes in depth curvature draw fainter creases; a change of part id draws a part edge (see below). Sample positions wobble and line width varies with screen-space noise.
 
-   Colour is multisampled but the depth texture has one sample per pixel, so sub-pixel slivers (thin edges at grazing angles, stray cap samples) appear in depth or alpha as single odd pixels. To keep them from being inked as flickering specks, a difference only counts if it persists two steps out in the same direction, and a pixel nearer than at least 7 of its 8 neighbours is never inked.
+   Depth and part ids have one sample per pixel, so sub-pixel slivers (thin edges at grazing angles, stray cap samples) appear in depth or alpha as single odd pixels. To keep them from being inked as flickering specks, a difference only counts if it persists two steps out in the same direction, and a pixel nearer than at least 7 of its 8 neighbours is never inked.
 
 3. **`PaperEffect`**: screens the result onto dark procedural paper fixed to the screen (mottling, fibres, foxing, vignette, at the view's texture strength). Grain noise modulates the marks (granulation). Empty areas (black) become plain paper.
 
@@ -279,7 +279,7 @@ Both views get these post effects (tunables in `src/config/fx.ts`):
 - **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue. The composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
 - **Lens:** slight chromatic aberration, light grain and a vignette on the finished image.
 
-Stack order: outline, SMAA (smooths jaggies on silhouettes and ink lines), paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass.
+Stack order: outline, SMAA (smooths jaggies on silhouettes and ink lines), paper, bloom, lens. The composer doesn't multisample: SMAA alone looks the same, and a multisampled depth-stencil buffer cost about 30 ms a frame at 2500×1330 on Chrome/Windows (ANGLE resolves it slowly), against about 3 ms for the whole frame without it. The outline effect is flagged as a convolution so it always leads its own pass.
 
 ## Typography
 
