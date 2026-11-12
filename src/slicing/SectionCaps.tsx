@@ -1,9 +1,11 @@
 /**
  * Solid cut faces for the sectioned specimen, using the stencil technique: for
- * each part, its back faces increment and its front faces decrement the stencil
- * (both clipped by the plane), leaving a non-zero count exactly where the plane
- * cuts through the part's interior. A plane-sized quad then fills those pixels
- * with the part's CapMaterial and resets the stencil for the next part.
+ * each part, every surface crossing behind the plane (front or back face, clipped
+ * by the plane) inverts the stencil, so it ends non-zero exactly where an odd
+ * number of crossings lie behind the pixel: where the plane cuts the part's
+ * interior. Counting parity rather than front minus back faces keeps a few badly
+ * wound triangles (left by simplification) from leaving specks. A plane-sized quad
+ * then fills those pixels with the part's CapMaterial and resets the stencil.
  *
  * Parts are capped in order, each later cap drawn over earlier coplanar ones
  * (LessEqual depth), so inner parts should come after outer ones.
@@ -12,17 +14,13 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import {
   AlwaysStencilFunc,
-  BackSide,
-  DecrementWrapStencilOp,
-  FrontSide,
-  IncrementWrapStencilOp,
+  DoubleSide,
+  InvertStencilOp,
   type Mesh,
   MeshBasicMaterial,
   type Plane,
   PlaneGeometry,
   Quaternion,
-  type Side,
-  type StencilOp,
   Vector3,
 } from 'three';
 
@@ -60,8 +58,7 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
           id: entry.id,
           geometry,
           pivot: entry.gazePivot,
-          back: stencilMaterial(plane, BackSide, IncrementWrapStencilOp),
-          front: stencilMaterial(plane, FrontSide, DecrementWrapStencilOp),
+          parity: stencilMaterial(plane),
           cap: new CapMaterial({
             wash,
             pattern: section.pattern,
@@ -76,9 +73,8 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
   useEffect(
     () => () => {
       quad.dispose();
-      layers.forEach(({ back, front, cap }) => {
-        back.dispose();
-        front.dispose();
+      layers.forEach(({ parity, cap }) => {
+        parity.dispose();
         cap.dispose();
       });
     },
@@ -104,14 +100,9 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
 
   return (
     <group name="section-caps">
-      {layers.map(({ id, geometry, back, front, cap, pivot }, i) => {
+      {layers.map(({ id, geometry, parity, cap, pivot }, i) => {
         const order = CAP_RENDER_ORDER_BASE + i * 2;
-        const stencils = (
-          <>
-            <mesh geometry={geometry} material={back} renderOrder={order} />
-            <mesh geometry={geometry} material={front} renderOrder={order} />
-          </>
-        );
+        const stencils = <mesh geometry={geometry} material={parity} renderOrder={order} />;
         return (
           <group key={id}>
             {pivot ? (
@@ -137,18 +128,18 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
   );
 }
 
-function stencilMaterial(plane: Plane, side: Side, op: StencilOp): MeshBasicMaterial {
+function stencilMaterial(plane: Plane): MeshBasicMaterial {
   return new MeshBasicMaterial({
-    side,
+    side: DoubleSide,
     clippingPlanes: [plane],
     colorWrite: false,
     depthWrite: false,
     depthTest: false,
     stencilWrite: true,
     stencilFunc: AlwaysStencilFunc,
-    stencilFail: op,
-    stencilZFail: op,
-    stencilZPass: op,
+    stencilFail: InvertStencilOp,
+    stencilZFail: InvertStencilOp,
+    stencilZPass: InvertStencilOp,
   });
 }
 
