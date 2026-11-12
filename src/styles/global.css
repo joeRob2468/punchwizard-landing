@@ -8,6 +8,18 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Height of one row of the bottom controls, for stacking them. Touch screens get
+     taller tap targets (see the controls' coarse-pointer padding). */
+  --control-row: 2.1rem;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --control-row: 2.7rem;
+  }
+}
+
 html,
 body,
 #root {

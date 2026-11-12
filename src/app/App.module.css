@@ -3,6 +3,9 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  /* Every gesture on the plate is ours (orbit, pinch, the two-finger cut): don't let
+     the browser pan or zoom the page, or cancel a drag half-way. Taps still click. */
+  touch-action: none;
 }
 
 .scene {

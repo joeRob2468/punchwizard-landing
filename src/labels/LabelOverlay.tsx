@@ -16,6 +16,14 @@ import styles from './LabelOverlay.module.css';
 const COMPACT_WIDTH = 720;
 const ROW_HEIGHT = 30;
 const COMPACT_ROW_HEIGHT = 26;
+/** Room kept clear (px) above the bottom controls: the cut control and views on the
+ * right; on compact screens they stack a row higher, and the presets sit under the
+ * left column. */
+const CONTROLS_RIGHT = 60;
+const COMPACT_CONTROLS_RIGHT = 130;
+const COMPACT_CONTROLS_LEFT = 50;
+/** Below this share of the height, a label's tooltip opens upward. */
+const TOOLTIP_FLIP = 0.55;
 /** Gap between a label and the start of its leader line. */
 const LEADER_GAP = 8;
 
@@ -44,7 +52,7 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
     measure();
     window.addEventListener('resize', measure);
     // What was last written to each label's elements.
-    const written: { side: string; transform: string; path: string }[] = [];
+    const written: { side: string; tip: string; transform: string; path: string }[] = [];
 
     const unsubscribe = channel.subscribe(() => {
       const { width, height } = channel;
@@ -62,12 +70,13 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
         left: {
           edge: compact ? margin + 18 : Math.max(margin + 150, width * 0.24),
           top: Math.max(margin, headerBottom + 24),
-          bottom: height - margin,
+          // Compact: the column shares its x with the layer presets below it.
+          bottom: height - margin - (compact ? COMPACT_CONTROLS_LEFT : 0),
         },
         right: {
           edge: compact ? width - margin - 18 : Math.min(width - margin - 150, width * 0.76),
           top: Math.max(margin + 12, insetBottom + 20),
-          bottom: height - margin - 60,
+          bottom: height - margin - (compact ? COMPACT_CONTROLS_RIGHT : CONTROLS_RIGHT),
         },
       });
       const placedByIndex = new Map(placed.map((p) => [p.index, p]));
@@ -94,10 +103,17 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
 
         // Only touch what changed: a still camera then costs no DOM work at all, and
         // labels move by transform, which skips layout.
-        const last = written[index] ?? (written[index] = { side: '', transform: '', path: '' });
+        const last =
+          written[index] ?? (written[index] = { side: '', tip: '', transform: '', path: '' });
         if (last.side !== place.side) {
           last.side = place.side;
           label.dataset.side = place.side;
+        }
+        // Labels low on the screen open their tooltip upward, so it stays on screen.
+        const tip = place.y > height * TOOLTIP_FLIP ? 'above' : 'below';
+        if (last.tip !== tip) {
+          last.tip = tip;
+          label.dataset.tip = tip;
         }
         const shiftX = place.side === 'left' ? '-100%' : '0';
         const transform = `translate(${place.x.toFixed(1)}px,${place.y.toFixed(1)}px) translate(${shiftX},-50%)`;

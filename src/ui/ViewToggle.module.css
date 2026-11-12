@@ -1,7 +1,7 @@
 .views {
   position: absolute;
   right: clamp(24px, 5vmin, 56px);
-  bottom: calc(clamp(22px, 4.5vmin, 52px) + 2.1rem);
+  bottom: calc(clamp(22px, 4.5vmin, 52px) + var(--control-row));
   display: flex;
   gap: 0.9rem;
   align-items: baseline;
@@ -35,4 +35,18 @@
 .view:focus-visible {
   outline: 1px dashed var(--ink);
   outline-offset: 4px;
+}
+
+@media (pointer: coarse) {
+  .view {
+    padding: 0.45em 0.1em;
+  }
+}
+
+/* Narrow screens: the presets take the bottom row's width, so the cut control
+   moves up a row (SliceControls) and the views above it. */
+@media (max-width: 720px) {
+  .views {
+    bottom: calc(clamp(22px, 4.5vmin, 52px) + 2 * var(--control-row));
+  }
 }

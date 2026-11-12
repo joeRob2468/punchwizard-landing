@@ -81,3 +81,11 @@
     display: none;
   }
 }
+
+@media (pointer: coarse) {
+  .preset,
+  .layer,
+  .seeThrough {
+    padding: 0.45em 0.1em;
+  }
+}

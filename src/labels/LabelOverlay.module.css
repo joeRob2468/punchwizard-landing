@@ -154,6 +154,12 @@
   z-index: 1;
 }
 
+.label[data-tip='above'] .tooltip {
+  top: auto;
+  bottom: calc(100% + 10px);
+  transform: translateY(3px);
+}
+
 /* Small diamonds at two corners, like the plate's medallions. */
 .tooltip::before,
 .tooltip::after {
@@ -230,4 +236,24 @@
 
 .labels[data-compact] .tooltip {
   max-width: 60vw;
+}
+
+/* Compact labels hug the edges: open their tooltips toward the middle. */
+.labels[data-compact] .label[data-side='left'] .tooltip {
+  right: auto;
+  left: 0;
+}
+
+.labels[data-compact] .label[data-side='right'] .tooltip {
+  right: 0;
+  left: auto;
+}
+
+/* Touch: numbers alone are a small target; widen them (the number stays at the
+   leader's end: flex-start is the inner edge on both sides). */
+@media (pointer: coarse) {
+  .labels[data-compact] .label {
+    justify-content: flex-start;
+    min-width: 2.4rem;
+  }
 }
