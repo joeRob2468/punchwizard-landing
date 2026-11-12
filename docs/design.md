@@ -160,6 +160,12 @@ Tunables (light direction, outline width and strength, part-edge strength) are i
 
 The irises and pupils are separate left and right parts that carry a `gazePivot` (the eyeball's centre) in the manifest. `specimen/gaze.ts` (`GazeRig`) computes one rotation shared by both eyes, so they always move together: toward a point on the pointer's ray, 60% of the way from the camera to the point between the eyes, softly limited to about 0.8 rad from straight ahead (so the eyes keep responding near the limit rather than freezing) and smoothed. The pointer is tracked over the whole page (labels included); when it leaves the window, the eyes ease back to straight ahead. `specimen/GazePivot` applies the rotation about the pivot, in the specimen and to the parts' section-cap stencils, so cut faces stay correct.
 
+## Ornament
+
+`src/ornament/futhark.ts` is the plate's one alphabet: the 24 Elder Futhark runes as straight strokes on a 4 × 8 grid, a Latin transliteration, and helpers that draw a rune as SVG path data or onto a canvas. Every rune on the plate comes from it.
+
+`scene/RuneCircles` draws rune rings (`ornament/rune-ring.ts`: circles, bands of transliterated Latin, dial ticks, a valknut) onto canvas textures: a summoning circle on the ground just under the bust (outer and inner rings turning opposite ways) and a fainter ring that always stands behind the head facing the camera. They're drawn additively in the view's mana colour, below the bloom threshold, and hold still with reduced motion.
+
 ## Sectioning
 
 ### State

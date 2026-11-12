@@ -12,6 +12,7 @@ import { PlateEffects } from '../rendering/effects/PlateEffects.tsx';
 import { CameraRig } from '../scene/CameraRig.tsx';
 import { ClipPlaneProvider } from '../slicing/clip-plane.tsx';
 import { DevHandle } from '../scene/DevHandle.tsx';
+import { RuneCircles } from '../scene/RuneCircles.tsx';
 import { loadSpecimen } from '../specimen/load-specimen.ts';
 import { Specimen } from '../specimen/Specimen.tsx';
 import { PlateBorder } from '../ui/PlateBorder.tsx';
@@ -47,6 +48,7 @@ export function App() {
         {/* Black ground: the paper effect screens the scene onto dark paper. */}
         <color attach="background" args={['#000000']} />
         <CameraRig />
+        <RuneCircles />
         <ClipPlaneProvider>
           <Suspense fallback={null}>
             <Specimen specimen={specimen} labels={labels} />
