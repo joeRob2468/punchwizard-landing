@@ -89,7 +89,8 @@ void main() {
     vec3 facing = normalize(uNormal);
     if (dot(facing, cameraPosition - vWorldPosition) < 0.0) facing = -facing;
     float spotDiffuse = max(dot(facing, normalize(uSpotPosition - vWorldPosition)), 0.0);
-    vec3 lit = vec3(0.45) + 0.85 * spotDiffuse * pwSpotLight(vWorldPosition);
+    float shadow = pwSpotShadow(vWorldPosition, facing);
+    vec3 lit = vec3(0.45) + 0.85 * spotDiffuse * pwSpotLight(vWorldPosition) * shadow;
     colour *= mix(vec3(1.0), lit, uDrama);
   }
 

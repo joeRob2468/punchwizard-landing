@@ -39,6 +39,7 @@ uniform float uFlow; // 1 for parts that carry mana
 varying vec3 vViewNormal;
 varying vec3 vViewPosition;
 varying vec3 vObjectPosition;
+varying vec3 vSwayedPosition;
 varying float vOcclusion;
 
 // A cool fill from the lower right and a rim from behind, in view space.
@@ -131,7 +132,8 @@ void main() {
     vec3 spotScatter = albedo * vec3(0.9, 0.3, 0.15) * (spotDiffuse - max(spotNdl, 0.0)) * 0.6 * uScatter;
     vec3 spotLit = albedo * spotDiffuse * mix(0.55, 1.0, occlusion) * (1.0 - 0.6 * uMetallic)
       + spotHighlight * highlightColour + spotScatter;
-    colour += spotLit * pwSpotLight(p) * uDrama;
+    float shadow = pwSpotShadow(vSwayedPosition, worldNormal);
+    colour += spotLit * pwSpotLight(p) * shadow * uDrama;
   }
 
   colour *= mix(0.78, 1.0, smoothstep(0.35, 0.9, occlusion));

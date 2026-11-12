@@ -28,6 +28,7 @@ import { partSphere, sphereSide } from '../slicing/plane-math.ts';
 import { GazePivot } from './GazePivot.tsx';
 import { GroundGlow } from './GroundGlow.tsx';
 import { SpotRig } from './SpotRig.tsx';
+import { SpotShadow } from './SpotShadow.tsx';
 import { Motes } from './Motes.tsx';
 import { GazeRig } from './gaze.ts';
 import {
@@ -208,7 +209,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   return (
     <>
       <group name="specimen">
-        {meshes.map(({ id, glowing, geometry, material, pivot }, i) => {
+        {meshes.map(({ id, layer, glowing, geometry, material, pivot }, i) => {
           const mesh = (
             <mesh
               key={id}
@@ -216,6 +217,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
                 meshRefs.current[i] = m;
               }}
               name={id}
+              userData={{ layer }}
               geometry={geometry}
               material={material}
               // Glowing parts draw after see-through ones (see InkWashMaterial.ghost).
@@ -235,6 +237,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
       <GroundGlow parts={parts} seam={seam} />
       <SectionCaps parts={parts} gaze={gaze} sway={sway} seam={seam} spot={spot} />
       <SpotRig spot={spot} />
+      <SpotShadow spot={spot} sway={sway} />
       <SliceController bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />
     </>

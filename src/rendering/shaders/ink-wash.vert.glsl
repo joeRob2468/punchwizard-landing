@@ -5,6 +5,8 @@
 varying vec3 vViewNormal;
 varying vec3 vViewPosition;
 varying vec3 vObjectPosition;
+// Where the vertex is drawn (swayed), for the spot's shadow lookup.
+varying vec3 vSwayedPosition;
 varying float vOcclusion;
 
 // Baked per vertex (1 = open). Geometry without it reads 0 here, so the material
@@ -17,6 +19,7 @@ void main() {
   vOcclusion = mix(1.0, occlusion, uUseOcclusion);
   vViewNormal = normalize(normalMatrix * normal);
 
+  vSwayedPosition = (modelMatrix * vec4(pwSway(position), 1.0)).xyz;
   vec4 mvPosition = modelViewMatrix * vec4(pwSway(position), 1.0);
   vViewPosition = -mvPosition.xyz;
   #include <clipping_planes_vertex>
