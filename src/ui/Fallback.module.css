@@ -1,0 +1,34 @@
+.fallback {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.figure {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: clamp(24px, 6vmin, 72px);
+}
+
+.plate {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(100vh - 9rem);
+  /* Feathered edges, so the capture's own paper fades into the page's. */
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 70%, transparent 100%);
+}
+
+.caption {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-faint);
+  text-align: center;
+}

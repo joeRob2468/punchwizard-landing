@@ -24,6 +24,18 @@ body {
 }
 
 .noscript {
-  margin: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  padding: 2rem;
   font-family: var(--font-plate);
+  text-align: center;
+}
+
+.noscript img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(100vh - 8rem);
 }

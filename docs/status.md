@@ -31,13 +31,14 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Preloader:** a ring of Futhark runes that ink in as the specimen loads, captioned _Praeparatur specimen_, fading out on the first frame.
 - **Metadata:** title, description, canonical URL, Open Graph and X/Twitter cards with a 1200 × 630 preview image of the plate.
 - **Icons:** SVG favicon (the hat on dark paper) with ICO, touch and manifest (incl. maskable) renders, and a web manifest.
+- **Fallback:** without WebGL 2 (or if the plate fails), the border and title with a still of the specimen and a short note; `<noscript>` shows the same still.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
 
 The look, the views, the layers and the flair round are done and reviewed. Launch prep: the performance pass, the preloader and the metadata are done (see Works and design.md § Resolution, § Section caps, § Loading). Next:
 
-1. **Polish for launch:** the no-WebGL fallback image, touch tuning (below 720 px wide the layer presets run into the cut control at the bottom), an ink-in on load.
+1. **Polish for launch:** touch tuning (below 720 px wide the layer presets run into the cut control at the bottom), an ink-in on load.
 2. **Ship:** build and test the Docker image locally (ask first: it pulls base images), then deploy (M8) only once the owner calls the site final.
 
 ## Working notes
