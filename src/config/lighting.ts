@@ -7,8 +7,8 @@ import type { SpotPath } from '../specimen/spot-path.ts';
 
 export const LIGHTING = {
   path: {
-    // Up and to the viewer's left, aimed at the head.
-    offset: -1.25,
+    // Up and to the viewer's right (the cut side), aimed at the head.
+    offset: 1.1,
     elevation: 0.85,
     distance: 5.2,
     target: [0, 0.55, 0],
