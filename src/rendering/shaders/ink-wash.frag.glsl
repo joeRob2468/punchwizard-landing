@@ -130,6 +130,9 @@ void main() {
   colour = mix(colour, glow, uGlow * uGlowLevel);
 
 
+  // Light where he meets the rune circle on the ground (lib/seam.glsl).
+  colour += pwGroundSeam(p, uTime);
+
   // Flare: brighter and lit from within in the part's own colour.
   colour = colour * (1.0 + 0.7 * uFlare) + mix(albedo, uWash, uGlow) * 0.3 * uFlare;
 

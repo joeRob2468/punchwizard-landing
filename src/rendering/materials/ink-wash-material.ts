@@ -24,7 +24,9 @@ import vertex from '../shaders/ink-wash.vert.glsl?raw';
 import { RENDER } from '../../config/render.ts';
 import type { Vec3 } from '../../procedural/sdf/types.ts';
 import { SURFACES, type Surface } from '../../config/surfaces.ts';
+import seamChunk from '../shaders/lib/seam.glsl?raw';
 import swayChunk from '../shaders/lib/sway.glsl?raw';
+import { NO_SEAM, type SeamUniforms } from './seam.ts';
 import { type SwayUniforms, swayUniforms } from './sway.ts';
 
 export interface InkWashOptions {
@@ -46,6 +48,8 @@ export interface InkWashOptions {
   /** Whether pulses of mana run through the part, and where they start. */
   readonly carriesMana?: boolean;
   readonly flowOrigin?: Vec3;
+  /** The ground seam's shared uniforms (materials/seam.ts); none if unset. */
+  readonly seam?: SeamUniforms;
 }
 
 /** How a part is painted under the current look (see config/looks.ts). */
@@ -77,6 +81,7 @@ export class InkWashMaterial extends ShaderMaterial {
     sway = swayUniforms(1e9, 2e9),
     carriesMana = false,
     flowOrigin = [0, 0, 0],
+    seam = NO_SEAM,
   }: InkWashOptions) {
     const time = { value: 0 };
     const washColour = new Color(wash);
@@ -88,7 +93,7 @@ export class InkWashMaterial extends ShaderMaterial {
     const flowFronts = { value: new Vector2(-1, -1) };
     super({
       vertexShader: vertex.replace('#include <sway>', swayChunk),
-      fragmentShader: insertAfterCommon(fragment, noise),
+      fragmentShader: insertAfterCommon(fragment, `${noise}\n${seamChunk}`),
       clipping: true,
       uniforms: {
         uWash: { value: washColour },
@@ -116,6 +121,7 @@ export class InkWashMaterial extends ShaderMaterial {
         uFlow: { value: carriesMana ? 1 : 0 },
 
         ...sway,
+        ...seam,
       },
     });
     this.name = 'InkWashMaterial';

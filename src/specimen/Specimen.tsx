@@ -17,12 +17,15 @@ import type { LabelChannel } from '../labels/label-channel.ts';
 import { LabelTracker } from '../labels/LabelTracker.tsx';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import { InkWashMaterial } from '../rendering/materials/ink-wash-material.ts';
+import { seamUniforms } from '../rendering/materials/seam.ts';
 import { swayUniforms } from '../rendering/materials/sway.ts';
+import { LANDMARKS } from '../procedural/landmarks.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
 import { SectionCaps } from '../slicing/SectionCaps.tsx';
 import { SliceController } from '../slicing/SliceController.tsx';
 import { partSphere, sphereSide } from '../slicing/plane-math.ts';
 import { GazePivot } from './GazePivot.tsx';
+import { GroundGlow } from './GroundGlow.tsx';
 import { Motes } from './Motes.tsx';
 import { GazeRig } from './gaze.ts';
 import {
@@ -53,6 +56,11 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   const ids = useMemo(() => partIds(parts.map((p) => p.entry)), [parts]);
   // Shared by every part and the section stencils, so they all sway together.
   const sway = useMemo(() => swayUniforms(SWAY.from, SWAY.to), []);
+  // Shared by every part and cut face: the light where he meets the ground circle.
+  const seam = useMemo(
+    () => seamUniforms(LANDMARKS.bustBase[1], FX.seam.width, FX.seam.strength),
+    [],
+  );
   const reducedMotion = usePrefersReducedMotion();
   const meshes = useMemo(
     () =>
@@ -64,6 +72,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           glow: entry.look.glow ?? 0,
           surface: surfaceFor(entry.id, entry.look.wash),
           sway,
+          seam,
           carriesMana: MANA_CARRIERS.has(entry.id),
           flowOrigin: FLOW_ORIGIN,
         });
@@ -79,7 +88,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           sphere: partSphere(entry.bounds, SWAY.amplitude + 0.005, entry.gazePivot),
         };
       }),
-    [parts, plane, ids, sway],
+    [parts, plane, ids, sway, seam],
   );
 
   useEffect(
@@ -114,7 +123,8 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
       });
     });
     usePlateStore.getState().setPartColours(colours);
-  }, [meshes, look]);
+    seam.uSeamColour.value.set(look.palette.arcaneMana);
+  }, [meshes, look, seam]);
 
   // The part whose label is hovered or pinned flares, easing in and out.
   const flares = useMemo(() => meshes.map(() => 0), [meshes]);
@@ -216,7 +226,8 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
         })}
       </group>
       <Motes />
-      <SectionCaps parts={parts} gaze={gaze} sway={sway} />
+      <GroundGlow parts={parts} />
+      <SectionCaps parts={parts} gaze={gaze} sway={sway} seam={seam} />
       <SliceController bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />
     </>

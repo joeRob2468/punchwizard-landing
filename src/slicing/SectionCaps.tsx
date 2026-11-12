@@ -40,6 +40,7 @@ import {
   SWAY,
 } from '../specimen/idle.ts';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
+import type { SeamUniforms } from '../rendering/materials/seam.ts';
 import { addSway, type SwayUniforms } from '../rendering/materials/sway.ts';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
 import { usePlateStore } from '../state/plate-store.ts';
@@ -57,9 +58,11 @@ interface SectionCapsProps {
   readonly gaze: GazeRig;
   /** The specimen's idle sway, applied to the stencils so cut faces follow it. */
   readonly sway: SwayUniforms;
+  /** The ground seam's shared uniforms, so cut faces glow where they meet the ground. */
+  readonly seam: SeamUniforms;
 }
 
-export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
+export function SectionCaps({ parts, gaze, sway, seam }: SectionCapsProps) {
   const reducedMotion = usePrefersReducedMotion();
   const { plane } = useClipPlane();
   const quad = useMemo(() => new PlaneGeometry(CAP_SIZE, CAP_SIZE), []);
@@ -86,10 +89,11 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
             partId: ids[index] ?? partIdFor(index),
             carriesMana: MANA_CARRIERS.has(entry.id),
             flowOrigin: FLOW_ORIGIN,
+            seam,
           }),
         };
       }),
-    [parts, plane, ids, sway],
+    [parts, plane, ids, sway, seam],
   );
 
   useEffect(

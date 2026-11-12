@@ -28,10 +28,9 @@ import {
 import { LOOKS } from '../config/looks.ts';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import { drawRuneRing, type RingDesign } from '../ornament/rune-ring.ts';
-import { LANDMARKS as L } from '../procedural/landmarks.ts';
+import { GROUND_Y } from './ground.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 
-const GROUND_Y = L.bustBase[1] - 0.01;
 const GROUND_RADIUS = 1.8;
 const HALO_RADIUS = 1.55;
 /** The halo's centre, and how far behind it (away from the camera) it stands. */

@@ -19,6 +19,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Mana flow:** slow pulses of light leave the Aetheric Core at random moments and travel along the lattice, vessels and ganglia.
 - **Motes:** a few faint specks float around the model, for depth as the camera moves.
 - **Rune circles:** Elder Futhark rings: a turning summoning circle with a valknut under the bust and a faint halo ring behind the head.
+- **Ground seam:** the bust rises through the ground circle: a glowing band where every part (and cut face) meets the ground, and light on the ground along his outline there.
 - **Marginalia:** a faint astrolabe, zodiac band, planetary orbits, great arcs to the frame, constellations and construction lines, drawn into the paper behind the specimen (the rune pedestal blocks them).
 - **Border:** a solid black frame, a band of runes in the double rule, corner medallions, and runes that catch the light now and then.
 - **Key of lights:** an inset (top right) with each magical organ's glow colour, number and Latin name (hover to flare it), and a scale.
