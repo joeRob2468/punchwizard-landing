@@ -290,11 +290,12 @@ Each view has a palette, optional per-part washes, outline and section-line colo
 Both views get these post effects (tunables in `src/config/fx.ts`):
 
 - **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue. The composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
+- **Grade** (`GradeEffect`, `shaders/grade.frag.glsl`, tunables in `FX.grade`): halation (a warm fringe around the brightest things, from a widened sample of the bloom's blurred texture, mostly where the image is dark), split-toning (shadows slightly cool, highlights slightly warm), a gentle S-curve in the mid-tones and a soft shoulder so glows roll off instead of clipping. Each view sets how much split-toning and halation it gets (`Look.grade`); the scan gets the tone curve only. In dev builds `G` toggles the grade, to compare.
 - **Lens:** slight chromatic aberration, light grain and a vignette on the finished image.
 
 **Ink-in.** Once the specimen has drawn its first frame, it inks in over 1.8 s (0.4 s with reduced motion; `FX.reveal`): a ragged front soaks outward from its centre, slightly darker at the wet edge (`shaders/lib/reveal.glsl`). The outline pass applies the mask, so bloom (which reads that pass's output) and the paper only see what has inked in, and glows never run ahead of the wash; the paper shows its marginalia wherever the ink hasn't reached. The labels fade in after it.
 
-Stack order: outline, SMAA (smooths jaggies on silhouettes and ink lines), paper, bloom, lens. The composer doesn't multisample: SMAA alone looks the same, and a multisampled depth-stencil buffer cost about 30 ms a frame at 2500×1330 on Chrome/Windows (ANGLE resolves it slowly), against about 3 ms for the whole frame without it. The outline effect is flagged as a convolution so it always leads its own pass.
+Stack order: outline, SMAA (smooths jaggies on silhouettes and ink lines), paper, bloom, chromatic aberration, grade, grain, vignette. The bloom effect is made in `PlateEffects` (not with `<Bloom>`) so the grade can read its texture. The composer doesn't multisample: SMAA alone looks the same, and a multisampled depth-stencil buffer cost about 30 ms a frame at 2500×1330 on Chrome/Windows (ANGLE resolves it slowly), against about 3 ms for the whole frame without it. The outline effect is flagged as a convolution so it always leads its own pass.
 
 ### Resolution
 

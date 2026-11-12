@@ -4,7 +4,7 @@
  * outlines are drawn before the paper multiplies everything.
  */
 import { BlendFunction, Effect, EffectAttribute } from 'postprocessing';
-import { Color, Uniform, Vector2 } from 'three';
+import { Color, type Texture, Uniform, Vector2, Vector3 } from 'three';
 
 import { PALETTE } from '../../config/palette.ts';
 import { RENDER } from '../../config/render.ts';
@@ -13,6 +13,8 @@ import noise from '../shaders/lib/noise.glsl?raw';
 import outline from '../shaders/outline.frag.glsl?raw';
 import reveal from '../shaders/lib/reveal.glsl?raw';
 import paper from '../shaders/paper.frag.glsl?raw';
+import grade from '../shaders/grade.frag.glsl?raw';
+import { FX } from '../../config/fx.ts';
 
 export class OutlineEffect extends Effect {
   /** Sets the line colour and scales the outline strengths (1 = as configured). */
@@ -87,6 +89,42 @@ export class PaperEffect extends Effect {
         ['uReveal', new Uniform(0)],
         ['uCentre', new Uniform(new Vector2(0.5, 0.5))],
         ['uTime', new Uniform(0)],
+      ]),
+    });
+  }
+}
+
+/** The colour grade (shaders/grade.frag.glsl), last before the lens grain and vignette. */
+export class GradeEffect extends Effect {
+  /** The bloom's blurred highlights, for halation. */
+  setBloom(texture: Texture | null) {
+    const uniform = this.uniforms.get('uBloom');
+    if (uniform) uniform.value = texture;
+  }
+
+  /** The current view's split-toning and halation (0–1 each). */
+  paint(split: number, halation: number) {
+    numberUniform(this, 'uSplit').value = split;
+    numberUniform(this, 'uHalation').value = halation * FX.grade.halation;
+  }
+
+  /** 1 for the full grade, 0 for none (the dev build compares with G). */
+  setAmount(amount: number) {
+    numberUniform(this, 'uGrade').value = amount;
+  }
+
+  constructor() {
+    super('GradeEffect', grade, {
+      blendFunction: BlendFunction.SET,
+      uniforms: new Map<string, Uniform>([
+        ['uBloom', new Uniform(null)],
+        ['uGrade', new Uniform(1)],
+        ['uSplit', new Uniform(1)],
+        ['uHalation', new Uniform(FX.grade.halation)],
+        ['uShadowTint', new Uniform(new Vector3(...FX.grade.shadowTint))],
+        ['uHighlightTint', new Uniform(new Vector3(...FX.grade.highlightTint))],
+        ['uHalationTint', new Uniform(new Vector3(...FX.grade.halationTint))],
+        ['uContrast', new Uniform(FX.grade.contrast)],
       ]),
     });
   }

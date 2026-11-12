@@ -4,14 +4,13 @@
  * config/fx.ts).
  */
 import {
-  Bloom,
   ChromaticAberration,
   EffectComposer,
   Noise,
   SMAA,
   Vignette,
 } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
+import { BlendFunction, BloomEffect } from 'postprocessing';
 import { useEffect, useMemo, useRef } from 'react';
 import { Vector2, Vector3 } from 'three';
 
@@ -21,7 +20,7 @@ import { FX } from '../../config/fx.ts';
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion.ts';
 import { LOOKS } from '../../config/looks.ts';
 import { usePlateStore } from '../../state/plate-store.ts';
-import { OutlineEffect, PaperEffect } from './plate-effects.ts';
+import { GradeEffect, OutlineEffect, PaperEffect } from './plate-effects.ts';
 
 /** The point (specimen space) the marginalia are centred on. */
 const MARGINALIA_CENTRE = [0, 0.15, 0] as const;
@@ -29,14 +28,31 @@ const MARGINALIA_CENTRE = [0, 0.15, 0] as const;
 export function PlateEffects() {
   const outline = useMemo(() => new OutlineEffect(), []);
   const paper = useMemo(() => new PaperEffect(), []);
+  // Made here rather than with <Bloom> so the grade can read its blurred texture.
+  const bloom = useMemo(
+    () =>
+      new BloomEffect({
+        mipmapBlur: true,
+        intensity: FX.bloom.intensity,
+        luminanceThreshold: FX.bloom.threshold,
+        luminanceSmoothing: FX.bloom.smoothing,
+      }),
+    [],
+  );
+  const grade = useMemo(() => new GradeEffect(), []);
+  useEffect(() => {
+    grade.setBloom(bloom.texture);
+  }, [bloom, grade]);
   const aberration = useMemo(() => new Vector2(FX.lens.aberration, FX.lens.aberration * 0.6), []);
 
   useEffect(
     () => () => {
       outline.dispose();
       paper.dispose();
+      bloom.dispose();
+      grade.dispose();
     },
-    [outline, paper],
+    [outline, paper, bloom, grade],
   );
 
   const look = LOOKS[usePlateStore((state) => state.look)];
@@ -45,7 +61,23 @@ export function PlateEffects() {
     outline.paint(look.outlineLine, look.outline);
     paper.paint(palette.paper, palette.paperShadow, palette.foxing, look.paperTexture);
     paper.paintMarginalia(look.chalk, look.marginalia);
-  }, [look, outline, paper]);
+    grade.paint(look.grade.split, look.grade.halation);
+  }, [look, outline, paper, grade]);
+
+  // Dev builds: G turns the grade off and on, to compare.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    let on = true;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'g' && event.key !== 'G') return;
+      on = !on;
+      grade.setAmount(on ? 1 : 0);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [grade]);
 
   // The marginalia centre on the specimen and turn slowly (still with reduced motion).
   const reducedMotion = usePrefersReducedMotion();
@@ -76,13 +108,9 @@ export function PlateEffects() {
       {/* Smooths jaggies on silhouettes and ink lines before the paper and bloom. */}
       <SMAA />
       <primitive object={paper} />
-      <Bloom
-        mipmapBlur
-        intensity={FX.bloom.intensity}
-        luminanceThreshold={FX.bloom.threshold}
-        luminanceSmoothing={FX.bloom.smoothing}
-      />
+      <primitive object={bloom} />
       <ChromaticAberration offset={aberration} radialModulation modulationOffset={0.3} />
+      <primitive object={grade} />
       <Noise blendFunction={BlendFunction.SOFT_LIGHT} opacity={FX.lens.grain} />
       <Vignette offset={0.3} darkness={FX.lens.vignette} />
     </EffectComposer>

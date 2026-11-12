@@ -13,6 +13,18 @@ export const FX = {
   groundGlow: { strength: 1.0, spread: 0.3 },
   /** The ink-in once the specimen is ready: seconds for the front to sweep over it. */
   reveal: { seconds: 1.8, reducedMotionSeconds: 0.4 },
+  /**
+   * The colour grade (rendering/shaders/grade.frag.glsl): split-tone tints for
+   * shadows and highlights, halation's colour, and how much S-curve contrast. How
+   * strongly a view uses the split-toning and halation is set per view (looks.ts).
+   */
+  grade: {
+    shadowTint: [0.93, 1.0, 1.07],
+    highlightTint: [1.07, 1.0, 0.9],
+    halationTint: [1.0, 0.36, 0.14],
+    halation: 0.9,
+    contrast: 0.12,
+  },
   /** Camera lens: vignette, grain and slight chromatic aberration. */
   lens: { vignette: 0.55, grain: 0.06, aberration: 0.0012 },
 } as const;
