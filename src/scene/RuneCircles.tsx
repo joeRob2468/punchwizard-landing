@@ -33,10 +33,11 @@ import { usePlateStore } from '../state/plate-store.ts';
 
 const GROUND_Y = L.bustBase[1] - 0.01;
 const GROUND_RADIUS = 1.8;
-const HALO_RADIUS = 1.2;
+const HALO_RADIUS = 1.55;
 /** The halo's centre, and how far behind it (away from the camera) it stands. */
 const HALO_CENTRE = new Vector3(0, 0.15, -0.05);
-const HALO_BEHIND = 0.8;
+// Well clear of the hair, which reaches back about 0.7.
+const HALO_BEHIND = 1.6;
 
 const OUTER: RingDesign = {
   circles: [0.98, 0.955, 0.79, 0.775],
@@ -94,7 +95,7 @@ export function RuneCircles() {
       materials: {
         outer: ringMaterial(OUTER, 2048, 1.1),
         inner: ringMaterial(INNER, 2048, 0.95),
-        halo: ringMaterial(HALO, 1024, 0.22),
+        halo: ringMaterial(HALO, 1024, 0.12),
       },
     }),
     [],

@@ -164,7 +164,7 @@ The irises and pupils are separate left and right parts that carry a `gazePivot`
 
 `src/ornament/futhark.ts` is the plate's one alphabet: the 24 Elder Futhark runes as straight strokes on a 4 × 8 grid, a Latin transliteration, and helpers that draw a rune as SVG path data or onto a canvas. Every rune on the plate comes from it.
 
-`scene/RuneCircles` draws rune rings (`ornament/rune-ring.ts`: circles, bands of transliterated Latin, dial ticks, a valknut) onto canvas textures: a brighter summoning circle on the ground just under the bust (outer and inner rings turning opposite ways, fast enough to read against the camera's idle turn) and a fainter ring that always stands behind the head facing the camera. They're drawn additively in the view's mana colour (the ground circle just past the bloom threshold, the halo faint), and hold still with reduced motion. The ground circle is a pedestal: a depth-only disc just under it hides what's behind (the halo's lower part, and the marginalia, which are drawn only where the depth buffer is empty).
+`scene/RuneCircles` draws rune rings (`ornament/rune-ring.ts`: circles, bands of transliterated Latin, dial ticks, a valknut) onto canvas textures: a brighter summoning circle on the ground just under the bust (outer and inner rings turning opposite ways, fast enough to read against the camera's idle turn) and a faint ring that always stands well behind the head (clear of the hair) facing the camera. They're drawn additively in the view's mana colour (the ground circle just past the bloom threshold, the halo faint), and hold still with reduced motion. The ground circle is a pedestal: a depth-only disc just under it hides what's behind (the halo's lower part, and the marginalia, which are drawn only where the depth buffer is empty).
 
 The **border** (`ui/PlateBorder`) is a solid black frame (`--frame`, everything outside the inner rule; the rules are opaque so nothing shows through them) with a double rule whose band carries a line of runes (Latin about the specimen, transliterated) placed to fit the window, with a medallion (ring, diamond and rune) at each corner; every second or so a random rune lights up in the mana colour and fades (not with reduced motion). On small screens it's a plain double rule.
 
@@ -234,7 +234,7 @@ The scroll wheel moves the cut: `SliceController` listens for wheel events on th
 
 Leaders are cubic curves from the label to the anchor with a small per-label wobble. Hovering or focusing a label thickens its leader; hover, focus or click shows its tooltip, and a click pins it until Escape or a press elsewhere. Hidden labels are taken out of the tab order and hidden from assistive tech. Below 720 px wide, labels show their number only and the tooltip adds the name.
 
-Hovering, focusing or pinning a label sets the store's `highlight` to its part: `Specimen` and `SectionCaps` ease that part's `flare` uniform up (brighter, lit from within in its own colour), and the leader line and dot take the part's current colour (`partColours`, published by `Specimen`) with a soft glow.
+Hovering, focusing or pinning a label sets the store's `highlight` to its part: `Specimen` and `SectionCaps` ease that part's `flare` uniform up (brighter, lit from within in its own colour), and the leader line, dot and tooltip accent take the part's current colour (`partColours`, published by `Specimen`) with a soft glow. Each leader has a dark casing drawn under it, and label text a soft dark shadow, so they read over the model. Tooltips are framed cards (double rule, corner diamonds, an accent bar and the Latin name in the part's colour).
 
 ## Layers
 
@@ -279,7 +279,7 @@ Both views get these post effects (tunables in `src/config/fx.ts`):
 - **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue. The composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
 - **Lens:** slight chromatic aberration, light grain and a vignette on the finished image.
 
-Stack order: outline, paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass.
+Stack order: outline, SMAA (smooths jaggies on silhouettes and ink lines), paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass.
 
 ## Typography
 

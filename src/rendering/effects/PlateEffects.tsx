@@ -1,12 +1,14 @@
 /**
- * The plate's post-processing stack as an R3F component: ink outlines, the paper
- * composite, then bloom and lens effects on the finished image (see config/fx.ts).
+ * The plate's post-processing stack as an R3F component: ink outlines, SMAA, the
+ * paper composite, then bloom and lens effects on the finished image (see
+ * config/fx.ts).
  */
 import {
   Bloom,
   ChromaticAberration,
   EffectComposer,
   Noise,
+  SMAA,
   Vignette,
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
@@ -59,6 +61,8 @@ export function PlateEffects() {
   return (
     <EffectComposer multisampling={4} stencilBuffer>
       <primitive object={outline} />
+      {/* Smooths jaggies on silhouettes and ink lines before the paper and bloom. */}
+      <SMAA />
       <primitive object={paper} />
       <Bloom
         mipmapBlur

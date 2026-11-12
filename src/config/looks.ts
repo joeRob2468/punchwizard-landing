@@ -59,7 +59,7 @@ const NOCTURNE: Look = {
   section: 0.8,
   moteColour: '#bfb59c',
   chalk: '#e8dcc0',
-  marginalia: 0.05,
+  marginalia: 0.035,
 };
 
 /**
@@ -96,7 +96,7 @@ const MRI: Look = {
   section: 0.45,
   moteColour: '#8f9a9e',
   chalk: '#c9d3d6',
-  marginalia: 0.04,
+  marginalia: 0.028,
   partWash: scanParts('#1a1c1e', '#8c9194', '#e8eef0'),
   layerGain: { integument: 0.25 },
 };

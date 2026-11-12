@@ -10,14 +10,25 @@
   width: 100%;
   height: 100%;
   overflow: visible;
+  shape-rendering: geometricPrecision;
+}
+
+/* A dark band under each leader so it reads over the model and its glows. */
+.casing {
+  fill: none;
+  stroke: var(--frame);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  opacity: 0.55;
+  transition: opacity 0.35s;
 }
 
 .leader {
   fill: none;
   stroke: var(--ink);
-  stroke-width: 0.9;
+  stroke-width: 1;
   stroke-linecap: round;
-  opacity: 0.8;
+  opacity: 0.9;
   transition:
     opacity 0.35s,
     stroke-width 0.2s;
@@ -25,9 +36,13 @@
 
 .dot {
   fill: var(--ink);
+  stroke: var(--frame);
+  stroke-width: 1.4;
+  paint-order: stroke;
   transition: opacity 0.35s;
 }
 
+.casing[data-visible='false'],
 .leader[data-visible='false'],
 .dot[data-visible='false'] {
   opacity: 0;
@@ -56,6 +71,9 @@
   color: var(--ink);
   font: 0.95rem var(--font-plate);
   white-space: nowrap;
+  text-shadow:
+    0 0 3px var(--frame),
+    0 0 6px var(--frame);
   cursor: pointer;
   pointer-events: auto;
   transform: translateY(-50%);
@@ -103,26 +121,57 @@
 
 .tooltip {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 10px);
   display: flex;
   flex-direction: column;
-  gap: 0.3em;
+  gap: 0.35em;
   width: max-content;
-  max-width: min(17rem, 40vw);
-  padding: 0.6em 0.75em;
-  border: 1px solid var(--ink-faint);
-  background: color-mix(in srgb, var(--paper) 94%, white);
-  box-shadow: 0 1px 0 var(--paper-shadow);
+  max-width: min(18rem, 40vw);
+  padding: 0.7em 0.9em 0.8em 1.1em;
+  border: 1px solid color-mix(in srgb, var(--ink) 45%, var(--frame));
+  outline: 1px solid color-mix(in srgb, var(--ink) 25%, var(--frame));
+  outline-offset: 3px;
+  background: color-mix(in srgb, var(--frame) 86%, transparent);
+  backdrop-filter: blur(4px);
+  /* An accent bar down the left in the part's own colour, and a soft drop shadow. */
+  box-shadow:
+    inset 3px 0 0 var(--glow, var(--ink-faint)),
+    0 10px 30px rgb(0 0 0 / 0.65);
   font-size: 0.85rem;
   text-align: left;
+  text-shadow: none;
   white-space: normal;
   opacity: 0;
   visibility: hidden;
+  transform: translateY(-3px);
   transition:
     opacity 0.2s,
-    visibility 0.2s;
+    visibility 0.2s,
+    transform 0.2s;
   pointer-events: none;
   z-index: 1;
+}
+
+/* Small diamonds at two corners, like the plate's medallions. */
+.tooltip::before,
+.tooltip::after {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1px solid color-mix(in srgb, var(--ink) 55%, var(--frame));
+  background: var(--frame);
+  transform: rotate(45deg);
+  content: '';
+}
+
+.tooltip::before {
+  top: -7px;
+  left: -7px;
+}
+
+.tooltip::after {
+  right: -7px;
+  bottom: -7px;
 }
 
 .label[data-side='left'] .tooltip {
@@ -138,10 +187,17 @@
 .label[data-pinned] .tooltip {
   opacity: 1;
   visibility: visible;
+  transform: none;
 }
 
+/* The Latin name heads the card, ruled off in the part's colour. */
 .latin {
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid color-mix(in srgb, var(--glow, var(--ink)) 60%, transparent);
+  font-size: 1rem;
   font-style: italic;
+  color: var(--glow, var(--ink));
+  letter-spacing: 0.01em;
 }
 
 /* The name is already on the label except in compact mode. */
@@ -156,7 +212,8 @@
 }
 
 .description {
-  line-height: 1.35;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--ink) 85%, transparent);
 }
 
 /* Narrow screens: numbers only; the tooltip carries the name. */

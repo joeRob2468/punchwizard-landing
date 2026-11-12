@@ -26,6 +26,7 @@ interface LabelOverlayProps {
 export function LabelOverlay({ channel }: LabelOverlayProps) {
   const labels = useRef<(HTMLButtonElement | null)[]>([]);
   const leaders = useRef<(SVGPathElement | null)[]>([]);
+  const casings = useRef<(SVGPathElement | null)[]>([]);
   const dots = useRef<(SVGCircleElement | null)[]>([]);
   const root = useRef<HTMLDivElement>(null);
   const [pinned, setPinned] = useState<string | null>(null);
@@ -72,6 +73,7 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
       ANATOMY.forEach((_, index) => {
         const label = labels.current[index];
         const leader = leaders.current[index];
+        const casing = casings.current[index];
         const dot = dots.current[index];
         const sample = channel.samples[index];
         const place = placedByIndex.get(index);
@@ -83,6 +85,7 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
           label.tabIndex = visible ? 0 : -1;
           label.setAttribute('aria-hidden', String(!visible));
           leader.dataset.visible = String(visible);
+          if (casing) casing.dataset.visible = String(visible);
           dot.dataset.visible = String(visible);
         }
         if (!place) return;
@@ -100,10 +103,9 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
         const sx = place.side === 'left' ? place.x + LEADER_GAP : place.x - LEADER_GAP;
         const dx = sample.x - sx;
         const wobble = ((index * 37) % 11) - 5;
-        leader.setAttribute(
-          'd',
-          `M${sx.toFixed(1)},${place.y.toFixed(1)} C${(sx + dx * 0.45).toFixed(1)},${(place.y + wobble).toFixed(1)} ${(sample.x - dx * 0.25).toFixed(1)},${sample.y.toFixed(1)} ${sample.x.toFixed(1)},${sample.y.toFixed(1)}`,
-        );
+        const path = `M${sx.toFixed(1)},${place.y.toFixed(1)} C${(sx + dx * 0.45).toFixed(1)},${(place.y + wobble).toFixed(1)} ${(sample.x - dx * 0.25).toFixed(1)},${sample.y.toFixed(1)} ${sample.x.toFixed(1)},${sample.y.toFixed(1)}`;
+        leader.setAttribute('d', path);
+        casing?.setAttribute('d', path);
         dot.setAttribute('cx', sample.x.toFixed(1));
         dot.setAttribute('cy', sample.y.toFixed(1));
       });
@@ -144,8 +146,8 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
     ANATOMY.forEach((entry, i) => {
       const active = i === index;
       const colour = active ? partColours[entry.part] : undefined;
-      for (const el of [leaders.current[i], dots.current[i]]) {
-        el?.toggleAttribute('data-active', active);
+      for (const el of [leaders.current[i], dots.current[i], labels.current[i]]) {
+        if (el !== labels.current[i]) el?.toggleAttribute('data-active', active);
         if (colour) el?.style.setProperty('--glow', colour);
         else el?.style.removeProperty('--glow');
       }
@@ -166,6 +168,14 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
       <svg className={styles.leaders} aria-hidden="true">
         {ANATOMY.map((entry, index) => (
           <g key={entry.id}>
+            {/* A dark casing under each leader keeps it legible over the model. */}
+            <path
+              ref={(el) => {
+                casings.current[index] = el;
+              }}
+              className={styles.casing}
+              data-visible="false"
+            />
             <path
               ref={(el) => {
                 leaders.current[index] = el;
