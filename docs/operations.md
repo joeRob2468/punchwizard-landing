@@ -6,13 +6,14 @@ Running and updating the site on the home server. Placeholders: `<server>` is th
 
 ## At a glance
 
-| What      | Where                                                                                                                                 |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Site      | `https://<domain>`; `https://www.<domain>` redirects there (301)                                                                      |
-| Health    | `/healthz` inside the container (compose healthcheck)                                                                                 |
-| Container | `web`: nginx (unprivileged, port 8080, read-only filesystem) serving the built `dist/`                                                |
-| Routing   | The server's Traefik on `media_network`, entrypoint `websecure`; the existing `*.<domain>` + `<domain>` certificate covers both hosts |
-| Config    | `.env`: `DOMAIN`, `COMPOSE_FILE` (see `.env.example`). No secrets                                                                     |
+| What       | Where                                                                                                                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Site       | `https://<domain>`; `https://www.<domain>` redirects there (301)                                                                                                                                                                                             |
+| Health     | `/healthz` inside the container (compose healthcheck)                                                                                                                                                                                                        |
+| Container  | `web`: nginx (unprivileged, port 8080, read-only filesystem) serving the built `dist/`                                                                                                                                                                       |
+| Routing    | The server's Traefik on `media_network`, entrypoint `websecure`; the existing `*.<domain>` + `<domain>` certificate covers both hosts                                                                                                                        |
+| Cloudflare | Apex and `www` CNAMEs to `media.<domain>`, **proxied** (other subdomains stay DNS only); SSL/TLS Full (strict); a cache rule (hostname equals `<domain>`, paths `/specimen/` and `/assets/`, edge TTL from the origin's headers); Rocket Loader off; no HSTS |
+| Config     | `.env`: `DOMAIN`, `COMPOSE_FILE` (see `.env.example`). No secrets                                                                                                                                                                                            |
 
 The image is self-contained: the Node stage installs dependencies, bakes the specimen and builds the site; the nginx stage only serves files. Nothing is mounted and no state is kept. Every response carries the headers in `deploy/security-headers.conf`, including a strict Content Security Policy; its `'wasm-unsafe-eval'` lets the specimen's decoder (meshoptimizer, WebAssembly) run, and without it the plate falls back to its static page.
 
