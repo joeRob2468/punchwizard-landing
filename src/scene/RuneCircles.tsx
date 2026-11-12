@@ -2,7 +2,8 @@
  * Rune circles in the Elder Futhark (ornament/rune-ring.ts): a summoning circle
  * on the ground just under the bust, its outer and inner rings turning opposite
  * ways, and a fainter ring that always stands behind the head, facing the
- * camera, like a halo. Drawn additively in the view's mana colour; they hold
+ * camera, like a halo. The ground circle is a pedestal: a depth-only disc under
+ * it hides the halo and the paper's marginalia behind it. Drawn additively in the view's mana colour; they hold
  * still for visitors who prefer reduced motion.
  */
 import { useFrame } from '@react-three/fiber';
@@ -10,6 +11,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import {
   AddEquation,
   CanvasTexture,
+  CircleGeometry,
   Color,
   CustomBlending,
   DoubleSide,
@@ -81,9 +83,13 @@ export function RuneCircles() {
   const reducedMotion = usePrefersReducedMotion();
   const look = usePlateStore((state) => state.look);
 
-  const { ground, haloPlane, materials } = useMemo(
+  const { ground, pedestal, blocker, haloPlane, materials } = useMemo(
     () => ({
       ground: new PlaneGeometry(GROUND_RADIUS * 2, GROUND_RADIUS * 2),
+      pedestal: new CircleGeometry(GROUND_RADIUS * 0.98, 128),
+      // Depth only: the pedestal hides what's behind it (the halo, and the
+      // marginalia, which are drawn only where the depth buffer is empty).
+      blocker: new MeshBasicMaterial({ colorWrite: false }),
       haloPlane: new PlaneGeometry(HALO_RADIUS * 2, HALO_RADIUS * 2),
       materials: {
         outer: ringMaterial(OUTER, 2048, 1.1),
@@ -96,13 +102,15 @@ export function RuneCircles() {
   useEffect(
     () => () => {
       ground.dispose();
+      pedestal.dispose();
+      blocker.dispose();
       haloPlane.dispose();
       for (const m of Object.values(materials)) {
         m.map?.dispose();
         m.dispose();
       }
     },
-    [ground, haloPlane, materials],
+    [ground, pedestal, blocker, haloPlane, materials],
   );
 
   // Tinted with the view's mana colour.
@@ -136,6 +144,8 @@ export function RuneCircles() {
   return (
     <group name="rune-circles">
       <group position={[0, GROUND_Y, -0.05]} rotation={[-Math.PI / 2, 0, 0]}>
+        {/* Just under the rings, so they still draw over it. */}
+        <mesh geometry={pedestal} material={blocker} position={[0, 0, -0.005]} renderOrder={0} />
         <mesh ref={outer} geometry={ground} material={materials.outer} renderOrder={1} />
         <mesh ref={inner} geometry={ground} material={materials.inner} renderOrder={1} />
       </group>

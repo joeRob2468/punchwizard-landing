@@ -5,16 +5,18 @@
  */
 .frame {
   --band: 4px;
+  --rule: color-mix(in srgb, var(--ink) 55%, var(--frame));
   position: absolute;
   inset: clamp(10px, 2.5vmin, 28px);
-  border: 1px solid var(--ink-faint);
+  /* Opaque, so nothing behind shows through the rule itself. */
+  border: 1px solid var(--rule);
   box-shadow: 0 0 0 100vmax var(--frame);
 }
 
 .inner {
   position: absolute;
   inset: var(--band);
-  border: 1px solid var(--ink-faint);
+  border: 1px solid var(--rule);
   box-shadow: 0 0 0 var(--band) var(--frame);
 }
 
