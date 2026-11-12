@@ -1,6 +1,6 @@
 /**
- * The arcane systems: Aetherial Vessels carrying mana from the core down the neck
- * to the shoulders and forward to the eyes, and the Conduit Lattice rising from
+ * The arcane systems: Aetherial Vessels carrying mana from the core down the
+ * vertebral canal (behind the cord) and out to the shoulders and forward to the eyes, and the Conduit Lattice rising from
  * the Third Fontanelle through the hat to its tip.
  */
 import { createRandom } from '../growth/random.ts';
@@ -12,6 +12,7 @@ import type { Vec3 } from '../sdf/types.ts';
 import { headSkinField } from './head.ts';
 import { hatField, hatSpine } from './hat.ts';
 import type { PartDefinition } from './part.ts';
+import { canalAt, FORAMEN_MAGNUM } from './spine-path.ts';
 import { robeField } from './robe.ts';
 
 const MANA = { wash: 'arcaneMana', glow: 0.85, section: { pattern: 'glow' } } as const;
@@ -19,16 +20,28 @@ const MANA = { wash: 'arcaneMana', glow: 0.85, section: { pattern: 'glow' } } as
 export function vesselsPart(): PartDefinition {
   const random = createRandom(97);
   const core = L.aethericCore;
-  const neck: Vec3 = [0, -0.55, -0.02];
+  // The main vessel runs down the vertebral canal behind the cord, protected like it.
+  const inCanal = (y: number): Vec3 => {
+    const [, cy, cz] = canalAt(y);
+    return [0, cy, cz - 0.026];
+  };
+  const neck = inCanal(-0.78);
+  const canal = [FORAMEN_MAGNUM[1], -0.3, -0.45, -0.6, -0.78].map(inCanal);
+  const down = canal
+    .slice(0, -1)
+    .flatMap((a, i) =>
+      curve(a, lerp(a, canal[i + 1] ?? a, 0.5), canal[i + 1] ?? a, 0.017, 0.017, 2),
+    );
 
   const trunks = [
-    // Core down through the foramen into the neck.
-    ...curve(core, [0, -0.1, -0.14], neck, 0.032, 0.03),
-    // Neck out to each shoulder and down the arm.
+    // Core down behind the brainstem to the foramen magnum, then down the canal.
+    ...curve(core, [0, -0.02, -0.16], inCanal(FORAMEN_MAGNUM[1]), 0.024, 0.017, 6),
+    ...down,
+    // Out of the canal at C7 to each shoulder and down the arm.
     ...[L.shoulderLeft, mirrorX(L.shoulderLeft)].flatMap((shoulder) => {
       const elbowward: Vec3 = [shoulder[0] * 1.2, L.bustBase[1] + 0.05, shoulder[2] + 0.04];
       return [
-        ...curve(neck, [shoulder[0] * 0.35, -1.0, 0.05], shoulder, 0.03, 0.026),
+        ...curve(neck, [shoulder[0] * 0.35, -0.9, -0.12], shoulder, 0.02, 0.026),
         ...curve(shoulder, lerp(shoulder, elbowward, 0.5), elbowward, 0.026, 0.022, 5),
       ];
     }),

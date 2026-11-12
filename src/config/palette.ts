@@ -16,6 +16,8 @@ export const PALETTE = {
   washVein: '#3f66a8',
   washUmber: '#7a5233',
   washPlum: '#6e4a78',
+  washCartilage: '#a9c4c4',
+  washCsf: '#cfe2e6',
   arcaneMana: '#4fc3c9',
   arcaneGarnet: '#9b2335',
 } as const;

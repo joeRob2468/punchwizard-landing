@@ -24,7 +24,7 @@ import { hatField } from './hat.ts';
 import { headSkinField } from './head.ts';
 import type { PartDefinition } from './part.ts';
 import { mantleField, robeField } from './robe.ts';
-import { girdlePart } from './skeleton.ts';
+import { girdlePart } from './shoulders.ts';
 
 const SEED = 37;
 
@@ -35,11 +35,12 @@ const strands =
     fbm(seed, x * 14, y * 2.5, z * 14) * amplitude;
 
 /** Head, robe, mantle, the Familiar's Perch and hat: what locks drape over. Built once; the head is costly. */
-let colliders: { body: Sdf; withHat: Sdf } | undefined;
+let colliders: { head: Sdf; body: Sdf; withHat: Sdf } | undefined;
 function getColliders() {
   if (!colliders) {
-    const body = union(headSkinField(), robeField(), mantleField(), girdlePart().field);
-    colliders = { body, withHat: union(body, hatField()) };
+    const head = headSkinField();
+    const body = union(head, robeField(), mantleField(), girdlePart().field);
+    colliders = { head, body, withHat: union(body, hatField()) };
   }
   return colliders;
 }
@@ -94,12 +95,18 @@ export function beardPart(): PartDefinition {
     const b = bezier(top, control, L.beardTip, (i + 1) / 5);
     fall.push(roundCone(a, b, 0.27 - i * 0.045, 0.27 - (i + 1) * 0.045));
   }
-  const core = smoothUnion(
+  const mass = smoothUnion(
     0.1,
     ellipsoid([0, -0.37, 0.25], [0.37, 0.26, 0.27]),
     mirrorX(ellipsoid([0.3, -0.27, 0.13], [0.1, 0.2, 0.15])),
     ...fall,
   );
+  // Only outside the skin: the jaw and mouth inside belong to the head.
+  const head = getColliders().head;
+  const core: Sdf = (x, y, z) => {
+    const m = mass(x, y, z);
+    return m > 0.05 ? m : Math.max(m, -(head(x, y, z) + 0.015));
+  };
 
   // Roots on a U around the jaw, from the sideburns to the chin, in three rows.
   // Every lock is drawn toward the tip; outer ones stop short, so the beard tapers
@@ -220,8 +227,10 @@ export function hairPart(): PartDefinition {
   const belowBrim = halfSpace([0, L.brimCentre[1] - 0.02, 0], [0, 1, 0]);
 
   // A cap of hair over the scalp under the brim, behind the temples.
+  // A shell over the scalp, not a solid: the head's inside belongs to the head.
   const cap = intersect(
     ellipsoid([0, 0.17, -0.07], [0.455, 0.52, 0.54]),
+    (x, y, z) => -ellipsoid([0, 0.17, -0.07], [0.4, 0.465, 0.485])(x, y, z),
     belowBrim,
     halfSpace([0, 0, 0.12], [0, 0, 1]),
     halfSpace([0, -0.12, 0], [0, -1, 0]),

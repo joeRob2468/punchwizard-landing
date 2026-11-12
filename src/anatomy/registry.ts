@@ -4,6 +4,7 @@
  */
 import { LANDMARKS as L } from '../procedural/landmarks.ts';
 import { focusGemCentres } from '../procedural/parts/brain.ts';
+import { canalAt } from '../procedural/parts/spine-path.ts';
 import { lerp, mirrorX } from '../procedural/sdf/math.ts';
 import type { AnatomyEntry } from './types.ts';
 
@@ -36,6 +37,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       'Mana vessels that rise through the crown and branch up the hat to its tip, where surplus mana is discharged.',
     part: 'lattice',
     section: [
+      [0.0, 0.45, -0.06],
       [0.0, 0.82, -0.08],
       [0.0, 0.72, -0.07],
       [0.05, 1.15, -0.14],
@@ -109,7 +111,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     latin: 'Sinus incantatorius',
     description: 'A resonance chamber behind the nose that tunes the voice for incantation.',
     part: 'sinus',
-    section: [L.sinus, [0.06, 0.07, 0.28], [-0.06, 0.07, 0.28]],
+    section: [L.sinus, [0.04, 0.02, 0.13], [-0.04, 0.02, 0.13]],
     surface: [],
   },
   {
@@ -149,8 +151,8 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       'Carry mana from the core down the neck to the arms, for gesturing, and forward to the eyes.',
     part: 'vessels',
     section: [
-      [0, -0.45, -0.04],
-      [0, -0.2, -0.12],
+      [0, -0.45, canalAt(-0.45)[2] - 0.026],
+      [0, -0.3, canalAt(-0.3)[2] - 0.026],
       lerp(L.shoulderLeft, [0, -0.6, 0], 0.4),
       lerp(mirrorX(L.shoulderLeft), [0, -0.6, 0], 0.4),
     ],

@@ -21,9 +21,13 @@ import {
   smoothUnion,
   sphere,
   subtract,
+  union,
 } from '../sdf/index.ts';
 import type { Sdf, Vec3 } from '../sdf/types.ts';
 import { mirrorPoint } from './mirror.ts';
+import { mucosaAirway } from './airways.ts';
+import { cranialCavity } from './skull.ts';
+import { canalField } from './spine-path.ts';
 import type { PartDefinition } from './part.ts';
 
 const SEED = 11;
@@ -181,7 +185,8 @@ export function headSkinField(): Sdf {
     sphere([0, 0.2, 0.465], 0.04),
   );
   const cheekbones = mirrorX(ellipsoid([0.24, 0.0, 0.31], [0.11, 0.055, 0.09]));
-  const neck = capsule(L.neckTop, L.neckBase, 0.19);
+  // Deep enough front to back for the spine behind and the airway in front.
+  const neck = roundCone([0, L.neckTop[1], -0.06], [0, L.neckBase[1], -0.06], 0.22, 0.24);
 
   let solid = smoothUnion(0.18, cranium, face, jaw, neck);
   // Sunken temples and hollow cheeks under the cheekbones.
@@ -221,7 +226,8 @@ export function headPart(): PartDefinition {
     id: 'head',
     layer: 'integument',
     look: { wash: 'washFlesh', section: { pattern: 'hatch' } },
-    field: headSkinField(),
+    // The air spaces are open in the flesh too, so a section shows them.
+    field: subtract(headSkinField(), union(mucosaAirway(), cranialCavity, canalField())),
     bounds: { min: [-0.62, -1.15, -0.7], max: [0.62, 0.78, 0.76] },
     cellSize: 0.009,
   };

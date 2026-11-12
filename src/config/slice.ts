@@ -31,7 +31,7 @@ export const SLICE: {
   readonly parkMargin: number;
 } = {
   axes: {
-    sagittal: { label: 'Sectio sagittalis', normal: [-1, 0, 0], restingOffset: 0.0 },
+    sagittal: { label: 'Sectio sagittalis', normal: [-1, 0, 0], restingOffset: -0.012 },
     coronal: { label: 'Sectio coronalis', normal: [0, 0, -1], restingOffset: 0.18 },
     transverse: { label: 'Sectio transversalis', normal: [0, -1, 0], restingOffset: 0.1 },
   },

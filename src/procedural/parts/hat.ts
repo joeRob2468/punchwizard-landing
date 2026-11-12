@@ -104,7 +104,12 @@ function brimField(): Sdf {
 /** The hat as a field (also used to keep the conduit lattice inside it). */
 export function hatField(): Sdf {
   const hat = smoothUnion(0.1, brimField(), crownField());
-  return displace(hat, (x, y, z) => fbm(SEED + 1, x * 4, y * 4, z * 4) * 0.015);
+  // The cone's rounded base would bulge down into the head; stop it under the brim.
+  const intoHead: Sdf = (x, y, z) => Math.max(y - (BY - 0.06), Math.hypot(x - BX, z - BZ) - 0.6);
+  return subtract(
+    displace(hat, (x, y, z) => fbm(SEED + 1, x * 4, y * 4, z * 4) * 0.015),
+    intoHead,
+  );
 }
 
 export function hatPart(): PartDefinition {

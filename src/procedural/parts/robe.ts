@@ -24,6 +24,8 @@ import {
 } from '../sdf/index.ts';
 import type { Sdf, Vec3 } from '../sdf/types.ts';
 import { framesBounds, inFrame, surfaceFrame, type SurfaceFrame } from './frame.ts';
+import { tissueAirway } from './airways.ts';
+import { CANAL_RADIUS, canalField } from './spine-path.ts';
 import type { PartDefinition } from './part.ts';
 
 const SEED = 53;
@@ -75,7 +77,7 @@ export function robePart(): PartDefinition {
     id: 'robe',
     layer: 'integument',
     look: { wash: 'washPlum', section: { pattern: 'hatch' } },
-    field: robeField(),
+    field: subtract(robeField(), union(tissueAirway(0.01), canalField(CANAL_RADIUS + 0.004))),
     bounds: { min: [-1.3, BASE_Y - 0.02, -0.55], max: [1.3, -0.6, 0.5] },
     cellSize: 0.022,
   };
@@ -126,7 +128,7 @@ export function mantlePart(): PartDefinition {
     id: 'mantle',
     layer: 'integument',
     look: { wash: 'washVein', section: { pattern: 'hatch' } },
-    field: mantleField(),
+    field: subtract(mantleField(), tissueAirway(0.014)),
     bounds: { min: [-1.4, BASE_Y - 0.02, -0.65], max: [1.4, -0.35, 0.6] },
     cellSize: 0.02,
   };

@@ -29,8 +29,8 @@ export const LANDMARKS = {
   etherealGland: [0, 0.0, -0.17],
   fontanelle: [0, 0.6, -0.06],
   foramen: [0, -0.2, -0.13],
-  sinus: [0, 0.03, 0.3],
-  tongue: [0, -0.31, 0.22],
+  sinus: [0, 0.005, 0.1],
+  tongue: [0, -0.26, 0.24],
   familiarsPerch: [0.84, -0.76, -0.02],
 } as const satisfies Record<string, Vec3>;
 

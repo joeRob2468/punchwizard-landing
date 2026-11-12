@@ -12,8 +12,9 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Hair (realism pass):** beard, moustache, eyebrows and hair are clumped locks over solid cores, grown with gravity and collision (`growth/locks.ts`); hair drapes over the shoulders; hair parts hatch along their strands.
 - **Hat (realism pass):** floppy lobed brim with a rolled edge, crumpled and creased cone, leather band with a metal buckle and a mana-blue gem.
 - **Robe (realism pass):** plum inner robe with folds, blue mantle with scalloped hem, V opening and stand collar, gold trim, two brooches with garnets and a chain; the Familiar's Perch stands clear of the mantle on the left shoulder.
+- **Internal anatomy (after the medical references):** skull with cranial fossae, palate, orbits and nasal cavity (septum, conchae, frontal and sphenoid sinuses); mandible and 32 teeth; brain with corpus callosum, ventricles, brainstem and cerebellum, meninges/CSF, spinal cord; C1–T10 with the cervical curve, discs and canal; tongue, soft palate, hyoid, larynx, trachea and oesophagus with open airways; clavicles, sternum, scapulae, humeri, ribs and costal cartilage; torso flesh under the robe. The resting sagittal cut sits just past the septum.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
-- **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 190k triangles, 2.1 MB, 55 s.
+- **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 340k triangles, 3.6 MB, 60 s (over the plan's 300k budget; fine for the desktop audience).
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
@@ -24,11 +25,14 @@ The realism pass (hair, hat, robe) is done procedurally; an imported sculpt stay
 
 ## Working notes
 
+- **Coincident surfaces flicker:** two parts carving the same field share a wall and z-fight. Give each tissue its own offset of a shared cavity (see `parts/airways.ts`).
 - **Checking visuals:** the dev server runs on :5173; Chrome DevTools MCP is approved for localhost only. `window.__plate()` (dev builds) returns the R3F state: `.camera`, `.controls` (camera-controls: `setLookAt(...)`), `.scene` (`getObjectByName(partId)`). The uncut side of the head is visible after pressing `S` three times and scrolling the wheel up (parks the cut). The owner's real mouse over the tab sends pointer events, which can confuse gaze tests.
 - **Hunting holes:** `countHandles` (`src/procedural/mesh/topology.ts`) on a part's raw mesh gives its through-holes; to bisect, copy the part file into a scratch folder under `src/procedural/parts/` (fix its import paths), return early at successive construction steps, and measure each. Delete the scratch folder afterwards.
 - **Head pitfalls found so far:** shapes that touch the face in two places leave tunnels (blend generously or extend them into the face); carves wider than what covers them leave pits; fine noise must stay shallower than thin features (lids).
 
 ## Known issues
+
+- The bake warns about holes in hair parts (real gaps between locks), the skull (openings into its cavities) and a few internals; none show as defects on screen.
 
 - React Three Fiber logs a `THREE.Clock` deprecation warning (inside the library; harmless).
 - The production bundle is one ~1.1 MB chunk (three.js, about 310 KB gzipped); splitting wouldn't reduce what a visitor downloads, so the warning is silenced.
