@@ -8,8 +8,8 @@ How the site works. The rationale and roadmap are in [PLAN.md](PLAN.md); this fi
 
 `<App>` (`src/app/App.tsx`) stacks two layers in one full-viewport `<main>`:
 
-1. **Scene** (`<Canvas>`): camera rig, the specimen (`specimen/Specimen`, inside `<Suspense>` while it loads) and the post-processing stack. The renderer runs with no tone mapping (`flat`) so palette colours stay exact, DPR capped at 2.
-2. **Overlay**: DOM above the canvas, `pointer-events: none` by default. Holds the printed double rule (`ui/PlateBorder`) and the title block (`ui/PlateHeader`).
+1. **Scene** (`<Canvas>`): camera rig, the specimen (`specimen/Specimen`, inside `<Suspense>` while it loads) and the post-processing stack. The renderer runs with no tone mapping (`flat`) so palette colours stay exact, DPR capped at 2 (see § Resolution).
+2. **Overlay**: DOM above the canvas, `pointer-events: none` by default. Holds the printed double rule (`ui/PlateBorder`), the title block (`ui/PlateHeader`) and, while the specimen loads, `ui/Preloader`: a ring of the 24 Futhark runes that ink in clockwise as parts arrive (`loadSpecimen`'s progress, through the store's `loadProgress`), with the caption _Praeparatur specimen_. It fades out once `Specimen` has drawn its first frame (`specimenReady`).
 
 `<Fallback>` shows the same border and title on CSS paper (`ui/PaperBackdrop`). It's used when WebGL 2 is missing and, through `ui/ErrorBoundary`, when the plate fails to render (for example, the specimen can't be fetched).
 

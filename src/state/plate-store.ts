@@ -27,6 +27,12 @@ interface SliceState {
 }
 
 interface PlateState {
+  /** 0–1: how much of the specimen has been fetched and decoded. */
+  readonly loadProgress: number;
+  readonly setLoadProgress: (progress: number) => void;
+  /** True once the specimen has drawn its first frame (the preloader then leaves). */
+  readonly specimenReady: boolean;
+  readonly setSpecimenReady: () => void;
   readonly slice: SliceState;
   /** Incremented to ask the camera rig to return to its initial view. */
   readonly viewResets: number;
@@ -75,6 +81,18 @@ const layerState = (layersOn: LayersOn, seeThrough: boolean) => ({
 });
 
 export const usePlateStore = create<PlateState>()((set, get) => ({
+  loadProgress: 0,
+
+  setLoadProgress: (progress) => {
+    set({ loadProgress: progress });
+  },
+
+  specimenReady: false,
+
+  setSpecimenReady: () => {
+    set({ specimenReady: true });
+  },
+
   viewResets: 0,
 
   ...layerState(firstPreset.on, SEE_THROUGH_DEFAULT),

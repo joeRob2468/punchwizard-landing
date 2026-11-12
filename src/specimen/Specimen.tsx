@@ -150,6 +150,16 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
     };
   }, [domElement, gaze]);
 
+  // The first frame with the specimen in it: the preloader can go.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      usePlateStore.getState().setSpecimenReady();
+    });
+    return () => {
+      cancelAnimationFrame(id);
+    };
+  }, []);
+
   useFrame(({ clock, camera }, delta) => {
     gaze.update(camera, delta);
     const t = clock.getElapsedTime();

@@ -17,7 +17,9 @@ import { DevHandle } from '../scene/DevHandle.tsx';
 import { RuneCircles } from '../scene/RuneCircles.tsx';
 import { loadSpecimen } from '../specimen/load-specimen.ts';
 import { Specimen } from '../specimen/Specimen.tsx';
+import { usePlateStore } from '../state/plate-store.ts';
 import { GlowKey } from '../ui/GlowKey.tsx';
+import { Preloader } from '../ui/Preloader.tsx';
 import { PlateBorder } from '../ui/PlateBorder.tsx';
 import { PlateHeader } from '../ui/PlateHeader.tsx';
 import { LayerControls } from '../ui/LayerControls.tsx';
@@ -26,7 +28,9 @@ import { SliceControls } from '../ui/SliceControls.tsx';
 import styles from './App.module.css';
 
 // Started at module load so the fetch overlaps React and WebGL start-up.
-const specimen = loadSpecimen(`${import.meta.env.BASE_URL}specimen/`);
+const specimen = loadSpecimen(`${import.meta.env.BASE_URL}specimen/`, (fraction) => {
+  usePlateStore.getState().setLoadProgress(fraction);
+});
 
 export function App() {
   const labels = useMemo(() => new LabelChannel(ANATOMY.length), []);
@@ -71,6 +75,7 @@ export function App() {
         <SliceControls />
         <LayerControls />
         <ViewToggle />
+        <Preloader />
       </div>
     </main>
   );

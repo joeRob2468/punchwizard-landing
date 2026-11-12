@@ -31,16 +31,29 @@ export class SpecimenLoadError extends Error {
   override name = 'SpecimenLoadError';
 }
 
-export async function loadSpecimen(baseUrl: string): Promise<LoadedSpecimen> {
+/**
+ * `onProgress` gets the fraction (0–1) of parts fetched and built, weighted by
+ * their compressed size, as they arrive.
+ */
+export async function loadSpecimen(
+  baseUrl: string,
+  onProgress?: (fraction: number) => void,
+): Promise<LoadedSpecimen> {
   const manifest = await fetchJson(`${baseUrl}manifest.json`);
   if (!isSpecimenManifest(manifest)) {
     throw new SpecimenLoadError('specimen manifest has an unexpected format');
   }
+  // The vertex stream is most of each file, so it stands in for the file's size.
+  const total = manifest.parts.reduce((sum, entry) => sum + entry.vertexStreamBytes, 0) || 1;
+  let done = 0;
   const parts = await Promise.all(
     manifest.parts.map(async (entry) => {
       const buffer = await fetchBuffer(`${baseUrl}${entry.file}`);
       await MeshoptDecoder.ready;
-      return { entry, geometry: buildGeometry(buffer, entry) };
+      const part = { entry, geometry: buildGeometry(buffer, entry) };
+      done += entry.vertexStreamBytes;
+      onProgress?.(done / total);
+      return part;
     }),
   );
   return { manifest, parts, bounds: unionBounds(manifest.parts.map((p) => p.bounds)) };
