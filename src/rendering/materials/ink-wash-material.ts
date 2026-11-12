@@ -43,7 +43,7 @@ export interface InkWashOptions {
   readonly surface?: Surface;
   /** The idle sway's shared uniforms (see materials/sway.ts); none if unset. */
   readonly sway?: SwayUniforms;
-  /** Whether heartbeat pulses of mana run through the part, and where they start. */
+  /** Whether pulses of mana run through the part, and where they start. */
   readonly carriesMana?: boolean;
   readonly flowOrigin?: Vec3;
 }
@@ -146,7 +146,7 @@ export class InkWashMaterial extends ShaderMaterial {
     this.#pulse.value = amount;
   }
 
-  /** Radii of this beat's two mana wavefronts from the core (negative: none). */
+  /** Radii of the two latest mana pulses' fronts from the core (negative: none). */
   setFlowFronts(first: number, second: number) {
     this.#flowFronts.value.set(first, second);
   }

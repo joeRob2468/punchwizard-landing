@@ -35,7 +35,7 @@ export interface CapOptions {
   readonly centre?: Vec3;
   /** Same id as the part's surface material (see InkWashOptions.partId). */
   readonly partId: number;
-  /** Whether heartbeat pulses of mana run through the part, and where they start. */
+  /** Whether pulses of mana run through the part, and where they start. */
   readonly carriesMana?: boolean;
   readonly flowOrigin?: Vec3;
 }
@@ -145,7 +145,7 @@ export class CapMaterial extends ShaderMaterial {
     this.#pulse.value = amount;
   }
 
-  /** Radii of this beat's two mana wavefronts from the core (negative: none). */
+  /** Radii of the two latest mana pulses' fronts from the core (negative: none). */
   setFlowFronts(first: number, second: number) {
     this.#flowFronts.value.set(first, second);
   }

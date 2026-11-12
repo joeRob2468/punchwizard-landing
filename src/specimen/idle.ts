@@ -1,9 +1,10 @@
 /**
  * The specimen's idle life, as pure functions of time so the shaders, the section
  * stencils and the label anchors all agree: glows that breathe each on their own
- * rhythm, the Cor Aethericum's heartbeat (which also drives the mana pulses), an
+ * rhythm, the Cor Aethericum's heartbeat, an
  * occasional blink of the Crystalline Eyes, and a slow sway of everything above
- * the hat's brim, growing toward the tip.
+ * the hat's brim, growing toward the tip. Pulses of mana leave the Aetheric Core
+ * at random moments.
  */
 import { LANDMARKS as L } from '../procedural/landmarks.ts';
 
@@ -26,11 +27,6 @@ export function heartbeat(t: number): number {
   return Math.min(1, bump(0.04, 0.035) + 0.7 * bump(0.18, 0.04));
 }
 
-/** Seconds since the last beat began. */
-export function sinceBeat(t: number): number {
-  return t % BEAT_PERIOD;
-}
-
 /** Where each heartbeat's mana pulses start: the Aetheric Core. */
 export const FLOW_ORIGIN = L.aethericCore;
 /** Parts the pulses run through. */
@@ -41,20 +37,40 @@ export const MANA_CARRIERS: ReadonlySet<string> = new Set([
   'ganglia',
 ]);
 /** Speed of the pulses (specimen units per second). */
-const FLOW_SPEED = 1.6;
+const FLOW_SPEED = 0.8;
+/** Pulses start at a random moment within each slot of this many seconds; some slots skip. */
+const FLOW_SLOT = 4;
+const FLOW_SKIP = 0.3;
+/** Beyond this radius a pulse has faded out. */
+const FLOW_REACH = 3;
 
-/** Radii of this beat's two wavefronts (lub, then dub) from the core; negative: not yet. */
+/** When the pulse in slot `n` starts, or null if that slot has none. */
+function pulseStart(n: number): number | null {
+  if (hash(n * 3.1 + 7) < FLOW_SKIP) return null;
+  return (n + 0.8 * hash(n)) * FLOW_SLOT;
+}
+
+/**
+ * Radii from the core of the two latest mana pulses still travelling (negative:
+ * none). Pulses come at random times, independent of the heartbeat.
+ */
 export function flowFronts(t: number): readonly [number, number] {
-  const s = sinceBeat(t);
-  const dub = s - 0.14 * BEAT_PERIOD;
-  return [s * FLOW_SPEED, dub >= 0 ? dub * FLOW_SPEED : -1];
+  const fronts: number[] = [];
+  const now = Math.floor(t / FLOW_SLOT);
+  for (let n = now; n >= now - 3 && fronts.length < 2; n--) {
+    const start = pulseStart(n);
+    if (start === null || start > t) continue;
+    const radius = (t - start) * FLOW_SPEED;
+    if (radius < FLOW_REACH) fronts.push(radius);
+  }
+  return [fronts[0] ?? -1, fronts[1] ?? -1];
 }
 
 /** 1 with the eyes open, falling to 0 for a blink every few seconds. */
 export function eyesOpen(t: number): number {
   const slot = 5.5;
   const n = Math.floor(t / slot);
-  const at = n * slot + 1 + 3 * fract(Math.sin(n * 12.9898) * 43758.5453);
+  const at = n * slot + 1 + 3 * hash(n);
   const d = Math.abs(t - at);
   return Math.min(1, d / 0.09);
 }
@@ -79,6 +95,11 @@ export function glowPulse(partId: string, seed: number, t: number): number {
 /** 0–1: how lit a part's glow is at `t` (the Crystalline Eyes blink). */
 export function glowLevel(partId: string, t: number): number {
   return partId.startsWith('iris-') ? eyesOpen(t) : 1;
+}
+
+/** 0–1, deterministic for a given input. */
+function hash(x: number): number {
+  return fract(Math.sin(x * 12.9898) * 43758.5453);
 }
 
 function fract(x: number): number {
