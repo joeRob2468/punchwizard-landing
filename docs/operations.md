@@ -14,7 +14,7 @@ Running and updating the site on the home server. Placeholders: `<server>` is th
 | Routing   | The server's Traefik on `media_network`, entrypoint `websecure`; the existing `*.<domain>` + `<domain>` certificate covers both hosts |
 | Config    | `.env`: `DOMAIN`, `COMPOSE_FILE` (see `.env.example`). No secrets                                                                     |
 
-The image is self-contained: the Node stage installs dependencies, bakes the specimen and builds the site; the nginx stage only serves files. Nothing is mounted and no state is kept.
+The image is self-contained: the Node stage installs dependencies, bakes the specimen and builds the site; the nginx stage only serves files. Nothing is mounted and no state is kept. Every response carries the headers in `deploy/security-headers.conf`, including a strict Content Security Policy; its `'wasm-unsafe-eval'` lets the specimen's decoder (meshoptimizer, WebAssembly) run, and without it the plate falls back to its static page.
 
 ## One-time setup
 
