@@ -1,40 +1,32 @@
 /**
- * Layer controls, bottom left: a preset row (everything, the bones, the viscera)
- * and each layer on its own, which cycles shown → ghost (see-through) → hidden.
- * The L key steps through the presets.
+ * Layer controls, bottom left: a preset row (everything, the bones, the viscera,
+ * the arcana), each layer's on/off switch, and one see-through switch that turns
+ * whatever covers the deepest layer that's on see-through (config/layers.ts).
+ * L steps through the presets; T toggles see-through.
  */
 import { useEffect } from 'react';
 
-import { LAYER_PRESETS, VIEWABLE_LAYERS, type LayerMode } from '../config/layers.ts';
+import { isPresetActive, LAYER_PRESETS, VIEWABLE_LAYERS } from '../config/layers.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import styles from './LayerControls.module.css';
 
-/** Ink marks for each mode: a full, half and empty circle. */
-const MARK: Readonly<Record<LayerMode, string>> = { shown: '●', ghost: '◐', hidden: '○' };
-const SAID: Readonly<Record<LayerMode, string>> = {
-  shown: 'shown',
-  ghost: 'see-through',
-  hidden: 'hidden',
-};
-
 export function LayerControls() {
-  const layers = usePlateStore((state) => state.layers);
-  const { cycleLayer, setLayers } = usePlateStore.getState();
+  const layersOn = usePlateStore((state) => state.layersOn);
+  const seeThrough = usePlateStore((state) => state.seeThrough);
+  const { toggleLayer, toggleSeeThrough, applyPreset } = usePlateStore.getState();
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement || event.metaKey || event.ctrlKey) return;
-      if (event.key === 'l' || event.key === 'L') usePlateStore.getState().cycleLayerPreset();
+      const key = event.key.toLowerCase();
+      if (key === 'l') usePlateStore.getState().cycleLayerPreset();
+      else if (key === 't') usePlateStore.getState().toggleSeeThrough();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
   }, []);
-
-  const activePreset = LAYER_PRESETS.find((preset) =>
-    VIEWABLE_LAYERS.every(({ id }) => preset.modes[id] === layers[id]),
-  );
 
   return (
     <nav className={styles.controls} aria-label="Layers">
@@ -44,9 +36,9 @@ export function LayerControls() {
             key={preset.label}
             type="button"
             className={styles.preset}
-            aria-pressed={activePreset === preset}
+            aria-pressed={isPresetActive(preset, layersOn, seeThrough)}
             onClick={() => {
-              setLayers(preset.modes);
+              applyPreset(preset);
             }}
             title="Show a set of layers (L)"
           >
@@ -60,19 +52,30 @@ export function LayerControls() {
             key={id}
             type="button"
             className={styles.layer}
-            data-mode={layers[id]}
+            aria-pressed={layersOn[id]}
             onClick={() => {
-              cycleLayer(id);
+              toggleLayer(id);
             }}
-            title={`${label}: ${SAID[layers[id]]} (click to change)`}
-            aria-label={`${label}, ${SAID[layers[id]]}`}
+            title={`${label}: ${layersOn[id] ? 'shown' : 'hidden'} (click to change)`}
           >
             <span aria-hidden="true" className={styles.mark}>
-              {MARK[layers[id]]}
+              {layersOn[id] ? '●' : '○'}
             </span>
             <span>{label}</span>
           </button>
         ))}
+        <button
+          type="button"
+          className={styles.seeThrough}
+          aria-pressed={seeThrough}
+          onClick={toggleSeeThrough}
+          title="See through the outer layers (T)"
+        >
+          <span aria-hidden="true" className={styles.mark}>
+            ◐
+          </span>
+          <span>Perspicua</span>
+        </button>
       </div>
     </nav>
   );

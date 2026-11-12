@@ -4,7 +4,14 @@
  */
 import { create } from 'zustand';
 
-import { LAYER_MODES, LAYER_PRESETS, type LayerModes } from '../config/layers.ts';
+import {
+  isPresetActive,
+  LAYER_PRESETS,
+  type LayerModes,
+  type LayerPreset,
+  layerModes,
+  type LayersOn,
+} from '../config/layers.ts';
 import { FX_DEFAULT, type FxId, type FxModes } from '../config/fx.ts';
 import { DEFAULT_LOOK, type LookId } from '../config/looks.ts';
 import { SLICE, SLICE_AXES, type SliceAxis } from '../config/slice.ts';
@@ -32,11 +39,15 @@ interface PlateState {
   readonly stepSlice: (direction: 1 | -1) => void;
   readonly cycleSliceAxis: () => void;
   readonly resetSlice: () => void;
-  /** How each layer is drawn: shown, ghost (see-through) or hidden. */
+  /** Which layers are switched on. */
+  readonly layersOn: LayersOn;
+  /** Whether layers over the deepest one that's on are drawn see-through. */
+  readonly seeThrough: boolean;
+  /** How each layer is drawn (shown, ghost or hidden), derived from the two above. */
   readonly layers: LayerModes;
-  /** Steps one layer to its next mode. */
-  readonly cycleLayer: (layer: Layer) => void;
-  readonly setLayers: (modes: LayerModes) => void;
+  readonly toggleLayer: (layer: Layer) => void;
+  readonly toggleSeeThrough: () => void;
+  readonly applyPreset: (preset: LayerPreset) => void;
   /** Applies the next preset (keyboard). */
   readonly cycleLayerPreset: () => void;
   /** The view: the default illustration or the MRI scan. */
@@ -51,13 +62,20 @@ interface PlateState {
 const clampTo = (value: number, [lo, hi]: readonly [number, number]) =>
   Math.min(hi, Math.max(lo, value));
 
-const firstPreset = LAYER_PRESETS[0]?.modes;
+const firstPreset = LAYER_PRESETS[0];
 if (!firstPreset) throw new Error('no layer presets');
+
+/** The layer state for a choice of layers and see-through. */
+const layerState = (layersOn: LayersOn, seeThrough: boolean) => ({
+  layersOn,
+  seeThrough,
+  layers: layerModes(layersOn, seeThrough),
+});
 
 export const usePlateStore = create<PlateState>()((set, get) => ({
   viewResets: 0,
 
-  layers: firstPreset,
+  ...layerState(firstPreset.on, firstPreset.seeThrough),
 
   look: DEFAULT_LOOK,
 
@@ -75,24 +93,25 @@ export const usePlateStore = create<PlateState>()((set, get) => ({
     set(({ fx }) => ({ fx: { ...fx, [id]: !fx[id] } }));
   },
 
-  cycleLayer: (layer) => {
-    set(({ layers }) => {
-      const next = LAYER_MODES[(LAYER_MODES.indexOf(layers[layer]) + 1) % LAYER_MODES.length];
-      return next ? { layers: { ...layers, [layer]: next } } : {};
-    });
+  toggleLayer: (layer) => {
+    set(({ layersOn, seeThrough }) =>
+      layerState({ ...layersOn, [layer]: !layersOn[layer] }, seeThrough),
+    );
   },
 
-  setLayers: (modes) => {
-    set({ layers: modes });
+  toggleSeeThrough: () => {
+    set(({ layersOn, seeThrough }) => layerState(layersOn, !seeThrough));
+  },
+
+  applyPreset: (preset) => {
+    set(layerState(preset.on, preset.seeThrough));
   },
 
   cycleLayerPreset: () => {
-    set(({ layers }) => {
-      const at = LAYER_PRESETS.findIndex((p) =>
-        Object.entries(p.modes).every(([k, v]) => layers[k as Layer] === v),
-      );
+    set(({ layersOn, seeThrough }) => {
+      const at = LAYER_PRESETS.findIndex((p) => isPresetActive(p, layersOn, seeThrough));
       const next = LAYER_PRESETS[(at + 1) % LAYER_PRESETS.length];
-      return next ? { layers: next.modes } : {};
+      return next ? layerState(next.on, next.seeThrough) : {};
     });
   },
 

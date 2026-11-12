@@ -16,7 +16,8 @@
 }
 
 .preset,
-.layer {
+.layer,
+.seeThrough {
   display: inline-flex;
   gap: 0.35em;
   align-items: baseline;
@@ -45,24 +46,35 @@
 }
 
 .preset:hover,
-.layer:hover {
+.layer:hover,
+.seeThrough:hover {
   border-bottom-color: var(--ink-faint);
 }
 
 .preset:focus-visible,
-.layer:focus-visible {
+.layer:focus-visible,
+.seeThrough:focus-visible {
   outline: 1px dashed var(--ink);
   outline-offset: 4px;
 }
 
-.layer[data-mode='ghost'] {
-  color: var(--ink-faint);
-}
-
-.layer[data-mode='hidden'] {
+.layer[aria-pressed='false'] {
   color: var(--ink-faint);
   text-decoration: line-through;
   text-decoration-thickness: 1px;
+}
+
+/* Set apart from the layers: it changes how they're drawn, not which. */
+.seeThrough {
+  margin-left: 0.6rem;
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--ink-faint);
+  color: var(--ink-faint);
+}
+
+.seeThrough[aria-pressed='true'] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
 }
 
 .mark {
