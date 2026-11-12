@@ -9,6 +9,7 @@ import { use, useEffect, useMemo } from 'react';
 import { GHOST_OPACITY } from '../config/layers.ts';
 import { FX } from '../config/fx.ts';
 import { DEFAULT_LOOK, LOOKS, washFor } from '../config/looks.ts';
+import { surfaceFor } from '../config/surfaces.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import type { LabelChannel } from '../labels/label-channel.ts';
 import { LabelTracker } from '../labels/LabelTracker.tsx';
@@ -43,6 +44,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           useOcclusion: true,
           wash: washFor(LOOKS[DEFAULT_LOOK], entry.id, entry.look.wash),
           glow: entry.look.glow ?? 0,
+          surface: surfaceFor(entry.id, entry.look.wash),
         });
         material.clippingPlanes = [plane];
         return {

@@ -137,7 +137,8 @@ Current output: about 340k triangles and 3.6 MB across 46 parts, baked in about 
 The scene is drawn as **light on black** (the scene background is black), then post-processed:
 
 1. **Surface: `InkWashMaterial`** (`rendering/materials/`, shaders in `rendering/shaders/ink-wash.*.glsl`). A `ShaderMaterial` with clipping enabled.
-   - Lit like a photograph, against lights fixed in **view space**, so the specimen is always lit the same way whichever way it's turned: a wrapped key light from the upper left with warm translucency at the terminator (light scattering under skin), a cool fill from the lower right, a rim from behind and a soft highlight. All are darkened by the baked occlusion attribute (specimen parts set `useOcclusion`). Pigment collects slightly in crevices and its density varies across the surface.
+   - Lit like a photograph, against lights fixed in **view space**, so the specimen is always lit the same way whichever way it's turned: a wrapped key light from the upper left, a cool fill from the lower right and a rim from behind, darkened by the baked occlusion attribute (specimen parts set `useOcclusion`).
+   - Each part is made of a **surface** (`config/surfaces.ts`, chosen by part id or wash: skin, cloth, leather, hair, bone, wet tissue, gilt metal) that sets its highlight (strength, tightness, metallic tint, broken up by noise), sheen at grazing angles, warm light scattered under it at the terminator, a fine relief bumped into the normal from screen-space derivatives of a noise height (pores, nap; stretched along y into strands for hair; faded where finer than a pixel) and how much its colour varies in brightness and hue. This is what keeps the specimen from reading as smooth plastic.
    - `glow` (0–1) makes a part self-lit: pale centre, saturated rim, slow pulse. Used for arcane parts.
 2. **`OutlineEffect`** (`rendering/effects/`): reads the depth buffer and the part ids in alpha. A clearly farther neighbour draws a silhouette on the near side of the jump; spikes in depth curvature draw fainter creases; a change of part id draws a part edge (see below). Sample positions wobble and line width varies with screen-space noise.
 
@@ -184,7 +185,7 @@ Axes are in `src/config/slice.ts`. Each normal points away from the default came
 
 Parts are capped in manifest order with `LessEqual` depth, so later caps win where volumes overlap; `specimenParts()` therefore lists parts from outermost to innermost. The effect composer's buffers have a stencil attachment for this.
 
-`CapMaterial` (`rendering/shaders/cap.*.glsl`) paints a deeper version of the part's wash plus its section pattern from the part's look: `hatch` (45° lines; flesh, robe), `stipple` (jittered dots; hair), `rings` (growth rings around a vertical axis; the hat) or `glow` (self-lit; eyes). Pattern coordinates are on the plane, so patterns don't swim as the plane moves.
+`CapMaterial` (`rendering/shaders/cap.*.glsl`) paints a deeper version of the part's wash plus its section pattern from the part's look: `hatch` (45° lines; flesh, robe), `stipple` (jittered dots; hair), `rings` (growth rings around a vertical axis; the hat) or `glow` (self-lit; eyes). Pattern coordinates are on the plane, so patterns don't swim as the plane moves. Lines are fine and anti-aliased from their screen-space derivative, fading to an even tone where they'd be closer than a pixel.
 
 ### Controls
 

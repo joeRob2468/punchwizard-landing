@@ -6,7 +6,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 
 - **M0–M5:** scaffold, render pipeline, procedural specimen with bake, sectioning with stencil caps, internals (skeleton, brain, fantasy organs, mana vessels, conduit lattice), nineteen labelled features with leader lines and tooltips.
 - **Controls:** left-drag orbits, right-drag pans, the **wheel moves the cut** (Ctrl/⌘ + wheel or pinch zooms), two-finger drag moves the cut on touch, `S` / `[` `]` / `R` / arrows / `+` `-`, double-click resets. No on-screen slice handle.
-- **Shading:** lit like a photograph (wrapped key, translucency, fill, rim, highlight) with baked ambient occlusion, depth and part-id outlines without flickering specks, paper composite (screened onto dark paper).
+- **Shading:** lit like a photograph (wrapped key, fill, rim) with baked ambient occlusion and per-surface materials (skin, cloth, leather, hair, bone, tissue, gilt: highlight, sheen, scattering, fine relief, colour variation), fine anti-aliased section lines, depth and part-id outlines without flickering specks, paper composite (screened onto dark paper).
 - **Face (realism pass, owner-approved):** an old man's face with large, forward-set eyes angled away from the nose, almond lids, fold, bags, filled inner corners, wrinkles. The head has no through-holes.
 - **Labels:** all land in the default cut except the Cochlea Arcana (by the ears; coronal or transverse cuts) and the Familiar's Perch (on the removed half).
 - **Hair (realism pass):** beard, moustache, eyebrows and hair are clumped locks over solid cores, grown with gravity and collision (`growth/locks.ts`); hair drapes over the shoulders.

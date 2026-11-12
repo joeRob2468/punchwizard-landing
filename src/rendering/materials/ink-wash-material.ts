@@ -1,6 +1,7 @@
 /**
- * The specimen's surface material: lit washes (see ink-wash.frag.glsl), self-lit
- * glow for arcane parts. Supports the renderer's clipping planes so the specimen
+ * The specimen's surface material: lit washes with per-surface highlight, sheen,
+ * scattering, relief and colour variation (see ink-wash.frag.glsl), self-lit glow
+ * for arcane parts. Supports the renderer's clipping planes so the specimen
  * can be sectioned.
  */
 import {
@@ -20,6 +21,7 @@ import noise from '../shaders/lib/noise.glsl?raw';
 import fragment from '../shaders/ink-wash.frag.glsl?raw';
 import vertex from '../shaders/ink-wash.vert.glsl?raw';
 import { RENDER } from '../../config/render.ts';
+import { SURFACES, type Surface } from '../../config/surfaces.ts';
 
 export interface InkWashOptions {
   /** Wash colour as a CSS colour string (usually from PALETTE). */
@@ -33,6 +35,8 @@ export interface InkWashOptions {
   readonly partId?: number;
   /** Read the baked `occlusion` vertex attribute (specimen parts have it). */
   readonly useOcclusion?: boolean;
+  /** What the part is made of; plain tissue if unset. */
+  readonly surface?: Surface;
 }
 
 /** How a part is painted under the current look (see config/looks.ts). */
@@ -51,7 +55,13 @@ export class InkWashMaterial extends ShaderMaterial {
   readonly #emission: { value: number };
   readonly #glowing: boolean;
 
-  constructor({ wash, glow = 0, partId = 255, useOcclusion = false }: InkWashOptions) {
+  constructor({
+    wash,
+    glow = 0,
+    partId = 255,
+    useOcclusion = false,
+    surface = SURFACES.TISSUE,
+  }: InkWashOptions) {
     const time = { value: 0 };
     const washColour = new Color(wash);
     const gain = { value: 1 };
@@ -69,6 +79,15 @@ export class InkWashMaterial extends ShaderMaterial {
         uTime: time,
         uPartId: { value: partId },
         uUseOcclusion: { value: useOcclusion ? 1 : 0 },
+        uSpecular: { value: surface.specular },
+        uGloss: { value: surface.gloss },
+        uMetallic: { value: surface.metallic },
+        uSheen: { value: surface.sheen },
+        uScatter: { value: surface.scatter },
+        uBump: { value: surface.bump },
+        uGrain: { value: surface.grain },
+        uStretch: { value: new Vector3(...surface.stretch) },
+        uMottle: { value: surface.mottle },
       },
     });
     this.name = 'InkWashMaterial';
