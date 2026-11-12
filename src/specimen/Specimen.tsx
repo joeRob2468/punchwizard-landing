@@ -14,12 +14,15 @@ import { surfaceFor } from '../config/surfaces.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import type { LabelChannel } from '../labels/label-channel.ts';
 import { LabelTracker } from '../labels/LabelTracker.tsx';
+import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import { InkWashMaterial } from '../rendering/materials/ink-wash-material.ts';
+import { swayUniforms } from '../rendering/materials/sway.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
 import { SectionCaps } from '../slicing/SectionCaps.tsx';
 import { SliceController } from '../slicing/SliceController.tsx';
 import { GazePivot } from './GazePivot.tsx';
 import { GazeRig } from './gaze.ts';
+import { glowLevel, glowPulse, SWAY, swayAtTip } from './idle.ts';
 import type { LoadedSpecimen } from './load-specimen.ts';
 import { partIdFor, partIds } from './part-id.ts';
 
@@ -37,6 +40,9 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   const { plane } = useClipPlane();
 
   const ids = useMemo(() => partIds(parts.map((p) => p.entry)), [parts]);
+  // Shared by every part and the section stencils, so they all sway together.
+  const sway = useMemo(() => swayUniforms(SWAY.from, SWAY.to), []);
+  const reducedMotion = usePrefersReducedMotion();
   const meshes = useMemo(
     () =>
       parts.map(({ entry, geometry }, index) => {
@@ -46,6 +52,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           wash: washFor(LOOKS[DEFAULT_LOOK], entry.id, entry.look.wash),
           glow: entry.look.glow ?? 0,
           surface: surfaceFor(entry.id, entry.look.wash),
+          sway,
         });
         material.clippingPlanes = [plane];
         return {
@@ -58,7 +65,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           pivot: entry.gazePivot,
         };
       }),
-    [parts, plane, ids],
+    [parts, plane, ids, sway],
   );
 
   useEffect(
@@ -131,8 +138,12 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
     const t = clock.getElapsedTime();
     const { highlight } = usePlateStore.getState();
     const ease = 1 - Math.exp(-delta * RENDER.flareRate);
+    const [sx, sz] = reducedMotion ? [0, 0] : swayAtTip(t);
+    sway.uSway.value.set(sx, sz);
     meshes.forEach(({ id, material }, i) => {
       material.time = t;
+      material.pulse = glowPulse(id, i, t);
+      material.glowLevel = reducedMotion ? 1 : glowLevel(id, t);
       const current = flares[i] ?? 0;
       const next = current + ((id === highlight ? 1 : 0) - current) * ease;
       flares[i] = next;
@@ -164,7 +175,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           );
         })}
       </group>
-      <SectionCaps parts={parts} gaze={gaze} />
+      <SectionCaps parts={parts} gaze={gaze} sway={sway} />
       <SliceController bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />
     </>

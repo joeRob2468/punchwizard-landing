@@ -21,6 +21,8 @@ import { specimenParts } from '../procedural/specimen.ts';
 import type { Sdf, Vec3 } from '../procedural/sdf/types.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
 import type { LoadedSpecimen } from '../specimen/load-specimen.ts';
+import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
+import { swayAtTip, swayWeight } from '../specimen/idle.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import {
   gradient,
@@ -110,7 +112,9 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
   const surfaceVisible = useRef<(Vec3 | null)[]>(ANATOMY.map(() => null));
   const scratch = useMemo(() => ({ v: new Vector3(), ray: new Ray(), dir: new Vector3() }), []);
 
-  useFrame(() => {
+  const reducedMotion = usePrefersReducedMotion();
+  useFrame(({ clock }) => {
+    const [sx, sz] = reducedMotion ? [0, 0] : swayAtTip(clock.getElapsedTime());
     // The camera controls move the camera without refreshing its matrices (the
     // renderer does that later), so update them here or anchors are projected
     // with last frame's camera and trail the model.
@@ -160,7 +164,9 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
         channel.setSample(i, false);
         return;
       }
-      scratch.v.set(...anchor).project(camera);
+      // Anchors above the brim sway with the hat (specimen/idle.ts).
+      const lean = swayWeight(anchor[1]);
+      scratch.v.set(anchor[0] + sx * lean, anchor[1], anchor[2] + sz * lean).project(camera);
       channel.setSample(
         i,
         scratch.v.z < 1,

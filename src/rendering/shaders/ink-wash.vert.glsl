@@ -1,4 +1,5 @@
 #include <common>
+#include <sway>
 #include <clipping_planes_pars_vertex>
 
 varying vec3 vViewNormal;
@@ -16,7 +17,7 @@ void main() {
   vOcclusion = mix(1.0, occlusion, uUseOcclusion);
   vViewNormal = normalize(normalMatrix * normal);
 
-  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+  vec4 mvPosition = modelViewMatrix * vec4(pwSway(position), 1.0);
   vViewPosition = -mvPosition.xyz;
   #include <clipping_planes_vertex>
   gl_Position = projectionMatrix * mvPosition;

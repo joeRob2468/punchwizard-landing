@@ -31,6 +31,9 @@ import { CapMaterial } from '../rendering/materials/cap-material.ts';
 import { partIdFor, partIds } from '../specimen/part-id.ts';
 import type { GazeRig } from '../specimen/gaze.ts';
 import { GazePivot } from '../specimen/GazePivot.tsx';
+import { glowLevel, glowPulse } from '../specimen/idle.ts';
+import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
+import { addSway, type SwayUniforms } from '../rendering/materials/sway.ts';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import { useClipPlane } from './clip-plane.tsx';
@@ -44,9 +47,12 @@ interface SectionCapsProps {
   readonly parts: readonly LoadedPart[];
   /** Parts that follow the pointer turn here too, so their stencils match. */
   readonly gaze: GazeRig;
+  /** The specimen's idle sway, applied to the stencils so cut faces follow it. */
+  readonly sway: SwayUniforms;
 }
 
-export function SectionCaps({ parts, gaze }: SectionCapsProps) {
+export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
+  const reducedMotion = usePrefersReducedMotion();
   const { plane } = useClipPlane();
   const layerModes = usePlateStore((state) => state.layers);
   const quad = useMemo(() => new PlaneGeometry(CAP_SIZE, CAP_SIZE), []);
@@ -63,7 +69,7 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
           wash: entry.look.wash,
           geometry,
           pivot: entry.gazePivot,
-          parity: stencilMaterial(plane),
+          parity: addSway(stencilMaterial(plane), sway),
           cap: new CapMaterial({
             wash: washFor(LOOKS[DEFAULT_LOOK], entry.id, entry.look.wash),
             pattern: section.pattern,
@@ -72,7 +78,7 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
           }),
         };
       }),
-    [parts, plane, ids],
+    [parts, plane, ids, sway],
   );
 
   useEffect(
@@ -115,6 +121,8 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
     layers.forEach(({ id, cap }, i) => {
       cap.time = t;
       cap.planeNormal = plane.normal;
+      cap.pulse = glowPulse(id, i, t);
+      cap.glowLevel = reducedMotion ? 1 : glowLevel(id, t);
       const current = flares[i] ?? 0;
       const next = current + ((id === highlight ? 1 : 0) - current) * ease;
       flares[i] = next;

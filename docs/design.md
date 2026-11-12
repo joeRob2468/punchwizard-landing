@@ -152,6 +152,10 @@ Both effects use `BlendFunction.SET` and run in one merged pass, outline first. 
 
 Tunables (light direction, outline width and strength, part-edge strength) are in `src/config/render.ts`.
 
+### Idle life
+
+`specimen/idle.ts` holds the specimen's idle life as pure functions of time, so everything that needs it agrees: each glowing part breathes on its own rhythm (`uPulse`), the Cor Aethericum beats (a lub-dub every 1.6 s), the Crystalline Eyes' glow blinks out for a moment every few seconds (`uGlowLevel`), and everything above the brim sways, more toward the tip. The sway is a vertex offset (`shaders/lib/sway.glsl`) with shared uniforms that `Specimen` updates each frame; the section stencils get it through `materials/sway.ts` (injected into their built-in material), and `LabelTracker` offsets anchors the same way, so cut faces and leader lines stay attached. Sway and blinks are off for visitors who prefer reduced motion.
+
 ### Gaze
 
 The irises and pupils are separate left and right parts that carry a `gazePivot` (the eyeball's centre) in the manifest. `specimen/gaze.ts` (`GazeRig`) computes one rotation shared by both eyes, so they always move together: toward a point on the pointer's ray, 60% of the way from the camera to the point between the eyes, softly limited to about 0.8 rad from straight ahead (so the eyes keep responding near the limit rather than freezing) and smoothed. The pointer is tracked over the whole page (labels included); when it leaves the window, the eyes ease back to straight ahead. `specimen/GazePivot` applies the rotation about the pivot, in the specimen and to the parts' section-cap stencils, so cut faces stay correct.

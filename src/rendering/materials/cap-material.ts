@@ -55,6 +55,8 @@ export class CapMaterial extends ShaderMaterial {
   readonly #section: { value: number };
   readonly #emission: { value: number };
   readonly #flare: { value: number };
+  readonly #pulse: { value: number };
+  readonly #glowLevel: { value: number };
 
   constructor({ wash, pattern, centre = [0, 0, 0], partId }: CapOptions) {
     const time = { value: 0 };
@@ -64,6 +66,8 @@ export class CapMaterial extends ShaderMaterial {
     const section = { value: 1 };
     const emission = { value: 0 };
     const flare = { value: 0 };
+    const pulse = { value: 0.5 };
+    const glowLevel = { value: 1 };
     super({
       vertexShader: vertex,
       fragmentShader: fragment.replace('#include <common>', `#include <common>\n${noise}`),
@@ -82,6 +86,8 @@ export class CapMaterial extends ShaderMaterial {
         uSection: section,
         uEmission: emission,
         uFlare: flare,
+        uPulse: pulse,
+        uGlowLevel: glowLevel,
         uNormal: normal,
         uCentre: { value: new Vector3(...centre) },
         uPattern: { value: PATTERN_IDS[pattern] },
@@ -97,6 +103,8 @@ export class CapMaterial extends ShaderMaterial {
     this.#section = section;
     this.#emission = emission;
     this.#flare = flare;
+    this.#pulse = pulse;
+    this.#glowLevel = glowLevel;
   }
 
   paint({ wash, line, section, emission }: CapPaint) {
@@ -113,6 +121,16 @@ export class CapMaterial extends ShaderMaterial {
   /** 0–1: how strongly the part flares (its label is hovered or pinned). */
   set flare(amount: number) {
     this.#flare.value = amount;
+  }
+
+  /** 0–1: the glow's breath or heartbeat this frame (specimen/idle.ts). */
+  set pulse(amount: number) {
+    this.#pulse.value = amount;
+  }
+
+  /** 0–1: dims a glowing cut face (a blink). */
+  set glowLevel(amount: number) {
+    this.#glowLevel.value = amount;
   }
 
   set planeNormal(normal: Vector3) {

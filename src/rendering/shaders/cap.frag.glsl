@@ -12,6 +12,8 @@ uniform float uTime;
 uniform float uPartId;
 uniform float uSection; // 0–1 section pattern strength
 uniform float uFlare; // 0–1: the part's label is hovered or pinned
+uniform float uPulse; // 0–1: the glow's breath or heartbeat (specimen/idle.ts)
+uniform float uGlowLevel; // 0–1: dims the glow (a blink)
 uniform float uEmission; // how far past white glowing caps go (for bloom)
 
 varying vec3 vWorldPosition;
@@ -59,10 +61,11 @@ void main() {
     float w = dot(world, t) * 56.0 + sin(world.y * 9.0 + pwNoise2(uv * 4.0) * 3.0) * 1.5;
     ink = stripe(w, 0.06) * 0.4;
   } else {
-    float pulse = 0.5 + 0.5 * sin(uTime * 1.3);
+    float pulse = uPulse;
     colour = mix(vec3(1.0), uWash, 0.45 + 0.2 * pulse);
     vec3 emitted = uWash * (1.0 + uEmission * (0.6 + 0.4 * pulse));
     colour = mix(colour, emitted, 0.8 * min(uEmission, 1.0));
+    colour *= mix(0.15, 1.0, uGlowLevel);
   }
 
   colour = mix(colour, uInk, ink * uSection);

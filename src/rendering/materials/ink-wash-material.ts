@@ -22,6 +22,8 @@ import fragment from '../shaders/ink-wash.frag.glsl?raw';
 import vertex from '../shaders/ink-wash.vert.glsl?raw';
 import { RENDER } from '../../config/render.ts';
 import { SURFACES, type Surface } from '../../config/surfaces.ts';
+import swayChunk from '../shaders/lib/sway.glsl?raw';
+import { type SwayUniforms, swayUniforms } from './sway.ts';
 
 export interface InkWashOptions {
   /** Wash colour as a CSS colour string (usually from PALETTE). */
@@ -37,6 +39,8 @@ export interface InkWashOptions {
   readonly useOcclusion?: boolean;
   /** What the part is made of; plain tissue if unset. */
   readonly surface?: Surface;
+  /** The idle sway's shared uniforms (see materials/sway.ts); none if unset. */
+  readonly sway?: SwayUniforms;
 }
 
 /** How a part is painted under the current look (see config/looks.ts). */
@@ -55,6 +59,8 @@ export class InkWashMaterial extends ShaderMaterial {
   readonly #emission: { value: number };
   readonly #glowing: boolean;
   readonly #flare: { value: number };
+  readonly #pulse: { value: number };
+  readonly #glowLevel: { value: number };
 
   constructor({
     wash,
@@ -62,14 +68,17 @@ export class InkWashMaterial extends ShaderMaterial {
     partId = 255,
     useOcclusion = false,
     surface = SURFACES.TISSUE,
+    sway = swayUniforms(1e9, 2e9),
   }: InkWashOptions) {
     const time = { value: 0 };
     const washColour = new Color(wash);
     const gain = { value: 1 };
     const emission = { value: 0 };
     const flare = { value: 0 };
+    const pulse = { value: 0.5 };
+    const glowLevel = { value: 1 };
     super({
-      vertexShader: vertex,
+      vertexShader: vertex.replace('#include <sway>', swayChunk),
       fragmentShader: insertAfterCommon(fragment, noise),
       clipping: true,
       uniforms: {
@@ -91,6 +100,9 @@ export class InkWashMaterial extends ShaderMaterial {
         uStretch: { value: new Vector3(...surface.stretch) },
         uMottle: { value: surface.mottle },
         uFlare: flare,
+        uPulse: pulse,
+        uGlowLevel: glowLevel,
+        ...sway,
       },
     });
     this.name = 'InkWashMaterial';
@@ -100,6 +112,8 @@ export class InkWashMaterial extends ShaderMaterial {
     this.#emission = emission;
     this.#glowing = glow > 0;
     this.#flare = flare;
+    this.#pulse = pulse;
+    this.#glowLevel = glowLevel;
     this.ghost = null;
   }
 
@@ -112,6 +126,16 @@ export class InkWashMaterial extends ShaderMaterial {
   /** 0–1: how strongly the part flares (its label is hovered or pinned). */
   set flare(amount: number) {
     this.#flare.value = amount;
+  }
+
+  /** 0–1: the glow's breath or heartbeat this frame (specimen/idle.ts). */
+  set pulse(amount: number) {
+    this.#pulse.value = amount;
+  }
+
+  /** 0–1: dims the glow (1 normally; a blink takes it to 0). */
+  set glowLevel(amount: number) {
+    this.#glowLevel.value = amount;
   }
 
   set time(seconds: number) {

@@ -30,6 +30,8 @@ uniform float uGrain;
 uniform vec3 uStretch;
 uniform float uMottle;
 uniform float uFlare; // 0–1: the part's label is hovered or pinned
+uniform float uPulse; // 0–1: the glow's breath or heartbeat (specimen/idle.ts)
+uniform float uGlowLevel; // 0–1: dims the glow (a blink)
 
 varying vec3 vViewNormal;
 varying vec3 vViewPosition;
@@ -103,12 +105,12 @@ void main() {
   // Arcane parts are self-lit: pale at the heart, saturated at the rim, pulsing.
   // With emission the glow keeps its hue and goes past white, so only these parts
   // reach the bloom threshold and their halo is coloured.
-  float pulse = 0.5 + 0.5 * sin(uTime * 1.3);
+  float pulse = uPulse;
   float rimLight = 1.0 - abs(n.z);
   vec3 glow = mix(mix(vec3(1.0), uWash, 0.25 + 0.15 * pulse), uWash, smoothstep(0.2, 0.9, rimLight));
   vec3 emitted = uWash * (1.0 + uEmission * (0.6 + 0.4 * pulse));
   glow = mix(glow, emitted, 0.8 * min(uEmission, 1.0));
-  colour = mix(colour, glow, uGlow);
+  colour = mix(colour, glow, uGlow * uGlowLevel);
 
   // Flare: brighter and lit from within in the part's own colour.
   colour = colour * (1.0 + 0.7 * uFlare) + mix(albedo, uWash, uGlow) * 0.3 * uFlare;
