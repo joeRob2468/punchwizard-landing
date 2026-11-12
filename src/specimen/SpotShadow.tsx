@@ -81,7 +81,7 @@ export function SpotShadow({ spot, sway }: SpotShadowProps) {
     });
 
     const p = spot.uSpotPosition.value;
-    const [tx, ty, tz] = LIGHTING.path.target;
+    const [tx, ty, tz] = LIGHTING.placement.target;
     camera.position.copy(p);
     camera.lookAt(tx, ty, tz);
     camera.updateMatrixWorld();

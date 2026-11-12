@@ -6,11 +6,16 @@ attribute vec3 aOrigin; // where the mote's cycle starts
 attribute vec3 aColour;
 attribute vec4 aSeed; // phase, rise speed, waver, size (all 0–1)
 
+#include <spot>
+
 uniform float uTime;
 uniform float uPixelRatio;
+uniform float uOutside; // brightness outside the spot's beam (with the spot on)
+uniform float uInside; // how much they light up in it
 
 varying vec3 vColour;
 varying float vFade;
+varying float vLit;
 
 const float CYCLE = 16.0; // seconds per rise
 const float RISE = 0.6; // specimen units risen per cycle
@@ -24,6 +29,9 @@ void main() {
   p.z += cos(w * 0.8) * 0.06 * aSeed.z;
 
   vColour = aColour;
+  // In the spot's beam (and not in a shadow) they catch the light.
+  vec3 light = pwSpotLight(p) * pwSpotShadowHard(p);
+  vLit = mix(1.0, uOutside + uInside * (light.r + light.g + light.b) / 3.0, uDrama);
   vFade = smoothstep(0.0, 0.2, phase) * (1.0 - smoothstep(0.65, 1.0, phase));
 
   vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);

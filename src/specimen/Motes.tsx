@@ -2,7 +2,7 @@
  * A few faint motes floating in a loose shell around the specimen: pale specks
  * that drift slowly, there to give depth (parallax) as the camera moves. Animated
  * on the GPU (see motes.vert.glsl); they hold still for visitors who prefer
- * reduced motion.
+ * reduced motion. In the spotlight's beam they catch the light.
  */
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
@@ -13,6 +13,7 @@ import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts'
 import { between, createRandom } from '../procedural/growth/random.ts';
 import type { Vec3 } from '../procedural/sdf/types.ts';
 import { MoteMaterial } from '../rendering/materials/mote-material.ts';
+import type { SpotUniforms } from '../rendering/materials/spot.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 
 const COUNT = 60;
@@ -35,7 +36,12 @@ function motes(): Mote[] {
   });
 }
 
-export function Motes() {
+interface MotesProps {
+  /** The spotlight: motes light up in its beam. */
+  readonly spot: SpotUniforms;
+}
+
+export function Motes({ spot }: MotesProps) {
   const points = useRef<Points>(null);
   const pixelRatio = useThree((state) => state.gl.getPixelRatio());
   const reducedMotion = usePrefersReducedMotion();
@@ -54,7 +60,7 @@ export function Motes() {
     g.setAttribute('aColour', new BufferAttribute(new Float32Array(list.length * 3), 3));
     return g;
   }, [list]);
-  const material = useMemo(() => new MoteMaterial(pixelRatio), [pixelRatio]);
+  const material = useMemo(() => new MoteMaterial(pixelRatio, spot), [pixelRatio, spot]);
   useEffect(
     () => () => {
       geometry.dispose();

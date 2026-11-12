@@ -39,3 +39,13 @@ float pwSpotShadow(vec3 p, vec3 normal) {
   }
   return lit / 9.0;
 }
+
+// A single, unfiltered shadow lookup (1 = lit), for the beam's many samples and
+// the motes.
+float pwSpotShadowHard(vec3 p) {
+  if (uShadowOn < 0.5) return 1.0;
+  vec4 clip = uShadowMatrix * vec4(p, 1.0);
+  vec3 s = clip.xyz / clip.w * 0.5 + 0.5;
+  if (s.x < 0.0 || s.y < 0.0 || s.x > 1.0 || s.y > 1.0 || s.z > 1.0) return 1.0;
+  return step(s.z - 0.001, texture2D(uShadowMap, s.xy).r);
+}

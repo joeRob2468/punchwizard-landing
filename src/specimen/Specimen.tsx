@@ -29,6 +29,7 @@ import { GazePivot } from './GazePivot.tsx';
 import { GroundGlow } from './GroundGlow.tsx';
 import { SpotRig } from './SpotRig.tsx';
 import { SpotShadow } from './SpotShadow.tsx';
+import { SpotBeam } from './SpotBeam.tsx';
 import { Motes } from './Motes.tsx';
 import { GazeRig } from './gaze.ts';
 import {
@@ -233,11 +234,12 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           );
         })}
       </group>
-      <Motes />
+      <Motes spot={spot} />
       <GroundGlow parts={parts} seam={seam} />
       <SectionCaps parts={parts} gaze={gaze} sway={sway} seam={seam} spot={spot} />
       <SpotRig spot={spot} />
       <SpotShadow spot={spot} sway={sway} />
+      <SpotBeam spot={spot} seam={seam} />
       <SliceController bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />
     </>

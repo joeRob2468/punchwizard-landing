@@ -1,27 +1,24 @@
 /**
- * Moves the spotlight (materials/spot.ts) each frame: it follows the camera's
- * turn about the head lazily, keeping up and to the viewer's left, so shadows
- * slide across the specimen as it's turned, and drifts slowly on its own (not with
- * reduced motion). Sets how strongly the current view uses it.
+ * Places the spotlight (materials/spot.ts) each frame. It turns with the camera
+ * round the vertical axis, like a studio light: up and to the viewer's right,
+ * aimed at the head, so orbiting feels like turning the specimen under it. Its
+ * height stays fixed in the world, so raising or lowering the camera moves the
+ * light across him. Also sets how strongly the current view uses it.
  */
 import { useFrame } from '@react-three/fiber';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 import { LIGHTING } from '../config/lighting.ts';
 import { LOOKS } from '../config/looks.ts';
-import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import { setDrama, type SpotUniforms } from '../rendering/materials/spot.ts';
 import { usePlateStore } from '../state/plate-store.ts';
-import { easeAngle, spotPosition } from './spot-path.ts';
 
 interface SpotRigProps {
   readonly spot: SpotUniforms;
 }
 
 export function SpotRig({ spot }: SpotRigProps) {
-  const reducedMotion = usePrefersReducedMotion();
   const look = usePlateStore((state) => state.look);
-  const azimuth = useRef<number | null>(null);
 
   useEffect(() => {
     setDrama(spot, LOOKS[look].drama);
@@ -31,17 +28,18 @@ export function SpotRig({ spot }: SpotRigProps) {
     spot.uSpotCone.value.set(Math.cos(outer), Math.cos(inner));
   }, [spot, look]);
 
-  useFrame(({ camera, clock }, delta) => {
-    const [tx, , tz] = LIGHTING.path.target;
-    const cameraAzimuth = Math.atan2(camera.position.x - tx, camera.position.z - tz);
-    const target = cameraAzimuth + LIGHTING.path.offset;
-    const ease = 1 - Math.exp(-delta / LIGHTING.followSeconds);
-    azimuth.current = azimuth.current === null ? target : easeAngle(azimuth.current, target, ease);
-    const t = reducedMotion ? 0 : clock.getElapsedTime();
-    const [x, y, z] = spotPosition(LIGHTING.path, azimuth.current, t);
-    const [ax, ay, az] = LIGHTING.path.target;
+  useFrame(({ camera }) => {
+    const { offset, elevation, distance, target } = LIGHTING.placement;
+    const [tx, ty, tz] = target;
+    // Turns with the camera round the vertical axis (no lag), but keeps its height
+    // in the world, so raising or lowering the camera moves the light across him.
+    const azimuth = Math.atan2(camera.position.x - tx, camera.position.z - tz) + offset;
+    const flat = Math.cos(elevation) * distance;
+    const x = tx + Math.sin(azimuth) * flat;
+    const y = ty + Math.sin(elevation) * distance;
+    const z = tz + Math.cos(azimuth) * flat;
     spot.uSpotPosition.value.set(x, y, z);
-    spot.uSpotDirection.value.set(ax - x, ay - y, az - z).normalize();
+    spot.uSpotDirection.value.set(tx - x, ty - y, tz - z).normalize();
   });
 
   return null;

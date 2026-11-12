@@ -1,23 +1,24 @@
 /**
  * The spotlight for the Tabula view (specimen/SpotRig, shaders/lib/spot.glsl):
- * where it sits, how it moves, its cone and colour. How strongly a view uses it is
+ * where it sits (turning with the camera, at a fixed height), its cone and colour. How strongly a view uses it is
  * `Look.drama`.
  */
-import type { SpotPath } from '../specimen/spot-path.ts';
-
 export const LIGHTING = {
-  path: {
-    // Up and to the viewer's right (the cut side), aimed at the head.
+  placement: {
+    /** Radians round the vertical axis from the camera; positive is to the viewer's right (the cut side). */
     offset: 1.1,
+    /** Radians above the horizontal, fixed in the world. */
     elevation: 0.85,
     distance: 5.2,
+    /** What it's aimed at: the head. */
     target: [0, 0.55, 0],
-    drift: { azimuth: 0.18, elevation: 0.08, speed: 0.12 },
-  } satisfies SpotPath,
-  /** Seconds for the spot to catch up with the camera's turn. */
-  followSeconds: 2.5,
+  },
   /** Degrees: full light inside `inner`, none outside `outer`. */
   cone: { inner: 12, outer: 27 },
   colour: '#ffeedd',
+  /** The beam in the air (specimen/SpotBeam): brightness, and how far each ray is marched. */
+  beam: { strength: 0.007, length: 4.5 },
+  /** Motes: brightness outside the beam, and how much they light up inside it. */
+  motes: { outside: 0.45, inside: 3.5 },
   intensity: 4.5,
 } as const;
