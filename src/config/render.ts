@@ -13,3 +13,9 @@ export const RENDER = {
   /** How quickly a part's flare follows its label being hovered (per second). */
   flareRate: 10,
 } as const;
+
+/**
+ * Pixel ratio range for AdaptiveResolution: the screen's own up to `max`, down to
+ * `min` on devices that can't keep the frame rate up.
+ */
+export const RESOLUTION = { min: 0.75, max: 2 } as const;

@@ -6,9 +6,11 @@ import { Suspense, useMemo } from 'react';
 
 import { ANATOMY } from '../anatomy/registry.ts';
 import { CAMERA, framingPosition } from '../config/camera.ts';
+import { RESOLUTION } from '../config/render.ts';
 import { LabelChannel } from '../labels/label-channel.ts';
 import { LabelOverlay } from '../labels/LabelOverlay.tsx';
 import { PlateEffects } from '../rendering/effects/PlateEffects.tsx';
+import { AdaptiveResolution } from '../scene/AdaptiveResolution.tsx';
 import { CameraRig } from '../scene/CameraRig.tsx';
 import { ClipPlaneProvider } from '../slicing/clip-plane.tsx';
 import { DevHandle } from '../scene/DevHandle.tsx';
@@ -33,7 +35,7 @@ export function App() {
       <Canvas
         className={styles.scene}
         flat
-        dpr={[1, 2]}
+        dpr={[1, RESOLUTION.max]}
         gl={{ antialias: false, stencil: true }}
         camera={{
           fov: CAMERA.fov,
@@ -56,6 +58,7 @@ export function App() {
           </Suspense>
         </ClipPlaneProvider>
         <PlateEffects />
+        <AdaptiveResolution />
         {import.meta.env.DEV && <DevHandle />}
       </Canvas>
       <div className={styles.overlay}>

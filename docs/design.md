@@ -283,6 +283,10 @@ Both views get these post effects (tunables in `src/config/fx.ts`):
 
 Stack order: outline, SMAA (smooths jaggies on silhouettes and ink lines), paper, bloom, lens. The composer doesn't multisample: SMAA alone looks the same, and a multisampled depth-stencil buffer cost about 30 ms a frame at 2500×1330 on Chrome/Windows (ANGLE resolves it slowly), against about 3 ms for the whole frame without it. The outline effect is flagged as a convolution so it always leads its own pass.
 
+### Resolution
+
+The canvas renders at the screen's pixel ratio, capped at 2. `scene/AdaptiveResolution` lowers it in quarter steps (down to 0.75) when drei's `PerformanceMonitor` reports the frame rate sagging, and raises it again with headroom; after three changes of direction it only steps down, so a device on the edge doesn't keep resizing the buffers. Limits are in `config/render.ts` (`RESOLUTION`).
+
 ## Typography
 
 _IM Fell English_ (regular and italic), self-hosted through `@fontsource/im-fell-english`.
