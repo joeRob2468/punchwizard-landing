@@ -59,7 +59,7 @@ export function lexiconPart(): PartDefinition {
   };
   return {
     id: 'lexicon',
-    layer: 'organs',
+    layer: 'arcane',
     look: { wash: 'arcaneLumen', glow: 1, section: { pattern: 'glow' } },
     field: leaves,
     bounds: box(LEXICON_CENTRE, 0.12),
@@ -180,7 +180,7 @@ export function beardRootsPart(): PartDefinition {
   });
   return {
     id: 'beard-roots',
-    layer: 'organs',
+    layer: 'arcane',
     look: { wash: 'arcaneEmber', glow: 1, section: { pattern: 'glow' } },
     field: segmentsField([...trunks, ...rootlets], 0.005, 0.05),
     bounds: { min: [-0.36, -0.58, -0.02], max: [0.36, -0.26, 0.5] },

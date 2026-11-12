@@ -15,13 +15,14 @@ import {
   halfSpace,
   intersect,
   mirrorX,
+  offset,
   roundCone,
   smoothUnion,
   union,
 } from '../sdf/index.ts';
 import type { Sdf, Vec3 } from '../sdf/types.ts';
 import { hatField } from './hat.ts';
-import { headSkinField } from './head.ts';
+import { earsField, headSkinField } from './head.ts';
 import type { PartDefinition } from './part.ts';
 import { mantleField, robeField } from './robe.ts';
 import { girdlePart } from './shoulders.ts';
@@ -47,12 +48,15 @@ function getColliders() {
 
 const flipX = ([x, y, z]: Vec3): Vec3 => [-x, y, z];
 
-/** A field kept outside the head's skin (only evaluated near its surface). */
+/**
+ * Trims a field to a little way under the head's skin (only evaluated near its
+ * surface), so the trimmed face hides under the skin instead of fighting it.
+ */
 function outsideHead(field: Sdf): Sdf {
   const { head } = getColliders();
   return (x, y, z) => {
     const d = field(x, y, z);
-    return d > 0.03 ? d : Math.max(d, -(head(x, y, z) - 0.004));
+    return d > 0.03 ? d : Math.max(d, -(head(x, y, z) + 0.02));
   };
 }
 
@@ -238,7 +242,8 @@ export function hairPart(): PartDefinition {
   // A cap of hair over the scalp under the brim, behind the temples.
   // A shell over the scalp, not a solid: the head's inside belongs to the head.
   const cap = intersect(
-    ellipsoid([0, 0.17, -0.07], [0.455, 0.52, 0.54]),
+    // Swelling over each ear, so the hair covers them.
+    smoothUnion(0.05, ellipsoid([0, 0.17, -0.07], [0.455, 0.52, 0.54]), offset(earsField(), 0.018)),
     (x, y, z) => -ellipsoid([0, 0.17, -0.07], [0.4, 0.465, 0.485])(x, y, z),
     belowBrim,
     halfSpace([0, 0, 0.12], [0, 0, 1]),

@@ -48,6 +48,17 @@ export const LAYER_PRESETS: readonly { readonly label: string; readonly modes: L
       arcane: 'shown',
     },
   },
+  {
+    // The arcane organs alone, inside a faint outline of the head and body.
+    label: 'Arcana',
+    modes: {
+      integument: 'ghost',
+      musculature: 'hidden',
+      skeleton: 'hidden',
+      organs: 'hidden',
+      arcane: 'shown',
+    },
+  },
 ];
 
 /** Opacity of a ghosted layer's wash. */

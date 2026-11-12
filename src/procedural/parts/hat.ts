@@ -57,12 +57,16 @@ export function hatField(): Sdf {
   );
 }
 
-/** A field kept outside the head's skin, which is only evaluated near its surface. */
+/**
+ * Trims a field to a little way under the head's skin (only evaluated near its
+ * surface). The trimmed face sits hidden under the skin rather than just over it:
+ * two near-coincident surfaces fight and show as a jagged seam.
+ */
 function outsideHead(field: Sdf): Sdf {
   const head = headSkinField();
   return (x, y, z) => {
     const d = field(x, y, z);
-    return d > 0.03 ? d : Math.max(d, -(head(x, y, z) - 0.004));
+    return d > 0.03 ? d : Math.max(d, -(head(x, y, z) + 0.02));
   };
 }
 

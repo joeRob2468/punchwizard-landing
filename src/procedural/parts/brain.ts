@@ -194,7 +194,7 @@ export function etherealGlandPart(): PartDefinition {
   };
   return {
     id: 'ethereal-gland',
-    layer: 'organs',
+    layer: 'arcane',
     look: { wash: 'arcaneGold', glow: 1, section: { pattern: 'glow' } },
     field: displace(cone, scales),
     bounds: box(c, 0.09),
@@ -285,7 +285,7 @@ export function focusGemsPart(): PartDefinition {
   });
   return {
     id: 'focus-gems',
-    layer: 'organs',
+    layer: 'arcane',
     look: { wash: 'arcaneSapphire', glow: 1, section: { pattern: 'glow' } },
     field: union(...gems),
     bounds: { min: [-0.42, 0.1, -0.35], max: [0.42, 0.68, 0.46] },

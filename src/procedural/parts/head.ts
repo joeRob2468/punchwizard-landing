@@ -131,7 +131,8 @@ function nose(): Sdf {
   );
 }
 
-function ears(): Sdf {
+/** Both ears (also used to grow the hair over them). */
+export function earsField(): Sdf {
   const [ax, ay, az] = L.earLeft;
   const plate = ellipsoid([ax, ay, az], [0.032, 0.15, 0.09]);
   const lobe = sphere([ax + 0.005, ay - 0.12, az + 0.01], 0.035);
@@ -194,7 +195,7 @@ export function headSkinField(): Sdf {
   // Sunken temples and hollow cheeks under the cheekbones.
   solid = smoothSubtract(0.08, solid, mirrorX(sphere([0.47, 0.2, 0.17], 0.09)));
   solid = smoothSubtract(0.06, solid, mirrorX(sphere([0.3, -0.13, 0.36], 0.065)));
-  solid = smoothUnion(0.04, solid, brow, cheekbones, ears());
+  solid = smoothUnion(0.04, solid, brow, cheekbones, earsField());
   // The nose blends in generously: the face curves away beneath the bridge, and a
   // tight blend left a tunnel under it.
   solid = smoothUnion(0.06, solid, nose());

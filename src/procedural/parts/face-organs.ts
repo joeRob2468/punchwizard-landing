@@ -31,7 +31,7 @@ export function sinusPart(): PartDefinition {
   const chest = roundBox([PIPE_X, y - 0.03, z], [0.018, 0.008, 0.06], 0.006);
   return {
     id: 'sinus',
-    layer: 'organs',
+    layer: 'arcane',
     look: { wash: 'arcaneEmerald', glow: 1, section: { pattern: 'glow' } },
     field: union(wall, chest, ...pipes),
     bounds: { min: [x - 0.1, y - 0.08, z - 0.1], max: [x + 0.1, y + 0.08, z + 0.1] },

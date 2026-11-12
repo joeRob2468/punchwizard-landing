@@ -92,16 +92,23 @@ function hemHeight(x: number, z: number): number {
 /** Half-width of the V opening at height y (zero above the throat). */
 const vHalfWidth = (y: number) => 0.07 + Math.max(0, V_TOP - y) * 0.32;
 
-/** The stand collar: a flaring wall around the neck, open at the front. */
-function collarWall(thickness: number): Sdf {
-  const [, , nz] = L.neckBase;
+/** Distance from the collar's centre surface, which flares outward as it rises. */
+function collarRadial(x: number, y: number, z: number): number {
+  const top = collarTop(z);
+  const t = Math.min(1, Math.max(0, (y - COLLAR_LOW) / (top - COLLAR_LOW)));
+  return Math.hypot(x, z - L.neckBase[2]) - (0.26 + 0.16 * t * t);
+}
+
+/**
+ * The stand collar: a flaring wall around the neck, open at the front. `overTop`
+ * raises its top edge (the trim wraps over the collar's).
+ */
+function collarWall(thickness: number, overTop = 0): Sdf {
   return (x, y, z) => {
     const top = collarTop(z);
-    const t = Math.min(1, Math.max(0, (y - COLLAR_LOW) / (top - COLLAR_LOW)));
-    const radius = 0.26 + 0.16 * t * t;
-    const radial = Math.hypot(x, z - nz) - radius;
+    const radial = collarRadial(x, y, z);
     const wall = Math.abs(radial) - thickness;
-    const span = Math.max(COLLAR_LOW - y, y - top);
+    const span = Math.max(COLLAR_LOW - y, y - top - overTop);
     const opening = -Math.max(Math.abs(x) - 0.17, 0.05 - z);
     return Math.max(wall, span, opening);
   };
@@ -119,8 +126,15 @@ function mantleShell(): Sdf {
 /** Points in the V opening at the front of the chest (negative inside it). */
 const vOpening: Sdf = (x, y, z) => Math.max(Math.abs(x) - vHalfWidth(y), y - V_TOP, 0.05 - z);
 
+/**
+ * Inside the stand collar, above its base: kept empty, or the cape's mass fills
+ * the ring and its top pokes through the trim on the collar's inner face.
+ */
+const insideCollar: Sdf = (x, y, z) =>
+  Math.max(collarRadial(x, y, z) + COLLAR_THICKNESS, COLLAR_LOW + 0.04 - y);
+
 export function mantleField(): Sdf {
-  return intersect(subtract(mantleShell(), vOpening), aboveBase);
+  return intersect(subtract(subtract(mantleShell(), vOpening), insideCollar), aboveBase);
 }
 
 export function mantlePart(): PartDefinition {
@@ -155,12 +169,13 @@ export function mantleTrimPart(): PartDefinition {
       hemHeight(x, z) - y,
     );
   const hemEdge: Sdf = (x, y, z) => Math.abs(y - hemHeight(x, z) - 0.035) - 0.035;
-  const collarEdge: Sdf = (_x, y, z) => Math.abs(y - collarTop(z) + 0.03) - 0.03;
+  // Wraps over the collar's top edge (ending level with it, the two tops fought).
+  const collarEdge: Sdf = (_x, y, z) => Math.abs(y - collarTop(z) + 0.024) - 0.036;
   const hemOutsideV = intersect(hemEdge, (x, y, z) => -vOpening(x, y, z));
   const trim = intersect(
     union(
       intersect(skinOf(capeField()), union(vEdge, hemOutsideV)),
-      intersect(collarWall(COLLAR_THICKNESS + 0.014), collarEdge),
+      intersect(collarWall(COLLAR_THICKNESS + 0.024, 0.012), collarEdge),
     ),
     aboveBase,
   );

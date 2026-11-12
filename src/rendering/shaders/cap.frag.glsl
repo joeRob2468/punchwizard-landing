@@ -38,11 +38,11 @@ void main() {
   if (uPattern == 0) {
     ink = stripe((uv.x + uv.y) * 34.0 + pwNoise2(uv * 9.0) * 0.3, 0.07) * 0.45;
   } else if (uPattern == 1) {
-    vec2 cell = floor(uv * 70.0);
-    vec2 local = fract(uv * 70.0) - 0.5;
+    vec2 cell = floor(uv * 54.0);
+    vec2 local = fract(uv * 54.0) - 0.5;
     vec2 jitter = vec2(pwHash12(cell), pwHash12(cell + 7.0)) - 0.5;
-    float radius = 0.1 + 0.14 * pwHash12(cell + 3.0);
-    float aa = fwidth(uv.x) * 70.0;
+    float radius = 0.13 + 0.15 * pwHash12(cell + 3.0);
+    float aa = fwidth(uv.x) * 54.0;
     ink = (1.0 - smoothstep(radius - aa, radius + aa, length(local - jitter * 0.5))) * 0.55;
   } else if (uPattern == 2) {
     vec2 r2 = (vWorldPosition - uCentre).xz;
@@ -50,8 +50,8 @@ void main() {
     ink = stripe(r * 32.0 + pwNoise2(uv * 5.0) * 0.4, 0.06) * 0.5;
   } else if (uPattern == 4) {
     // Meandering folds, like the cortex in section.
-    float w = uv.y * 40.0 + sin(uv.x * 40.0 + pwNoise2(uv * 6.0) * 4.0) * 2.2;
-    ink = stripe(w, 0.08) * 0.42;
+    float w = uv.y * 30.0 + sin(uv.x * 32.0 + pwNoise2(uv * 6.0) * 4.0) * 1.8;
+    ink = stripe(w, 0.11) * 0.5;
   } else if (uPattern == 5) {
     // Long wavy strokes falling downward: hair in section.
     vec3 world = vWorldPosition;
