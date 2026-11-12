@@ -39,6 +39,8 @@ export interface Look {
   readonly section: number;
   /** Washes for particular parts (by part id), overriding their palette key. */
   readonly partWash?: Readonly<Record<string, string>>;
+  /** Colour of the faint motes floating around the specimen. */
+  readonly moteColour: string;
   /** Surface brightness per layer (cut faces unaffected); 1 where unset. */
   readonly layerGain?: Partial<Readonly<Record<Layer, number>>>;
 }
@@ -52,6 +54,7 @@ const NOCTURNE: Look = {
   outlineLine: '#050506',
   outline: 0.75,
   section: 0.8,
+  moteColour: '#bfb59c',
 };
 
 /**
@@ -86,6 +89,7 @@ const MRI: Look = {
   outlineLine: '#141617',
   outline: 0.8,
   section: 0.45,
+  moteColour: '#8f9a9e',
   partWash: scanParts('#1a1c1e', '#8c9194', '#e8eef0'),
   layerGain: { integument: 0.25 },
 };

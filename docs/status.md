@@ -17,7 +17,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Layers:** bottom left: presets (Omnia, Ossa, Viscera, Arcana; `L`) and an on/off switch per layer; one see-through switch (Perspicua, `T`) shows the layers that are off as a faint outline instead of hiding them. All glowing organs are in the arcane layer, so Arcana shows them alone (in a faint outline of the rest with see-through on). Internal features label from outside once what covers them is see-through or hidden.
 - **Label pulse:** hovering or pinning a label makes its part flare and its leader line glow in the part's colour.
 - **Mana flow:** slow pulses of light leave the Aetheric Core at random moments and travel along the lattice, vessels and ganglia.
-- **Motes:** glowing dust drifts up around the bust, cyan overall and in each organ's colour near it.
+- **Motes:** a few faint specks float around the model, for depth as the camera moves.
 - **Idle life:** glows breathe on their own rhythms, the heart beats, the eyes' glow blinks now and then, the hat sways (cuts and labels follow); sway and blinks respect reduced motion.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 400k triangles, ~4 MB, a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).

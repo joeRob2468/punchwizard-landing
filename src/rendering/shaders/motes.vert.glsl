@@ -1,7 +1,6 @@
-// Glowing motes drifting up around the specimen, animated here from per-mote
-// attributes so they cost nothing per frame on the CPU: each starts in a loose
-// cloud around its organ, rises slowly with a waver, and fades in and out over its
-// own cycle.
+// Faint motes floating around the specimen, animated here from per-mote
+// attributes so they cost nothing per frame on the CPU: each drifts slowly up with
+// a waver and fades in and out over its own cycle.
 
 attribute vec3 aOrigin; // where the mote's cycle starts
 attribute vec3 aColour;
@@ -13,8 +12,8 @@ uniform float uPixelRatio;
 varying vec3 vColour;
 varying float vFade;
 
-const float CYCLE = 9.0; // seconds per rise
-const float RISE = 0.9; // specimen units risen per cycle
+const float CYCLE = 16.0; // seconds per rise
+const float RISE = 0.6; // specimen units risen per cycle
 
 void main() {
   float phase = fract(uTime / (CYCLE * mix(0.7, 1.4, aSeed.y)) + aSeed.x);
@@ -29,5 +28,5 @@ void main() {
 
   vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mvPosition;
-  gl_PointSize = mix(9.0, 20.0, aSeed.w) * uPixelRatio * (3.0 / -mvPosition.z);
+  gl_PointSize = mix(4.0, 9.0, aSeed.w) * uPixelRatio * (3.0 / -mvPosition.z);
 }

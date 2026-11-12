@@ -1,5 +1,5 @@
 /**
- * Glowing motes (see motes.*.glsl): additive points, past white so they bloom.
+ * Faint floating motes (see motes.*.glsl): additive points.
  */
 import { AddEquation, CustomBlending, OneFactor, ShaderMaterial, ZeroFactor } from 'three';
 
