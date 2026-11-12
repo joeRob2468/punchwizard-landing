@@ -16,6 +16,7 @@ import { DoubleSide, Ray, Vector3 } from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
 
 import { ANATOMY } from '../anatomy/registry.ts';
+import type { Layer } from '../procedural/format/specimen-format.ts';
 import { specimenParts } from '../procedural/specimen.ts';
 import type { Sdf, Vec3 } from '../procedural/sdf/types.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
@@ -34,6 +35,12 @@ import type { LabelChannel } from './label-channel.ts';
 /** Parts that can hide a surface anchor from view (everything seen from outside). */
 const OCCLUDER_LAYERS = new Set(['integument']);
 const EXTRA_OCCLUDERS = new Set(['eyes', 'girdle']);
+/** A part's raycasting structure, with its layer (only solid layers occlude). */
+interface Occluder {
+  readonly bvh: MeshBVH;
+  readonly layer: Layer;
+}
+
 /** Surface visibility is re-checked every this many frames. */
 const SURFACE_CHECK_INTERVAL = 6;
 
@@ -49,12 +56,19 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
 
   const fields = useMemo(() => new Map(specimenParts().map((p) => [p.id, p.field] as const)), []);
 
+  const layerOf = useMemo(
+    () => new Map(specimen.parts.map(({ entry }) => [entry.id, entry.layer] as const)),
+    [specimen],
+  );
+
   const outerFields = useMemo(
     () =>
       specimen.parts
         .filter(({ entry }) => OCCLUDER_LAYERS.has(entry.layer))
-        .map(({ entry }) => fields.get(entry.id))
-        .filter((f): f is Sdf => f !== undefined),
+        .flatMap(({ entry }) => {
+          const field = fields.get(entry.id);
+          return field ? [{ field, layer: entry.layer }] : [];
+        }),
     [specimen, fields],
   );
 
@@ -74,12 +88,12 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
   );
 
   // BVHs for raycasting the outer parts, built a part at a time after start-up.
-  const occluders = useRef<MeshBVH[]>([]);
+  const occluders = useRef<Occluder[]>([]);
   useEffect(() => {
     const queue = specimen.parts.filter(
       ({ entry }) => OCCLUDER_LAYERS.has(entry.layer) || EXTRA_OCCLUDERS.has(entry.id),
     );
-    const built: MeshBVH[] = [];
+    const built: Occluder[] = [];
     let timer = 0;
     const buildNext = () => {
       const next = queue.shift();
@@ -87,7 +101,7 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
         occluders.current = built;
         return;
       }
-      built.push(new MeshBVH(next.geometry));
+      built.push({ bvh: new MeshBVH(next.geometry), layer: next.entry.layer });
       timer = window.setTimeout(buildNext, 30);
     };
     timer = window.setTimeout(buildNext, 500);
@@ -101,7 +115,12 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
   const scratch = useMemo(() => ({ v: new Vector3(), ray: new Ray(), dir: new Vector3() }), []);
 
   useFrame(() => {
-    const { slice } = usePlateStore.getState();
+    const { slice, layers } = usePlateStore.getState();
+    // Only solid layers hide what's behind them.
+    const solidFields = outerFields.filter((o) => layers[o.layer] === 'shown').map((o) => o.field);
+    const solidOccluders = occluders.current
+      .filter((o) => layers[o.layer] === 'shown')
+      .map((o) => o.bvh);
     const cutIn = Number.isFinite(slice.offset) && slice.offset < slice.range[1] - 0.01;
     const planeLike: PlaneLike = {
       normal: [plane.normal.x, plane.normal.y, plane.normal.z],
@@ -113,6 +132,11 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
 
     ANATOMY.forEach((entry, i) => {
       let anchor: Vec3 | null = null;
+      const layer = layerOf.get(entry.part);
+      if (layer && layers[layer] === 'hidden') {
+        channel.setSample(i, false);
+        return;
+      }
 
       const field = fields.get(entry.part);
       if (facingCut && field && entry.section.length > 0) {
@@ -124,8 +148,8 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
             surfaceAnchors[i] ?? [],
             cam,
             cutIn ? planeLike : null,
-            outerFields,
-            occluders.current,
+            solidFields,
+            solidOccluders,
             scratch,
           );
         }

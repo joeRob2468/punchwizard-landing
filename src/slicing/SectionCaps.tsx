@@ -30,6 +30,7 @@ import { partIdFor, partIds } from '../specimen/part-id.ts';
 import type { GazeRig } from '../specimen/gaze.ts';
 import { GazePivot } from '../specimen/GazePivot.tsx';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
+import { usePlateStore } from '../state/plate-store.ts';
 import { useClipPlane } from './clip-plane.tsx';
 
 /** Render orders below this are the specimen itself; caps come after. */
@@ -45,6 +46,7 @@ interface SectionCapsProps {
 
 export function SectionCaps({ parts, gaze }: SectionCapsProps) {
   const { plane } = useClipPlane();
+  const layerModes = usePlateStore((state) => state.layers);
   const quad = useMemo(() => new PlaneGeometry(CAP_SIZE, CAP_SIZE), []);
   const capMeshes = useRef<(Mesh | null)[]>([]);
 
@@ -56,6 +58,7 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
         const wash = isPaletteKey(entry.look.wash) ? PALETTE[entry.look.wash] : PALETTE.ink;
         return {
           id: entry.id,
+          layer: entry.layer,
           geometry,
           pivot: entry.gazePivot,
           parity: stencilMaterial(plane),
@@ -100,9 +103,13 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
 
   return (
     <group name="section-caps">
-      {layers.map(({ id, geometry, parity, cap, pivot }, i) => {
+      {layers.map(({ id, layer, geometry, parity, cap, pivot }, i) => {
+        // Only solid layers have cut faces: a ghosted or hidden layer shows what's inside.
+        const solid = layerModes[layer] === 'shown';
         const order = CAP_RENDER_ORDER_BASE + i * 2;
-        const stencils = <mesh geometry={geometry} material={parity} renderOrder={order} />;
+        const stencils = (
+          <mesh geometry={geometry} material={parity} renderOrder={order} visible={solid} />
+        );
         return (
           <group key={id}>
             {pivot ? (
@@ -120,6 +127,7 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
               material={cap}
               renderOrder={order + 1}
               frustumCulled={false}
+              visible={solid}
             />
           </group>
         );

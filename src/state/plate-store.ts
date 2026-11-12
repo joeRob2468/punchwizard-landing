@@ -4,7 +4,9 @@
  */
 import { create } from 'zustand';
 
+import { LAYER_MODES, LAYER_PRESETS, type LayerModes } from '../config/layers.ts';
 import { SLICE, SLICE_AXES, type SliceAxis } from '../config/slice.ts';
+import type { Layer } from '../procedural/format/specimen-format.ts';
 
 interface SliceState {
   readonly axis: SliceAxis;
@@ -28,13 +30,46 @@ interface PlateState {
   readonly stepSlice: (direction: 1 | -1) => void;
   readonly cycleSliceAxis: () => void;
   readonly resetSlice: () => void;
+  /** How each layer is drawn: shown, ghost (see-through) or hidden. */
+  readonly layers: LayerModes;
+  /** Steps one layer to its next mode. */
+  readonly cycleLayer: (layer: Layer) => void;
+  readonly setLayers: (modes: LayerModes) => void;
+  /** Applies the next preset (keyboard). */
+  readonly cycleLayerPreset: () => void;
 }
 
 const clampTo = (value: number, [lo, hi]: readonly [number, number]) =>
   Math.min(hi, Math.max(lo, value));
 
+const firstPreset = LAYER_PRESETS[0]?.modes;
+if (!firstPreset) throw new Error('no layer presets');
+
 export const usePlateStore = create<PlateState>()((set, get) => ({
   viewResets: 0,
+
+  layers: firstPreset,
+
+  cycleLayer: (layer) => {
+    set(({ layers }) => {
+      const next = LAYER_MODES[(LAYER_MODES.indexOf(layers[layer]) + 1) % LAYER_MODES.length];
+      return next ? { layers: { ...layers, [layer]: next } } : {};
+    });
+  },
+
+  setLayers: (modes) => {
+    set({ layers: modes });
+  },
+
+  cycleLayerPreset: () => {
+    set(({ layers }) => {
+      const at = LAYER_PRESETS.findIndex((p) =>
+        Object.entries(p.modes).every(([k, v]) => layers[k as Layer] === v),
+      );
+      const next = LAYER_PRESETS[(at + 1) % LAYER_PRESETS.length];
+      return next ? { layers: next.modes } : {};
+    });
+  },
 
   resetView: () => {
     set(({ viewResets }) => ({ viewResets: viewResets + 1 }));

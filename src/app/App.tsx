@@ -16,6 +16,7 @@ import { loadSpecimen } from '../specimen/load-specimen.ts';
 import { Specimen } from '../specimen/Specimen.tsx';
 import { PlateBorder } from '../ui/PlateBorder.tsx';
 import { PlateHeader } from '../ui/PlateHeader.tsx';
+import { LayerControls } from '../ui/LayerControls.tsx';
 import { SliceControls } from '../ui/SliceControls.tsx';
 import styles from './App.module.css';
 
@@ -53,6 +54,7 @@ export function App() {
         <PlateHeader />
         <LabelOverlay channel={labels} />
         <SliceControls />
+        <LayerControls />
       </div>
     </main>
   );

@@ -6,7 +6,9 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { use, useEffect, useMemo } from 'react';
 
+import { GHOST_OPACITY } from '../config/layers.ts';
 import { PALETTE, type PaletteKey } from '../config/palette.ts';
+import { usePlateStore } from '../state/plate-store.ts';
 import type { LabelChannel } from '../labels/label-channel.ts';
 import { LabelTracker } from '../labels/LabelTracker.tsx';
 import { InkWashMaterial } from '../rendering/materials/ink-wash-material.ts';
@@ -40,7 +42,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           strands: entry.look.hatch === 'strands',
         });
         material.clippingPlanes = [plane];
-        return { id: entry.id, geometry, material, pivot: entry.gazePivot };
+        return { id: entry.id, layer: entry.layer, geometry, material, pivot: entry.gazePivot };
       }),
     [parts, plane, ids],
   );
@@ -53,6 +55,14 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
     },
     [meshes],
   );
+
+  // Layers the viewer has ghosted are drawn see-through; hidden ones not at all.
+  const layers = usePlateStore((state) => state.layers);
+  useEffect(() => {
+    meshes.forEach(({ layer, material }) => {
+      material.ghost = layers[layer] === 'ghost' ? GHOST_OPACITY : null;
+    });
+  }, [meshes, layers]);
 
   // Irises and pupils follow the pointer.
   const gaze = useMemo(() => new GazeRig(), []);
@@ -96,8 +106,16 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   return (
     <>
       <group name="specimen">
-        {meshes.map(({ id, geometry, material, pivot }) => {
-          const mesh = <mesh key={id} name={id} geometry={geometry} material={material} />;
+        {meshes.map(({ id, layer, geometry, material, pivot }) => {
+          const mesh = (
+            <mesh
+              key={id}
+              name={id}
+              geometry={geometry}
+              material={material}
+              visible={layers[layer] !== 'hidden'}
+            />
+          );
           return pivot ? (
             <GazePivot key={id} gaze={gaze} pivot={pivot}>
               {mesh}

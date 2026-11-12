@@ -1,0 +1,78 @@
+.controls {
+  position: absolute;
+  left: clamp(24px, 5vmin, 56px);
+  bottom: clamp(22px, 4.5vmin, 52px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  pointer-events: auto;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  align-items: baseline;
+}
+
+.preset,
+.layer {
+  display: inline-flex;
+  gap: 0.35em;
+  align-items: baseline;
+  padding: 0.15em 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: var(--ink);
+  font: italic 0.95rem var(--font-plate);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.preset {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+
+.preset[aria-pressed='true'] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.preset:hover,
+.layer:hover {
+  border-bottom-color: var(--ink-faint);
+}
+
+.preset:focus-visible,
+.layer:focus-visible {
+  outline: 1px dashed var(--ink);
+  outline-offset: 4px;
+}
+
+.layer[data-mode='ghost'] {
+  color: var(--ink-faint);
+}
+
+.layer[data-mode='hidden'] {
+  color: var(--ink-faint);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.mark {
+  font-style: normal;
+  font-size: 0.8em;
+}
+
+/* Narrow screens: keep the presets only. */
+@media (max-width: 720px) {
+  .row + .row {
+    display: none;
+  }
+}

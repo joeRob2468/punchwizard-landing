@@ -2,7 +2,18 @@
  * The plate's surface material: flat watercolour washes with ink hatching in deep
  * shadow. Supports the renderer's clipping planes so the specimen can be sectioned.
  */
-import { Color, ShaderMaterial, Vector3 } from 'three';
+import {
+  AddEquation,
+  Color,
+  ConstantAlphaFactor,
+  CustomBlending,
+  NormalBlending,
+  OneFactor,
+  OneMinusConstantAlphaFactor,
+  ShaderMaterial,
+  Vector3,
+  ZeroFactor,
+} from 'three';
 
 import noise from '../shaders/lib/noise.glsl?raw';
 import fragment from '../shaders/ink-wash.frag.glsl?raw';
@@ -62,6 +73,25 @@ export class InkWashMaterial extends ShaderMaterial {
 
   set time(seconds: number) {
     this.#time.value = seconds;
+  }
+
+  /**
+   * Draws the part see-through at `opacity` (null for solid). Colour blends at a
+   * constant opacity while the destination's alpha (the part id the outline effect
+   * reads) is kept, and depth isn't written, so what's behind stays visible and
+   * keeps its ink.
+   */
+  set ghost(opacity: number | null) {
+    const on = opacity !== null;
+    this.transparent = on;
+    this.depthWrite = !on;
+    this.blending = on ? CustomBlending : NormalBlending;
+    this.blendEquation = AddEquation;
+    this.blendSrc = ConstantAlphaFactor;
+    this.blendDst = OneMinusConstantAlphaFactor;
+    this.blendSrcAlpha = ZeroFactor;
+    this.blendDstAlpha = OneFactor;
+    this.blendAlpha = opacity ?? 1;
   }
 }
 
