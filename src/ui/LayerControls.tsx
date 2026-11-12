@@ -72,7 +72,7 @@ export function LayerControls() {
           title="Show the layers that are off as see-through (T)"
         >
           <span aria-hidden="true" className={styles.mark}>
-            ◐
+            {seeThrough ? '●' : '○'}
           </span>
           <span>Perspicua</span>
         </button>

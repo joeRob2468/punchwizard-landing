@@ -58,23 +58,16 @@
   outline-offset: 4px;
 }
 
-.layer[aria-pressed='false'] {
+.layer[aria-pressed='false'],
+.seeThrough[aria-pressed='false'] {
   color: var(--ink-faint);
   text-decoration: line-through;
   text-decoration-thickness: 1px;
 }
 
-/* Set apart from the layers: it changes how they're drawn, not which. */
+/* A little apart from the layers: it changes how they're drawn, not which. */
 .seeThrough {
-  margin-left: 0.6rem;
-  padding-left: 0.9rem;
-  border-left: 1px solid var(--ink-faint);
-  color: var(--ink-faint);
-}
-
-.seeThrough[aria-pressed='true'] {
-  color: var(--ink);
-  border-bottom-color: var(--ink);
+  margin-left: 0.8rem;
 }
 
 .mark {
