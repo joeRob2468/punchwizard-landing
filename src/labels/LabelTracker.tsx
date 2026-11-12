@@ -44,7 +44,7 @@ interface Occluder {
   readonly layer: Layer;
 }
 
-/** Surface visibility is re-checked every this many frames. */
+/** Each label's surface visibility is re-checked every this many frames. */
 const SURFACE_CHECK_INTERVAL = 6;
 
 interface LabelTrackerProps {
@@ -132,7 +132,7 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
     };
     const cam: Vec3 = [camera.position.x, camera.position.y, camera.position.z];
     const facingCut = cutIn && signedDistance(planeLike, cam) < 0;
-    const checkSurface = frame.current++ % SURFACE_CHECK_INTERVAL === 0;
+    const tick = frame.current++;
 
     ANATOMY.forEach((entry, i) => {
       let anchor: Vec3 | null = null;
@@ -147,7 +147,9 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
         anchor = sectionAnchor(entry.section, field, planeLike);
       }
       if (!anchor) {
-        if (checkSurface) {
+        // Each label is re-checked every few frames, staggered so the raycasts and
+        // field tests spread evenly instead of landing on one frame.
+        if ((tick + i) % SURFACE_CHECK_INTERVAL === 0) {
           surfaceVisible.current[i] = firstVisibleSurface(
             surfaceAnchors[i] ?? [],
             cam,

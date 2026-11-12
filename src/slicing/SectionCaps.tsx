@@ -31,12 +31,20 @@ import { CapMaterial } from '../rendering/materials/cap-material.ts';
 import { partIdFor, partIds } from '../specimen/part-id.ts';
 import type { GazeRig } from '../specimen/gaze.ts';
 import { GazePivot } from '../specimen/GazePivot.tsx';
-import { FLOW_ORIGIN, flowFronts, glowLevel, glowPulse, MANA_CARRIERS } from '../specimen/idle.ts';
+import {
+  FLOW_ORIGIN,
+  flowFronts,
+  glowLevel,
+  glowPulse,
+  MANA_CARRIERS,
+  SWAY,
+} from '../specimen/idle.ts';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import { addSway, type SwayUniforms } from '../rendering/materials/sway.ts';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import { useClipPlane } from './clip-plane.tsx';
+import { partSphere, sphereSide } from './plane-math.ts';
 
 /** Render orders below this are the specimen itself; caps come after. */
 const CAP_RENDER_ORDER_BASE = 10;
@@ -54,9 +62,9 @@ interface SectionCapsProps {
 export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
   const reducedMotion = usePrefersReducedMotion();
   const { plane } = useClipPlane();
-  const layerModes = usePlateStore((state) => state.layers);
   const quad = useMemo(() => new PlaneGeometry(CAP_SIZE, CAP_SIZE), []);
   const capMeshes = useRef<(Mesh | null)[]>([]);
+  const stencilMeshes = useRef<(Mesh | null)[]>([]);
 
   const ids = useMemo(() => partIds(parts.map((p) => p.entry)), [parts]);
   const layers = useMemo(
@@ -69,6 +77,7 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
           wash: entry.look.wash,
           geometry,
           pivot: entry.gazePivot,
+          sphere: partSphere(entry.bounds, SWAY.amplitude + 0.005, entry.gazePivot),
           parity: addSway(stencilMaterial(plane), sway),
           cap: new CapMaterial({
             wash: washFor(LOOKS[DEFAULT_LOOK], entry.id, entry.look.wash),
@@ -113,12 +122,23 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
     plane.coplanarPoint(point);
     rotation.setFromUnitVectors(FORWARD, plane.normal);
     const t = clock.getElapsedTime();
-    capMeshes.current.forEach((mesh) => {
-      if (!mesh) return;
-      mesh.position.copy(point);
-      mesh.quaternion.copy(rotation);
+    const { highlight, layers: modes } = usePlateStore.getState();
+    const normal = [plane.normal.x, plane.normal.y, plane.normal.z] as const;
+    // A part has a cut face only where the plane crosses it, and only if its layer
+    // is solid (a ghosted or hidden layer shows what's inside); skip the rest.
+    layers.forEach(({ layer, sphere }, i) => {
+      const cut =
+        modes[layer] === 'shown' &&
+        sphereSide(normal, plane.constant, sphere.centre, sphere.radius) === 'crossing';
+      const stencil = stencilMeshes.current[i];
+      const capMesh = capMeshes.current[i];
+      if (stencil) stencil.visible = cut;
+      if (capMesh) {
+        capMesh.visible = cut;
+        capMesh.position.copy(point);
+        capMesh.quaternion.copy(rotation);
+      }
     });
-    const { highlight } = usePlateStore.getState();
     const [f1, f2] = reducedMotion ? [-1, -1] : flowFronts(t);
     const ease = 1 - Math.exp(-delta * RENDER.flareRate);
     layers.forEach(({ id, cap }, i) => {
@@ -136,12 +156,19 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
 
   return (
     <group name="section-caps">
-      {layers.map(({ id, layer, geometry, parity, cap, pivot }, i) => {
-        // Only solid layers have cut faces: a ghosted or hidden layer shows what's inside.
-        const solid = layerModes[layer] === 'shown';
+      {layers.map(({ id, geometry, parity, cap, pivot }, i) => {
         const order = CAP_RENDER_ORDER_BASE + i * 2;
+        // Visibility is set each frame (above).
         const stencils = (
-          <mesh geometry={geometry} material={parity} renderOrder={order} visible={solid} />
+          <mesh
+            ref={(mesh) => {
+              stencilMeshes.current[i] = mesh;
+            }}
+            geometry={geometry}
+            material={parity}
+            renderOrder={order}
+            visible={false}
+          />
         );
         return (
           <group key={id}>
@@ -160,7 +187,7 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
               material={cap}
               renderOrder={order + 1}
               frustumCulled={false}
-              visible={solid}
+              visible={false}
             />
           </group>
         );

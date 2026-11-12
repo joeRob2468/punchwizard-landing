@@ -4,7 +4,8 @@
  * plus the section caps, plane controller and drag handle.
  */
 import { useFrame, useThree } from '@react-three/fiber';
-import { use, useEffect, useMemo } from 'react';
+import { use, useEffect, useMemo, useRef } from 'react';
+import type { Mesh } from 'three';
 
 import { GHOST_OPACITY } from '../config/layers.ts';
 import { FX } from '../config/fx.ts';
@@ -20,6 +21,7 @@ import { swayUniforms } from '../rendering/materials/sway.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
 import { SectionCaps } from '../slicing/SectionCaps.tsx';
 import { SliceController } from '../slicing/SliceController.tsx';
+import { partSphere, sphereSide } from '../slicing/plane-math.ts';
 import { GazePivot } from './GazePivot.tsx';
 import { Motes } from './Motes.tsx';
 import { GazeRig } from './gaze.ts';
@@ -74,6 +76,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           geometry,
           material,
           pivot: entry.gazePivot,
+          sphere: partSphere(entry.bounds, SWAY.amplitude + 0.005, entry.gazePivot),
         };
       }),
     [parts, plane, ids, sway],
@@ -88,7 +91,10 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
     [meshes],
   );
 
-  // Layers the viewer has ghosted are drawn see-through; hidden ones not at all.
+  const meshRefs = useRef<(Mesh | null)[]>([]);
+
+  // Layers the viewer has ghosted are drawn see-through; hidden ones not at all
+  // (visibility is set each frame, below).
   const layers = usePlateStore((state) => state.layers);
   useEffect(() => {
     meshes.forEach(({ layer, material }) => {
@@ -147,8 +153,17 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   useFrame(({ clock, camera }, delta) => {
     gaze.update(camera, delta);
     const t = clock.getElapsedTime();
-    const { highlight } = usePlateStore.getState();
+    const { highlight, layers: modes } = usePlateStore.getState();
     const ease = 1 - Math.exp(-delta * RENDER.flareRate);
+    // Hidden layers, and parts wholly on the cut-away side, aren't drawn at all.
+    const normal = [plane.normal.x, plane.normal.y, plane.normal.z] as const;
+    meshes.forEach(({ layer, sphere }, i) => {
+      const mesh = meshRefs.current[i];
+      if (!mesh) return;
+      mesh.visible =
+        modes[layer] !== 'hidden' &&
+        sphereSide(normal, plane.constant, sphere.centre, sphere.radius) !== 'removed';
+    });
     const [sx, sz] = reducedMotion ? [0, 0] : swayAtTip(t);
     const [f1, f2] = reducedMotion ? [-1, -1] : flowFronts(t);
     sway.uSway.value.set(sx, sz);
@@ -167,14 +182,16 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   return (
     <>
       <group name="specimen">
-        {meshes.map(({ id, layer, glowing, geometry, material, pivot }) => {
+        {meshes.map(({ id, glowing, geometry, material, pivot }, i) => {
           const mesh = (
             <mesh
               key={id}
+              ref={(m) => {
+                meshRefs.current[i] = m;
+              }}
               name={id}
               geometry={geometry}
               material={material}
-              visible={layers[layer] !== 'hidden'}
               // Glowing parts draw after see-through ones (see InkWashMaterial.ghost).
               renderOrder={glowing ? GLOW_RENDER_ORDER : 0}
             />

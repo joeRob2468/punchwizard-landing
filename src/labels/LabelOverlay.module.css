@@ -79,7 +79,6 @@
   /* Placed by transform (LabelOverlay), which moves it without a layout. */
   top: 0;
   left: 0;
-  will-change: transform;
   transition: opacity 0.35s;
 }
 
