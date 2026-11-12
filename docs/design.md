@@ -211,7 +211,7 @@ Axes are in `src/config/slice.ts`. Each normal points away from the default came
 | Coronal    | −z     | The front                          | 0.18                                                           |
 | Transverse | −y     | The top                            | 0.1 (eye level)                                                |
 
-`slicing/SliceController` recomputes the travel range from the specimen's bounds when the axis changes (`plane-math.offsetRange`), eases `offset` toward `targetOffset` each frame, writes the plane, binds `S`, `[` and `]`, and runs the intro: the plane starts parked just outside the specimen and slides to the resting cut after 1.4 s (set immediately under reduced motion). Changing axis parks the plane and eases it in again.
+`slicing/SliceController` recomputes the travel range from the specimen's bounds when the axis changes (`plane-math.offsetRange`), eases `offset` toward `targetOffset` each frame, writes the plane, binds `S`, `[` and `]`, and runs the intro: the plane starts parked just outside the specimen; once the specimen has appeared (`specimenReady`) it waits 4 s (the ink-in, then a beat to take him in) and slides slowly to the resting cut over 3.5 s, eased in and out (`SLICE.introDelay`, `introDuration`). If the visitor moves the cut or changes axis first, the intro stands aside; under reduced motion the cut is set at once. Changing axis parks the plane and eases it in again.
 
 ### Section caps
 

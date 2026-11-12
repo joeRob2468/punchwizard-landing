@@ -24,7 +24,10 @@ export const SLICE: {
   readonly wheelStep: number;
   /** Plane travel per 100 px of two-finger drag. */
   readonly touchStep: number;
+  /** Seconds after the specimen first appears before the intro slides the cut in. */
   readonly introDelay: number;
+  /** Seconds the intro's slide takes (eased in and out). */
+  readonly introDuration: number;
   /** Seconds for the plane to ease most of the way to its target. */
   readonly easeTime: number;
   /** Extra margin past the specimen's bounds when the plane is parked outside it. */
@@ -39,7 +42,8 @@ export const SLICE: {
   keyboardStep: 0.05,
   wheelStep: 0.06,
   touchStep: 0.12,
-  introDelay: 1.4,
+  introDelay: 4,
+  introDuration: 3.5,
   easeTime: 0.45,
   parkMargin: 0.05,
 };

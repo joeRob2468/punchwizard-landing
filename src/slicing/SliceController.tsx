@@ -6,7 +6,7 @@
  * two-finger touch drags.
  */
 import { useFrame, useThree } from '@react-three/fiber';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { SLICE } from '../config/slice.ts';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
@@ -31,23 +31,31 @@ export function SliceController({ bounds }: SliceControllerProps) {
     clip.setNormal(normal);
   }, [axis, bounds, clip]);
 
-  // Intro: once, slide in from parked to the resting cut.
+  // Intro: once the specimen has appeared (and inked in), wait, then slide slowly
+  // from parked to the resting cut. Anything the visitor does first wins.
+  const intro = useRef<{ from: number; to: number; start: number } | null>(null);
+  const ready = usePlateStore((state) => state.specimenReady);
+  const introDone = useRef(false);
   useEffect(() => {
+    if (!ready || introDone.current) return;
+    introDone.current = true;
     const { restingOffset } = SLICE.axes[SLICE.initialAxis];
-    const store = usePlateStore.getState();
     if (reducedMotion) {
-      store.setSliceOffset(restingOffset);
+      usePlateStore.getState().setSliceOffset(restingOffset);
       return;
     }
+    const parkedTarget = usePlateStore.getState().slice.targetOffset;
     const timer = window.setTimeout(() => {
-      usePlateStore.getState().setSliceTarget(restingOffset);
+      const { slice, setSliceTarget } = usePlateStore.getState();
+      // The visitor has already moved the cut, or changed axis: leave it be.
+      if (slice.targetOffset !== parkedTarget || slice.axis !== SLICE.initialAxis) return;
+      intro.current = { from: slice.offset, to: restingOffset, start: performance.now() };
+      setSliceTarget(restingOffset);
     }, SLICE.introDelay * 1000);
     return () => {
       window.clearTimeout(timer);
     };
-    // Runs on mount only; reduced-motion changes later don't replay the intro.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ready, reducedMotion]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -121,7 +129,15 @@ export function SliceController({ bounds }: SliceControllerProps) {
     const { slice } = usePlateStore.getState();
     let { offset } = slice;
     if (!Number.isFinite(offset) || !Number.isFinite(slice.targetOffset)) return;
-    if (offset !== slice.targetOffset) {
+    const slide = intro.current;
+    if (slide?.to === slice.targetOffset) {
+      // The intro's slow slide, eased in and out.
+      const t = Math.min(1, (performance.now() - slide.start) / (SLICE.introDuration * 1000));
+      offset = slide.from + (slide.to - slide.from) * easeInOut(t);
+      if (t >= 1) intro.current = null;
+      usePlateStore.setState({ slice: { ...slice, offset } });
+    } else if (offset !== slice.targetOffset) {
+      intro.current = null;
       const k = reducedMotion ? 1 : 1 - Math.exp((-3 * delta) / SLICE.easeTime);
       offset += (slice.targetOffset - offset) * k;
       if (Math.abs(slice.targetOffset - offset) < 1e-4) offset = slice.targetOffset;
@@ -131,6 +147,11 @@ export function SliceController({ bounds }: SliceControllerProps) {
   });
 
   return null;
+}
+
+/** Cubic ease in and out, 0–1. */
+function easeInOut(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
 /** Wheel distance in pixels, whatever unit the browser reports it in. */
