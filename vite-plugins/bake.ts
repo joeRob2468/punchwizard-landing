@@ -8,15 +8,16 @@
  *   rewrite make one bake), a change during a bake restarts it rather than queueing
  *   a second, and saves that leave the sources as they were don't bake at all
  *   (nor does starting the server when they match the last successful bake).
- * - Build: emits generated/specimen/ into dist/specimen/. `npm run build` bakes
- *   first; building without a bake fails.
+ * - Build: emits generated/specimen/ into dist/specimen/ and preloads every file
+ *   of it from index.html, so the specimen downloads alongside the script instead
+ *   of after it. `npm run build` bakes first; building without a bake fails.
  */
 import { type ChildProcess, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
-import type { Plugin, ViteDevServer } from 'vite';
+import type { HtmlTagDescriptor, Plugin, ViteDevServer } from 'vite';
 
 const WATCHED = /[\\/]src[\\/]procedural[\\/]/;
 const SOURCES_DIR = 'src/procedural';
@@ -33,6 +34,7 @@ const CONTENT_TYPES: Record<string, string> = {
 
 export function bakeSpecimen(): Plugin {
   let root = process.cwd();
+  let base = '/';
   let child: ChildProcess | null = null;
   let settle: ReturnType<typeof setTimeout> | undefined;
   /** Fingerprint of the sources the last successful bake (or the running one) used. */
@@ -95,6 +97,26 @@ export function bakeSpecimen(): Plugin {
 
     configResolved(config) {
       root = config.root;
+      base = config.base;
+    },
+
+    // Builds only: in dev the bake may be mid-flight, and the files aren't cached.
+    async transformIndexHtml(_html, context): Promise<HtmlTagDescriptor[]> {
+      if (context.server) return [];
+      const manifest = JSON.parse(
+        await readFile(resolve(root, OUTPUT_DIR, 'manifest.json'), 'utf8'),
+      ) as { parts: { file: string }[] };
+      // `as="fetch"` with `crossorigin` matches the loader's same-origin fetch().
+      return ['manifest.json', ...manifest.parts.map((part) => part.file)].map((file) => ({
+        tag: 'link',
+        attrs: {
+          rel: 'preload',
+          href: `${base}specimen/${file}`,
+          as: 'fetch',
+          crossorigin: 'anonymous',
+        },
+        injectTo: 'head',
+      }));
     },
 
     configureServer(server) {

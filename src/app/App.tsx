@@ -46,6 +46,8 @@ export function App() {
         onCreated={({ gl }) => {
           // Materials clip against the sectioning plane individually.
           gl.localClippingEnabled = true;
+          // Checking shader logs waits for each compile to finish; skip it in builds.
+          gl.debug.checkShaderErrors = import.meta.env.DEV;
         }}
       >
         {/* Black ground: the paper effect screens the scene onto dark paper. */}

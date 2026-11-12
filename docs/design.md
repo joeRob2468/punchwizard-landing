@@ -124,13 +124,13 @@ Meshes are closed as long as the surface stays inside the part's bounds; the mes
 
 Output is `generated/specimen/` (git-ignored): `manifest.json` (format version 4: parts, layers, looks, counts, bounds, gaze pivots, landmarks) and one `<part>.bin` each (`format/specimen-format.ts`). `scripts/encode-part.ts` reorders each mesh for the vertex cache, interleaves its vertices (12 bytes: positions quantised to Int16 within the part's bounds, normalised Int8 normals, Uint8 occlusion) and compresses vertices and indices with meshoptimizer's codec, which with gzip roughly halves the download. Output goes to a temporary folder that replaces the old one at the end.
 
-`vite-plugins/bake.ts` runs the bake in a child process when the dev server starts and whenever a file in `src/procedural/` changes, serves `generated/specimen/` at `/specimen/`, invalidates the changed modules (the page imports some of them) and reloads the page when the bake finishes. In builds it emits the files into `dist/specimen/`; `npm run build` bakes first.
+`vite-plugins/bake.ts` runs the bake in a child process when the dev server starts and whenever a file in `src/procedural/` changes, serves `generated/specimen/` at `/specimen/`, invalidates the changed modules (the page imports some of them) and reloads the page when the bake finishes. In builds it emits the files into `dist/specimen/` and adds a `<link rel="preload">` for each to `index.html`, so the specimen downloads alongside the script rather than after it; `npm run build` bakes first.
 
 Current output: about 400k triangles in 51 parts, 2.2 MB (2.0 MB gzipped), baked in about 90 s (head, hair and beard dominate).
 
 ### Loading
 
-`specimen/load-specimen.ts` fetches the manifest and buffers (started at module load, so it overlaps start-up), decompresses them with meshoptimizer's decoder (a few KB of WebAssembly) and builds a `BufferGeometry` per part with a bounding sphere from the part's bounds. `specimen/Specimen.tsx` creates an `InkWashMaterial` per part from its look and advances material time each frame.
+`specimen/load-specimen.ts` fetches the manifest and buffers (started at module load, so it overlaps start-up), decompresses them with meshoptimizer's decoder (a few KB of WebAssembly) and builds a `BufferGeometry` per part with a bounding sphere from the part's bounds. Production builds turn off three.js's shader error checks (`gl.debug.checkShaderErrors`), which made start-up wait on each compile. `specimen/Specimen.tsx` creates an `InkWashMaterial` per part from its look and advances material time each frame.
 
 ## Render pipeline
 
