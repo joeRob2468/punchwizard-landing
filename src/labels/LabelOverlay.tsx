@@ -4,9 +4,10 @@
  * click. Positions arrive every frame through the LabelChannel and are written
  * straight to the DOM; React renders the elements once.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ANATOMY } from '../anatomy/registry.ts';
+import { usePlateStore } from '../state/plate-store.ts';
 import type { LabelChannel } from './label-channel.ts';
 import { layoutLabels, type LayoutInput } from './layout.ts';
 import styles from './LabelOverlay.module.css';
@@ -128,9 +129,32 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
     };
   }, [pinned]);
 
+  // The hovered (or focused) label, else the pinned one, makes its part flare and
+  // its leader glow in the part's colour.
+  const hovered = useRef<number | null>(null);
+  const highlight = useCallback((pinnedId: string | null) => {
+    const pinnedIndex = ANATOMY.findIndex((entry) => entry.id === pinnedId);
+    const index = hovered.current ?? (pinnedIndex >= 0 ? pinnedIndex : null);
+    const { setHighlight, partColours } = usePlateStore.getState();
+    setHighlight(index === null ? null : (ANATOMY[index]?.part ?? null));
+    ANATOMY.forEach((entry, i) => {
+      const active = i === index;
+      const colour = active ? partColours[entry.part] : undefined;
+      for (const el of [leaders.current[i], dots.current[i]]) {
+        el?.toggleAttribute('data-active', active);
+        if (colour) el?.style.setProperty('--glow', colour);
+        else el?.style.removeProperty('--glow');
+      }
+    });
+  }, []);
+  useEffect(() => {
+    highlight(pinned);
+  }, [highlight, pinned]);
+
   const setActive = (index: number, active: boolean) => {
-    leaders.current[index]?.toggleAttribute('data-active', active);
-    dots.current[index]?.toggleAttribute('data-active', active);
+    if (active) hovered.current = index;
+    else if (hovered.current === index) hovered.current = null;
+    highlight(pinned);
   };
 
   return (

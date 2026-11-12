@@ -54,6 +54,7 @@ export class InkWashMaterial extends ShaderMaterial {
   readonly #gain: { value: number };
   readonly #emission: { value: number };
   readonly #glowing: boolean;
+  readonly #flare: { value: number };
 
   constructor({
     wash,
@@ -66,6 +67,7 @@ export class InkWashMaterial extends ShaderMaterial {
     const washColour = new Color(wash);
     const gain = { value: 1 };
     const emission = { value: 0 };
+    const flare = { value: 0 };
     super({
       vertexShader: vertex,
       fragmentShader: insertAfterCommon(fragment, noise),
@@ -88,6 +90,7 @@ export class InkWashMaterial extends ShaderMaterial {
         uGrain: { value: surface.grain },
         uStretch: { value: new Vector3(...surface.stretch) },
         uMottle: { value: surface.mottle },
+        uFlare: flare,
       },
     });
     this.name = 'InkWashMaterial';
@@ -96,6 +99,7 @@ export class InkWashMaterial extends ShaderMaterial {
     this.#gain = gain;
     this.#emission = emission;
     this.#glowing = glow > 0;
+    this.#flare = flare;
     this.ghost = null;
   }
 
@@ -103,6 +107,11 @@ export class InkWashMaterial extends ShaderMaterial {
     this.#wash.set(wash);
     this.#gain.value = gain;
     this.#emission.value = emission;
+  }
+
+  /** 0–1: how strongly the part flares (its label is hovered or pinned). */
+  set flare(amount: number) {
+    this.#flare.value = amount;
   }
 
   set time(seconds: number) {

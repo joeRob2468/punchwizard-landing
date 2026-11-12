@@ -9,6 +9,7 @@ import { use, useEffect, useMemo } from 'react';
 import { GHOST_OPACITY } from '../config/layers.ts';
 import { FX } from '../config/fx.ts';
 import { DEFAULT_LOOK, LOOKS, washFor } from '../config/looks.ts';
+import { RENDER } from '../config/render.ts';
 import { surfaceFor } from '../config/surfaces.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import type { LabelChannel } from '../labels/label-channel.ts';
@@ -79,14 +80,20 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
 
   const look = LOOKS[usePlateStore((state) => state.look)];
   useEffect(() => {
+    const colours: Record<string, string> = {};
     meshes.forEach(({ id, layer, wash, material }) => {
+      colours[id] = washFor(look, id, wash);
       material.paint({
-        wash: washFor(look, id, wash),
+        wash: colours[id],
         gain: look.layerGain?.[layer] ?? 1,
         emission: FX.bloom.emission,
       });
     });
+    usePlateStore.getState().setPartColours(colours);
   }, [meshes, look]);
+
+  // The part whose label is hovered or pinned flares, easing in and out.
+  const flares = useMemo(() => meshes.map(() => 0), [meshes]);
 
   // Irises and pupils follow the pointer.
   const gaze = useMemo(() => new GazeRig(), []);
@@ -122,8 +129,14 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   useFrame(({ clock, camera }, delta) => {
     gaze.update(camera, delta);
     const t = clock.getElapsedTime();
-    meshes.forEach(({ material }) => {
+    const { highlight } = usePlateStore.getState();
+    const ease = 1 - Math.exp(-delta * RENDER.flareRate);
+    meshes.forEach(({ id, material }, i) => {
       material.time = t;
+      const current = flares[i] ?? 0;
+      const next = current + ((id === highlight ? 1 : 0) - current) * ease;
+      flares[i] = next;
+      material.flare = next;
     });
   });
 

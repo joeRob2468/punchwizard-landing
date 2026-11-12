@@ -29,6 +29,7 @@ uniform float uBump;
 uniform float uGrain;
 uniform vec3 uStretch;
 uniform float uMottle;
+uniform float uFlare; // 0–1: the part's label is hovered or pinned
 
 varying vec3 vViewNormal;
 varying vec3 vViewPosition;
@@ -108,6 +109,9 @@ void main() {
   vec3 emitted = uWash * (1.0 + uEmission * (0.6 + 0.4 * pulse));
   glow = mix(glow, emitted, 0.8 * min(uEmission, 1.0));
   colour = mix(colour, glow, uGlow);
+
+  // Flare: brighter and lit from within in the part's own colour.
+  colour = colour * (1.0 + 0.7 * uFlare) + mix(albedo, uWash, uGlow) * 0.3 * uFlare;
 
   gl_FragColor = vec4(colour, uPartId / 255.0);
   #include <colorspace_fragment>

@@ -26,6 +26,7 @@ import {
 
 import { FX } from '../config/fx.ts';
 import { DEFAULT_LOOK, LOOKS, washFor } from '../config/looks.ts';
+import { RENDER } from '../config/render.ts';
 import { CapMaterial } from '../rendering/materials/cap-material.ts';
 import { partIdFor, partIds } from '../specimen/part-id.ts';
 import type { GazeRig } from '../specimen/gaze.ts';
@@ -99,7 +100,8 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
 
   const point = useMemo(() => new Vector3(), []);
   const rotation = useMemo(() => new Quaternion(), []);
-  useFrame(({ clock }) => {
+  const flares = useMemo(() => layers.map(() => 0), [layers]);
+  useFrame(({ clock }, delta) => {
     plane.coplanarPoint(point);
     rotation.setFromUnitVectors(FORWARD, plane.normal);
     const t = clock.getElapsedTime();
@@ -108,9 +110,15 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
       mesh.position.copy(point);
       mesh.quaternion.copy(rotation);
     });
-    layers.forEach(({ cap }) => {
+    const { highlight } = usePlateStore.getState();
+    const ease = 1 - Math.exp(-delta * RENDER.flareRate);
+    layers.forEach(({ id, cap }, i) => {
       cap.time = t;
       cap.planeNormal = plane.normal;
+      const current = flares[i] ?? 0;
+      const next = current + ((id === highlight ? 1 : 0) - current) * ease;
+      flares[i] = next;
+      cap.flare = next;
     });
   });
 

@@ -50,6 +50,12 @@ interface PlateState {
   readonly applyPreset: (preset: LayerPreset) => void;
   /** Applies the next preset (keyboard). */
   readonly cycleLayerPreset: () => void;
+  /** Part whose label is hovered or pinned; it flares (null for none). */
+  readonly highlight: string | null;
+  readonly setHighlight: (part: string | null) => void;
+  /** Each part's current wash, by part id, so DOM can match it (leader lines). */
+  readonly partColours: Readonly<Record<string, string>>;
+  readonly setPartColours: (colours: Readonly<Record<string, string>>) => void;
   /** The view: the default illustration or the MRI scan. */
   readonly look: LookId;
   readonly setLook: (look: LookId) => void;
@@ -72,6 +78,18 @@ export const usePlateStore = create<PlateState>()((set, get) => ({
   viewResets: 0,
 
   ...layerState(firstPreset.on, SEE_THROUGH_DEFAULT),
+
+  highlight: null,
+
+  setHighlight: (part) => {
+    set({ highlight: part });
+  },
+
+  partColours: {},
+
+  setPartColours: (colours) => {
+    set({ partColours: colours });
+  },
 
   look: DEFAULT_LOOK,
 

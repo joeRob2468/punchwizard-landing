@@ -10,4 +10,6 @@ export const RENDER = {
   outlineStrength: 0.9,
   /** 0–1: lines between different parts (including tissues on a cut face). */
   partEdgeStrength: 0.75,
+  /** How quickly a part's flare follows its label being hovered (per second). */
+  flareRate: 10,
 } as const;

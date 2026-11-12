@@ -11,6 +11,7 @@ uniform int uPattern; // 0 hatch, 1 stipple, 2 rings, 3 glow, 4 gyri, 5 strands
 uniform float uTime;
 uniform float uPartId;
 uniform float uSection; // 0–1 section pattern strength
+uniform float uFlare; // 0–1: the part's label is hovered or pinned
 uniform float uEmission; // how far past white glowing caps go (for bloom)
 
 varying vec3 vWorldPosition;
@@ -65,6 +66,7 @@ void main() {
   }
 
   colour = mix(colour, uInk, ink * uSection);
+  colour = colour * (1.0 + 0.7 * uFlare) + uWash * 0.3 * uFlare;
   gl_FragColor = vec4(colour, uPartId / 255.0);
   #include <colorspace_fragment>
 }
