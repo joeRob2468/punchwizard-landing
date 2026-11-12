@@ -26,8 +26,6 @@ export type Palette = Readonly<Record<PaletteKey, string>>;
 export interface Look {
   /** Shown on the view toggle. */
   readonly label: string;
-  /** 0–1 strength of the paper's mottling, fibres, foxing, vignette and granulation. */
-  readonly paperTexture: number;
   /** Pigments, and paper / paper shadow / foxing for the ground. */
   readonly palette: Palette;
   /** Colour of section patterns on cut faces. */
@@ -58,7 +56,6 @@ const HAIR_BLUE_BLACK = '#2f3648';
 /** Deyrolle washes on ink-black paper, with dark outlines and section lines. */
 const NOCTURNE: Look = {
   label: 'Tabula',
-  paperTexture: 0.8,
   palette: PALETTE,
   line: '#030304',
   outlineLine: '#050506',
@@ -88,7 +85,6 @@ const MRI: Look = {
   // A scan isn't colour-graded: tone curve only.
   drama: 0,
   grade: { split: 0, halation: 0 },
-  paperTexture: 0.6,
   palette: {
     paper: '#060607',
     paperShadow: '#000000',

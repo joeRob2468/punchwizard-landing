@@ -26,9 +26,11 @@ export const FX = {
     halationTint: [1.0, 0.36, 0.14],
     halation: 0.9,
     contrast: 0.3,
+    /** Film grain strength. */
+    grain: 0.09,
     /** Extra gain on the brightest tones, before the shoulder. */
     highlightGain: 0.18,
   },
-  /** Camera lens: vignette, grain and slight chromatic aberration. */
-  lens: { vignette: 0.55, grain: 0.06, aberration: 0.0012 },
+  /** Camera lens: vignette and slight chromatic aberration (grain is in the grade). */
+  lens: { vignette: 0.55, aberration: 0.0012 },
 } as const;

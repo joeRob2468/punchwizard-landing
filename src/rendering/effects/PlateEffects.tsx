@@ -3,14 +3,8 @@
  * paper composite, then bloom and lens effects on the finished image (see
  * config/fx.ts).
  */
-import {
-  ChromaticAberration,
-  EffectComposer,
-  Noise,
-  SMAA,
-  Vignette,
-} from '@react-three/postprocessing';
-import { BlendFunction, BloomEffect } from 'postprocessing';
+import { ChromaticAberration, EffectComposer, SMAA, Vignette } from '@react-three/postprocessing';
+import { BloomEffect } from 'postprocessing';
 import { useEffect, useMemo, useRef } from 'react';
 import { Vector2, Vector3 } from 'three';
 
@@ -59,7 +53,7 @@ export function PlateEffects() {
   useEffect(() => {
     const { palette } = look;
     outline.paint(look.outlineLine, look.outline);
-    paper.paint(palette.paper, palette.paperShadow, palette.foxing, look.paperTexture);
+    paper.paint(palette.paper, palette.paperShadow);
     paper.paintMarginalia(look.chalk, look.marginalia);
     grade.paint(look.grade.split, look.grade.halation);
   }, [look, outline, paper, grade]);
@@ -81,6 +75,9 @@ export function PlateEffects() {
 
   // The marginalia centre on the specimen and turn slowly (still with reduced motion).
   const reducedMotion = usePrefersReducedMotion();
+  useEffect(() => {
+    grade.setFrozen(reducedMotion);
+  }, [grade, reducedMotion]);
   const centre = useMemo(() => new Vector3(), []);
   // When the specimen became ready (clock seconds), for the ink-in.
   const readyAt = useRef<number | null>(null);
@@ -111,7 +108,6 @@ export function PlateEffects() {
       <primitive object={bloom} />
       <ChromaticAberration offset={aberration} radialModulation modulationOffset={0.3} />
       <primitive object={grade} />
-      <Noise blendFunction={BlendFunction.SOFT_LIGHT} opacity={FX.lens.grain} />
       <Vignette offset={0.3} darkness={FX.lens.vignette} />
     </EffectComposer>
   );

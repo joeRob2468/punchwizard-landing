@@ -9,6 +9,8 @@
 //   gain at the top), then a soft shoulder so bright glows roll off smoothly
 //   instead of clipping flat.
 //
+// - Film grain, last: moving fine clumps, mostly in the mid-tones.
+//
 // uGrade blends it in (0 = off; the dev build toggles it with G).
 
 uniform sampler2D uBloom;
@@ -21,6 +23,8 @@ uniform float uHighlightGain; // extra gain on the brightest tones
 uniform vec3 uHighlightTint;
 uniform vec3 uHalationTint;
 uniform float uContrast; // 0–1: how much of the S-curve to mix in
+uniform float uGrain; // film grain strength
+uniform float uGrainTime; // seconds (held still for reduced motion)
 
 float pwLuma(vec3 c) {
   return dot(c, vec3(0.2126, 0.7152, 0.0722));
@@ -56,6 +60,17 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   graded *= (curved + 1e-4) / (l + 1e-4);
   graded *= 1.0 + uHighlightGain * smoothstep(0.45, 0.95, l);
   graded = pwShoulder(graded);
+
+  // Film grain: fine clumps, a new pattern 24 times a second, mostly in the
+  // mid-tones (lighter in deep black and bright white), nearly colourless.
+  vec2 frame = floor(uGrainTime * 24.0) * vec2(17.31, 41.77);
+  vec2 px = gl_FragCoord.xy;
+  float n = pwNoise2(px / 1.3 + frame) * 0.65 + pwNoise2(px / 3.1 - frame) * 0.35 - 0.5;
+  float lg = pwLuma(graded);
+  float weight = 0.35 + 0.65 * smoothstep(0.0, 0.18, lg) * (1.0 - smoothstep(0.6, 1.0, lg));
+  graded *= 1.0 + n * uGrain * weight * 2.0;
+  // Added as well as multiplied, or it vanishes in the near-black page.
+  graded += n * uGrain * 0.06;
 
   outputColor = vec4(mix(c, graded, uGrade), inputColor.a);
 }

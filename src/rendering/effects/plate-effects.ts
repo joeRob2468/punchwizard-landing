@@ -4,7 +4,15 @@
  * outlines are drawn before the paper multiplies everything.
  */
 import { BlendFunction, Effect, EffectAttribute } from 'postprocessing';
-import { Color, type Texture, Uniform, Vector2, Vector3 } from 'three';
+import {
+  Color,
+  type Texture,
+  Uniform,
+  Vector2,
+  Vector3,
+  type WebGLRenderer,
+  type WebGLRenderTarget,
+} from 'three';
 
 import { PALETTE } from '../../config/palette.ts';
 import { RENDER } from '../../config/render.ts';
@@ -49,7 +57,7 @@ export class OutlineEffect extends Effect {
 }
 
 export class PaperEffect extends Effect {
-  /** Sets the paper colours and how strongly its texture shows (0–1). */
+  /** Sets the page colour and the shade it darkens to at the corners. */
   /** Marginalia colour and strength (0–1). */
   paintMarginalia(chalk: string, strength: number) {
     colourUniform(this, 'uChalk').set(chalk);
@@ -67,11 +75,9 @@ export class PaperEffect extends Effect {
     numberUniform(this, 'uTime').value = seconds;
   }
 
-  paint(paper: string, shadow: string, foxing: string, texture: number) {
-    numberUniform(this, 'uTexture').value = texture;
+  paint(paper: string, shadow: string) {
     colourUniform(this, 'uPaper').set(paper);
     colourUniform(this, 'uPaperShadow').set(shadow);
-    colourUniform(this, 'uFoxing').set(foxing);
   }
 
   constructor() {
@@ -81,8 +87,6 @@ export class PaperEffect extends Effect {
       uniforms: new Map<string, Uniform>([
         ['uPaper', new Uniform(new Color(PALETTE.paper))],
         ['uPaperShadow', new Uniform(new Color(PALETTE.paperShadow))],
-        ['uFoxing', new Uniform(new Color(PALETTE.foxing))],
-        ['uTexture', new Uniform(1)],
         ['uChalk', new Uniform(new Color('#ffffff'))],
         ['uMarginalia', new Uniform(0)],
         // Nothing inked until the specimen is ready (PlateEffects drives it).
@@ -94,8 +98,10 @@ export class PaperEffect extends Effect {
   }
 }
 
-/** The colour grade (shaders/grade.frag.glsl), last before the lens grain and vignette. */
+/** The colour grade and film grain (shaders/grade.frag.glsl), last before the vignette. */
 export class GradeEffect extends Effect {
+  #frozen = false;
+
   /** The bloom's blurred highlights, for halation. */
   setBloom(texture: Texture | null) {
     const uniform = this.uniforms.get('uBloom');
@@ -108,13 +114,22 @@ export class GradeEffect extends Effect {
     numberUniform(this, 'uHalation').value = halation * FX.grade.halation;
   }
 
+  /** Holds the film grain still (reduced motion). */
+  setFrozen(frozen: boolean) {
+    this.#frozen = frozen;
+  }
+
+  override update(_renderer: WebGLRenderer, _input: WebGLRenderTarget, deltaTime = 0): void {
+    if (!this.#frozen) numberUniform(this, 'uGrainTime').value += deltaTime;
+  }
+
   /** 1 for the full grade, 0 for none (the dev build compares with G). */
   setAmount(amount: number) {
     numberUniform(this, 'uGrade').value = amount;
   }
 
   constructor() {
-    super('GradeEffect', grade, {
+    super('GradeEffect', `${noise}\n${grade}`, {
       blendFunction: BlendFunction.SET,
       uniforms: new Map<string, Uniform>([
         ['uBloom', new Uniform(null)],
@@ -127,6 +142,8 @@ export class GradeEffect extends Effect {
         ['uHighlightTint', new Uniform(new Vector3(...FX.grade.highlightTint))],
         ['uHalationTint', new Uniform(new Vector3(...FX.grade.halationTint))],
         ['uContrast', new Uniform(FX.grade.contrast)],
+        ['uGrain', new Uniform(FX.grade.grain)],
+        ['uGrainTime', new Uniform(0)],
       ]),
     });
   }

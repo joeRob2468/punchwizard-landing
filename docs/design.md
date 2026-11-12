@@ -146,7 +146,7 @@ The scene is drawn as **light on black** (the scene background is black), then p
 
    Depth and part ids have one sample per pixel, so sub-pixel slivers (thin edges at grazing angles, stray cap samples) appear in depth or alpha as single odd pixels. To keep them from being inked as flickering specks, a difference only counts if it persists two steps out in the same direction, and a pixel nearer than at least 7 of its 8 neighbours is never inked.
 
-3. **`PaperEffect`**: screens the result onto dark procedural paper fixed to the screen (mottling, fibres, foxing, vignette, at the view's texture strength). Grain noise modulates the marks (granulation). Empty areas (black) become plain paper.
+3. **`PaperEffect`**: screens the result onto the page colour, darkening toward the corners; empty areas (black) become plain page. There's no paper texture: fixed to the screen, it read as an overlay as the specimen turned. The grade's film grain gives the surface instead.
 
 **Part edges.** Surface and cap materials write a per-part id (manifest index + 1; `specimen/part-id.ts`) to the alpha channel, and the outline effect also inks wherever that id changes between neighbouring pixels. A part whose look sets `inkAs` writes another part's id instead, so one tissue split across two parts (the torso continuing the head's flesh below the neck) shows no seam. This outlines each tissue on a cut face, where caps are coplanar and depth alone shows nothing, and separates overlapping parts. Helpers that blend (the plane's guide lines) leave alpha untouched.
 
@@ -293,7 +293,7 @@ Defined twice and kept in step: CSS custom properties in `src/styles/tokens.css`
 - **Tabula** (`nocturne`, the default): `PALETTE`, with blue-black hair, beard, moustache and eyebrows (per-part washes), dark outlines and dark section lines on cut faces (pale lines read as noise).
 - **Resonantia** (`mri`): a T2-weighted MRI. Grey by tissue (fluid brightest, muscle and bone dark), the outside dimmed so the cut faces carry the image; hair, hat and robe are blackened (no signal) through per-part washes. Only the magical organs keep their colours.
 
-Each view has a palette, optional per-part washes, outline and section-line colours and strengths, optional surface brightness per layer, and a paper texture strength. The view lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push it into their materials' and effects' uniforms (`paint(...)`), so switching needs no rebuild. `ViewToggle` sets `data-look` on the root, and `[data-look=…]` blocks in `tokens.css` restyle the DOM chrome.
+Each view has a palette, optional per-part washes, outline and section-line colours and strengths, optional surface brightness per layer, how strongly it uses the spotlight (`drama`) and how much split-toning and halation it gets. The view lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push it into their materials' and effects' uniforms (`paint(...)`), so switching needs no rebuild. `ViewToggle` sets `data-look` on the root, and `[data-look=…]` blocks in `tokens.css` restyle the DOM chrome.
 
 ### Post effects
 
@@ -301,11 +301,12 @@ Both views get these post effects (tunables in `src/config/fx.ts`):
 
 - **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue. The composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
 - **Grade** (`GradeEffect`, `shaders/grade.frag.glsl`, tunables in `FX.grade`): halation (a warm fringe around the brightest things, from a widened sample of the bloom's blurred texture, mostly where the image is dark), split-toning (shadows blue, with a hair of blue added in the deepest darks so they read cool rather than grey; highlights slightly warm), an S-curve for contrast (darker shadows, brighter highlights, a little extra gain at the top) and a soft shoulder so glows roll off instead of clipping. Each view sets how much split-toning and halation it gets (`Look.grade`); the scan gets the tone curve only. In dev builds `G` toggles the grade, to compare.
-- **Lens:** slight chromatic aberration, light grain and a vignette on the finished image.
+- **Film grain** (in `GradeEffect`, `FX.grade.grain`): fine clumps, a new pattern 24 times a second, nearly colourless, strongest in the mid-tones and added (not just multiplied) in the darks so the empty page has it too; held still for reduced motion.
+- **Lens:** slight chromatic aberration and a vignette on the finished image.
 
 **Ink-in.** Once the specimen has drawn its first frame, it inks in over 1.8 s (0.4 s with reduced motion; `FX.reveal`): a ragged front soaks outward from its centre, slightly darker at the wet edge (`shaders/lib/reveal.glsl`). The outline pass applies the mask, so bloom (which reads that pass's output) and the paper only see what has inked in, and glows never run ahead of the wash; the paper shows its marginalia wherever the ink hasn't reached. The labels fade in after it.
 
-Stack order: outline, SMAA (smooths jaggies on silhouettes and ink lines), paper, bloom, chromatic aberration, grade, grain, vignette. The bloom effect is made in `PlateEffects` (not with `<Bloom>`) so the grade can read its texture. The composer doesn't multisample: SMAA alone looks the same, and a multisampled depth-stencil buffer cost about 30 ms a frame at 2500×1330 on Chrome/Windows (ANGLE resolves it slowly), against about 3 ms for the whole frame without it. The outline effect is flagged as a convolution so it always leads its own pass.
+Stack order: outline, SMAA (smooths jaggies on silhouettes and ink lines), paper, bloom, chromatic aberration, grade (with the grain), vignette. The bloom effect is made in `PlateEffects` (not with `<Bloom>`) so the grade can read its texture. The composer doesn't multisample: SMAA alone looks the same, and a multisampled depth-stencil buffer cost about 30 ms a frame at 2500×1330 on Chrome/Windows (ANGLE resolves it slowly), against about 3 ms for the whole frame without it. The outline effect is flagged as a convolution so it always leads its own pass.
 
 ### Resolution
 
