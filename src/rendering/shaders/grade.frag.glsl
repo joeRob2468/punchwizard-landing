@@ -3,9 +3,11 @@
 // - Halation: a faint warm fringe around the brightest things, as film gives,
 //   from a widened sample of the bloom's blurred highlights, mostly where the
 //   image itself is dark (around the light, not on it).
-// - Split-toning: shadows a little cool, highlights a little warm.
-// - Tone: a gentle S in the mid-tones, then a soft shoulder so bright glows roll
-//   off smoothly instead of clipping flat.
+// - Split-toning: shadows blue (a touch of it added in the deepest darks),
+//   highlights a little warm.
+// - Tone: an S-curve (darker shadows, brighter highlights, with a little extra
+//   gain at the top), then a soft shoulder so bright glows roll off smoothly
+//   instead of clipping flat.
 //
 // uGrade blends it in (0 = off; the dev build toggles it with G).
 
@@ -14,6 +16,8 @@ uniform float uGrade;
 uniform float uSplit; // 0–1 split-toning strength (0 for the scan)
 uniform float uHalation; // 0–1 halation strength (0 for the scan)
 uniform vec3 uShadowTint;
+uniform vec3 uShadowLift; // added in the deepest darks (scaled by uSplit)
+uniform float uHighlightGain; // extra gain on the brightest tones
 uniform vec3 uHighlightTint;
 uniform vec3 uHalationTint;
 uniform float uContrast; // 0–1: how much of the S-curve to mix in
@@ -44,11 +48,13 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   float l = pwLuma(graded);
   vec3 tint = mix(uShadowTint, uHighlightTint, smoothstep(0.04, 0.6, l));
   graded *= mix(vec3(1.0), tint, uSplit);
+  graded += uShadowLift * uSplit * (1.0 - smoothstep(0.0, 0.25, l));
 
   l = pwLuma(graded);
   float s = clamp(l, 0.0, 1.0);
   float curved = mix(s, s * s * (3.0 - 2.0 * s), uContrast) + max(l - 1.0, 0.0);
   graded *= (curved + 1e-4) / (l + 1e-4);
+  graded *= 1.0 + uHighlightGain * smoothstep(0.45, 0.95, l);
   graded = pwShoulder(graded);
 
   outputColor = vec4(mix(c, graded, uGrade), inputColor.a);

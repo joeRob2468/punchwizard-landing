@@ -15,9 +15,9 @@ export const LIGHTING = {
   },
   /** Degrees: full light inside `inner`, none outside `outer`. */
   cone: { inner: 12, outer: 27 },
-  colour: '#ffeedd',
+  colour: '#d6e4ff',
   /** The beam in the air (specimen/SpotBeam): brightness, and how far each ray is marched. */
-  beam: { strength: 0.007, length: 4.5 },
+  beam: { strength: 0.0035, length: 4.5 },
   /** Motes: brightness outside the beam, and how much they light up inside it. */
   motes: { outside: 0.45, inside: 3.5 },
   intensity: 4.5,

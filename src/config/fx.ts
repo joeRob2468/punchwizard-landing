@@ -19,11 +19,15 @@ export const FX = {
    * strongly a view uses the split-toning and halation is set per view (looks.ts).
    */
   grade: {
-    shadowTint: [0.93, 1.0, 1.07],
+    shadowTint: [0.82, 0.95, 1.2],
+    /** A touch of blue added in the deepest darks, so they read cool, not grey. */
+    shadowLift: [0.0, 0.002, 0.008],
     highlightTint: [1.07, 1.0, 0.9],
     halationTint: [1.0, 0.36, 0.14],
     halation: 0.9,
-    contrast: 0.12,
+    contrast: 0.3,
+    /** Extra gain on the brightest tones, before the shoulder. */
+    highlightGain: 0.18,
   },
   /** Camera lens: vignette, grain and slight chromatic aberration. */
   lens: { vignette: 0.55, grain: 0.06, aberration: 0.0012 },

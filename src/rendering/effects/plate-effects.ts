@@ -122,6 +122,8 @@ export class GradeEffect extends Effect {
         ['uSplit', new Uniform(1)],
         ['uHalation', new Uniform(FX.grade.halation)],
         ['uShadowTint', new Uniform(new Vector3(...FX.grade.shadowTint))],
+        ['uShadowLift', new Uniform(new Vector3(...FX.grade.shadowLift))],
+        ['uHighlightGain', new Uniform(FX.grade.highlightGain)],
         ['uHighlightTint', new Uniform(new Vector3(...FX.grade.highlightTint))],
         ['uHalationTint', new Uniform(new Vector3(...FX.grade.halationTint))],
         ['uContrast', new Uniform(FX.grade.contrast)],
