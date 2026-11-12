@@ -217,7 +217,7 @@ Leaders are cubic curves from the label to the anchor with a small per-label wob
 
 ## Layers
 
-`ui/LayerControls` (bottom left) sets how each layer is drawn: shown, ghost (see-through) or hidden, one layer at a time or by preset (Omnia, Ossa, Viscera; `L` steps through them). The modes are in the store (`layers`) and the presets in `src/config/layers.ts`. A ghosted part's `InkWashMaterial` blends its colour at a constant opacity while keeping the destination's alpha (the part ids the outline effect reads) and writing no depth, so what's behind it stays visible and inked. Only shown layers get cut faces or hide surface anchors from view, and a hidden layer's labels go away; so leaving only the arcana shown labels just the arcana, each from outside.
+`ui/LayerControls` (bottom left) sets how each layer is drawn: shown, ghost (see-through) or hidden, one layer at a time or by preset (Omnia, Ossa, Viscera; `L` steps through them). The modes are in the store (`layers`) and the presets in `src/config/layers.ts`. A ghosted part's `InkWashMaterial` blends its colour at a constant opacity while keeping the destination's alpha (the part ids the outline effect reads) and writing no depth, so what's behind it stays visible and inked. Solid glowing parts are drawn after ghosted ones (transparent pass, higher `renderOrder`, no blending), so a see-through shell doesn't dim them and they still bloom. Only shown layers get cut faces or hide surface anchors from view, and a hidden layer's labels go away; so leaving only the arcana shown labels just the arcana, each from outside.
 
 ## Camera and input
 

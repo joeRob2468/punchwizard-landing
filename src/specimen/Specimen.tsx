@@ -21,6 +21,9 @@ import { GazeRig } from './gaze.ts';
 import type { LoadedSpecimen } from './load-specimen.ts';
 import { partIdFor, partIds } from './part-id.ts';
 
+/** Above see-through parts (0); section caps use their own, in the opaque pass. */
+const GLOW_RENDER_ORDER = 1;
+
 interface SpecimenProps {
   readonly specimen: Promise<LoadedSpecimen>;
   readonly labels: LabelChannel;
@@ -46,6 +49,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           id: entry.id,
           layer: entry.layer,
           wash: entry.look.wash,
+          glowing: (entry.look.glow ?? 0) > 0,
           geometry,
           material,
           pivot: entry.gazePivot,
@@ -125,7 +129,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   return (
     <>
       <group name="specimen">
-        {meshes.map(({ id, layer, geometry, material, pivot }) => {
+        {meshes.map(({ id, layer, glowing, geometry, material, pivot }) => {
           const mesh = (
             <mesh
               key={id}
@@ -133,6 +137,8 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
               geometry={geometry}
               material={material}
               visible={layers[layer] !== 'hidden'}
+              // Glowing parts draw after see-through ones (see InkWashMaterial.ghost).
+              renderOrder={glowing ? GLOW_RENDER_ORDER : 0}
             />
           );
           return pivot ? (

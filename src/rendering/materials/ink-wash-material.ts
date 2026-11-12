@@ -8,7 +8,7 @@ import {
   Color,
   ConstantAlphaFactor,
   CustomBlending,
-  NormalBlending,
+  NoBlending,
   OneFactor,
   OneMinusConstantAlphaFactor,
   ShaderMaterial,
@@ -49,6 +49,7 @@ export class InkWashMaterial extends ShaderMaterial {
   readonly #wash: Color;
   readonly #gain: { value: number };
   readonly #emission: { value: number };
+  readonly #glowing: boolean;
 
   constructor({ wash, glow = 0, partId = 255, useOcclusion = false }: InkWashOptions) {
     const time = { value: 0 };
@@ -75,6 +76,8 @@ export class InkWashMaterial extends ShaderMaterial {
     this.#wash = washColour;
     this.#gain = gain;
     this.#emission = emission;
+    this.#glowing = glow > 0;
+    this.ghost = null;
   }
 
   paint({ wash, gain, emission }: SurfacePaint) {
@@ -92,12 +95,17 @@ export class InkWashMaterial extends ShaderMaterial {
    * constant opacity while the destination's alpha (the part id the outline effect
    * reads) is kept, and depth isn't written, so what's behind stays visible and
    * keeps its ink.
+   *
+   * Solid glowing parts are drawn with the see-through ones, after them (their
+   * meshes need a higher `renderOrder`), but without blending: since see-through
+   * parts write no depth, the glow isn't dimmed by the shell over it and still
+   * blooms.
    */
   set ghost(opacity: number | null) {
     const on = opacity !== null;
-    this.transparent = on;
+    this.transparent = on || this.#glowing;
     this.depthWrite = !on;
-    this.blending = on ? CustomBlending : NormalBlending;
+    this.blending = on ? CustomBlending : NoBlending;
     this.blendEquation = AddEquation;
     this.blendSrc = ConstantAlphaFactor;
     this.blendDst = OneMinusConstantAlphaFactor;
