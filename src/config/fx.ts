@@ -10,7 +10,7 @@ export const FX = {
    */
   seam: { width: 0.14, strength: 1.2 },
   /** Light on the ground along the body's outline where he stands in the circle. */
-  groundGlow: { strength: 1.5 },
+  groundGlow: { strength: 1.8 },
   /** The ink-in once the specimen is ready: seconds for the front to sweep over it. */
   reveal: { seconds: 1.8, reducedMotionSeconds: 0.4 },
   /** Camera lens: vignette, grain and slight chromatic aberration. */

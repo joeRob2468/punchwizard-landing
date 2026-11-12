@@ -31,8 +31,10 @@ import { sliceAtHeight } from './ground-slice.ts';
 import type { LoadedPart } from './load-specimen.ts';
 
 /** Ground area covered (x, then z), around the base. */
-const EXTENT = { minX: -1.8, maxX: 1.8, minZ: -1.1, maxZ: 1.1 } as const;
-const PIXELS_PER_UNIT = 200;
+const EXTENT = { minX: -1.9, maxX: 1.9, minZ: -1.9, maxZ: 1.9 } as const;
+const PIXELS_PER_UNIT = 160;
+/** The light fades out by the rune circle's rim (radius, ground units). */
+const FADE_RADIUS = 1.8;
 /** Sliced just above the ground, where the body is still whole. */
 const SLICE_Y = GROUND_Y + 0.005;
 
@@ -72,17 +74,29 @@ export function GroundGlow({ parts }: GroundGlowProps) {
       ctx.strokeStyle = '#fff';
       ctx.lineCap = 'round';
       ctx.shadowColor = '#fff';
-      // A wide soft halo, then a tighter bright one, then the line itself.
+      // Wide, faint washes of light spreading out across the ground, then tighter,
+      // brighter ones, then the line itself at the body's edge. Blur in pixels.
       for (const [line, blur, alpha] of [
-        [14, 60, 0.6],
-        [5, 14, 0.8],
-        [2, 4, 1],
+        [40, 150, 0.35],
+        [20, 70, 0.45],
+        [8, 24, 0.7],
+        [2, 5, 1],
       ] as const) {
         ctx.globalAlpha = alpha;
         ctx.lineWidth = line;
         ctx.shadowBlur = blur;
         ctx.stroke();
       }
+      // Fade out toward the circle's rim, so the light stays on the circle.
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+      ctx.globalCompositeOperation = 'multiply';
+      const r = FADE_RADIUS * PIXELS_PER_UNIT;
+      const fade = ctx.createRadialGradient(px(0), pz(0), r * 0.35, px(0), pz(0), r);
+      fade.addColorStop(0, '#fff');
+      fade.addColorStop(1, '#000');
+      ctx.fillStyle = fade;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     const texture = new CanvasTexture(canvas);
     texture.colorSpace = SRGBColorSpace;
