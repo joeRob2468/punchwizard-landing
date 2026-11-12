@@ -20,6 +20,8 @@ import fragment from '../shaders/cap.frag.glsl?raw';
 import vertex from '../shaders/cap.vert.glsl?raw';
 import noise from '../shaders/lib/noise.glsl?raw';
 import seamChunk from '../shaders/lib/seam.glsl?raw';
+import spotChunk from '../shaders/lib/spot.glsl?raw';
+import { NO_SPOT, type SpotUniforms } from './spot.ts';
 import { NO_SEAM, type SeamUniforms } from './seam.ts';
 
 const PATTERN_IDS: Readonly<Record<SectionPattern, number>> = {
@@ -42,6 +44,8 @@ export interface CapOptions {
   readonly flowOrigin?: Vec3;
   /** The ground seam's shared uniforms (materials/seam.ts); none if unset. */
   readonly seam?: SeamUniforms;
+  /** The spotlight's shared uniforms (materials/spot.ts); none if unset. */
+  readonly spot?: SpotUniforms;
 }
 
 /** How a cut face is painted under the current look (see config/looks.ts). */
@@ -76,6 +80,7 @@ export class CapMaterial extends ShaderMaterial {
     carriesMana = false,
     flowOrigin = [0, 0, 0],
     seam = NO_SEAM,
+    spot = NO_SPOT,
   }: CapOptions) {
     const time = { value: 0 };
     const normal = { value: new Vector3(0, 0, 1) };
@@ -91,7 +96,7 @@ export class CapMaterial extends ShaderMaterial {
       vertexShader: vertex,
       fragmentShader: fragment.replace(
         '#include <common>',
-        `#include <common>\n${noise}\n${seamChunk}`,
+        `#include <common>\n${noise}\n${seamChunk}\n${spotChunk}`,
       ),
       side: DoubleSide,
       depthFunc: LessEqualDepth,
@@ -120,6 +125,7 @@ export class CapMaterial extends ShaderMaterial {
         uTime: time,
         uPartId: { value: partId },
         ...seam,
+        ...spot,
       },
     });
     this.name = 'CapMaterial';

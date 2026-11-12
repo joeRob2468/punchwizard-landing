@@ -44,6 +44,8 @@ export interface Look {
   readonly marginalia: number;
   /** Colour of the faint motes floating around the specimen. */
   readonly moteColour: string;
+  /** 0–1: how much the spotlight takes over from the even lighting (config/lighting.ts). */
+  readonly drama: number;
   /** 0–1: how much of the grade's split-toning and halation the view gets (FX.grade). */
   readonly grade: { readonly split: number; readonly halation: number };
   /** Surface brightness per layer (cut faces unaffected); 1 where unset. */
@@ -65,6 +67,7 @@ const NOCTURNE: Look = {
   moteColour: '#bfb59c',
   chalk: '#e8dcc0',
   marginalia: 0.035,
+  drama: 1,
   grade: { split: 1, halation: 1 },
   // Blue-black hair and beard (bone-pale washed out against the dark paper).
   partWash: {
@@ -83,6 +86,7 @@ const NOCTURNE: Look = {
 const MRI: Look = {
   label: 'Resonantia',
   // A scan isn't colour-graded: tone curve only.
+  drama: 0,
   grade: { split: 0, halation: 0 },
   paperTexture: 0.6,
   palette: {

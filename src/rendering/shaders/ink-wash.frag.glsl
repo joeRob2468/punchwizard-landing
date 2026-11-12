@@ -108,12 +108,31 @@ void main() {
   vec3 translucency = albedo * vec3(0.9, 0.3, 0.15) * (wrapped - max(ndl, 0.0)) * 0.6 * uScatter;
   vec3 sheen = albedo * pow(grazing, 2.0) * wrapped * uSheen;
 
-  vec3 colour = albedo * (0.12 + 0.95 * wrapped) * ao * (1.0 - 0.6 * uMetallic)
-    + albedo * vec3(0.8, 0.9, 1.1) * fill * ao
-    + translucency * ao
-    + sheen * ao
-    + backRim * mix(vec3(1.0), albedo, 0.7)
-    + highlight * highlightColour;
+  // The camera-fixed lights; dimmed to a low base when the spotlight takes over
+  // (uDrama, lib/spot.glsl), the rim a little stronger to hold the silhouette.
+  float base = mix(1.0, 0.2, uDrama);
+  float ambient = mix(0.12, 0.025, uDrama);
+  vec3 colour = albedo * (ambient + 0.95 * wrapped * base) * ao * (1.0 - 0.6 * uMetallic)
+    + albedo * vec3(0.8, 0.9, 1.1) * fill * ao * base
+    + translucency * ao * base
+    + sheen * ao * base
+    + backRim * mix(vec3(1.0), albedo, 0.7) * mix(1.0, 1.2, uDrama)
+    + highlight * highlightColour * base;
+
+  // The spotlight, in world space (the specimen's space is the world's).
+  if (uDrama > 0.0) {
+    vec3 worldNormal = normalize((vec4(n, 0.0) * viewMatrix).xyz);
+    vec3 toLight = normalize(uSpotPosition - p);
+    vec3 toEye = normalize(cameraPosition - p);
+    float spotNdl = dot(worldNormal, toLight);
+    float spotDiffuse = clamp((spotNdl + 0.12) / 1.12, 0.0, 1.0);
+    float spotHighlight = pow(max(dot(worldNormal, normalize(toLight + toEye)), 0.0), uGloss)
+      * uSpecular * roughness * 1.4 * occlusion;
+    vec3 spotScatter = albedo * vec3(0.9, 0.3, 0.15) * (spotDiffuse - max(spotNdl, 0.0)) * 0.6 * uScatter;
+    vec3 spotLit = albedo * spotDiffuse * mix(0.55, 1.0, occlusion) * (1.0 - 0.6 * uMetallic)
+      + spotHighlight * highlightColour + spotScatter;
+    colour += spotLit * pwSpotLight(p) * uDrama;
+  }
 
   colour *= mix(0.78, 1.0, smoothstep(0.35, 0.9, occlusion));
   colour *= uGain;

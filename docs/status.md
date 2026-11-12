@@ -19,6 +19,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Mana flow:** slow pulses of light leave the Aetheric Core at random moments and travel along the lattice, vessels and ganglia.
 - **Motes:** a few faint specks float around the model, for depth as the camera moves.
 - **Rune circles:** Elder Futhark rings: a turning summoning circle with a valknut under the bust and a faint halo ring behind the head.
+- **Spotlight (step 1):** a warm spot from the viewer's upper left that follows the camera lazily and drifts; deep shadows, rim kept; cut faces lit with a floor; Tabula only.
 - **Grade:** halation, split-toning, a soft S-curve and a highlight shoulder (tone only in the scan view); `G` toggles it in dev.
 - **Ground seam:** the bust rises through the ground circle: a glowing band where every part (and cut face) meets the ground, and light on the ground along his outline there.
 - **Marginalia:** a faint astrolabe, zodiac band, planetary orbits, great arcs to the frame, constellations and construction lines, drawn into the paper behind the specimen (the rune pedestal blocks them).
@@ -42,7 +43,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 
 The look, the views, the layers and the flair round are done and reviewed. Launch prep is done: performance pass, preloader, metadata and icons, the fallback still, touch tuning and the ink-in (see Works and design.md). Next:
 
-1. **Lighting (in progress):** a dramatic spotlight for the Tabula view (relight, then shadows, then a volumetric beam); see the lighting notes in design.md as they land.
+1. **Lighting (in progress):** the spotlight relight is in; next its shadows (hat brim on the face, the body on the circle), then a volumetric beam with motes lit inside it.
 2. **Ship:** rebuild the image from the final source, then deploy (M8) only once the owner calls the site final.
 
 ## Working notes

@@ -18,6 +18,7 @@ import { LabelTracker } from '../labels/LabelTracker.tsx';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import { InkWashMaterial } from '../rendering/materials/ink-wash-material.ts';
 import { seamUniforms, setSeamTime } from '../rendering/materials/seam.ts';
+import { spotUniforms } from '../rendering/materials/spot.ts';
 import { swayUniforms } from '../rendering/materials/sway.ts';
 import { LANDMARKS } from '../procedural/landmarks.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
@@ -26,6 +27,7 @@ import { SliceController } from '../slicing/SliceController.tsx';
 import { partSphere, sphereSide } from '../slicing/plane-math.ts';
 import { GazePivot } from './GazePivot.tsx';
 import { GroundGlow } from './GroundGlow.tsx';
+import { SpotRig } from './SpotRig.tsx';
 import { Motes } from './Motes.tsx';
 import { GazeRig } from './gaze.ts';
 import {
@@ -57,6 +59,8 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   // Shared by every part and the section stencils, so they all sway together.
   const sway = useMemo(() => swayUniforms(SWAY.from, SWAY.to), []);
   // Shared by every part and cut face: the light where he meets the ground circle.
+  // Shared by every part and cut face: the spotlight (SpotRig moves it).
+  const spot = useMemo(() => spotUniforms(), []);
   const seam = useMemo(
     () => seamUniforms(LANDMARKS.bustBase[1], FX.seam.width, FX.seam.strength),
     [],
@@ -73,6 +77,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           surface: surfaceFor(entry.id, entry.look.wash),
           sway,
           seam,
+          spot,
           carriesMana: MANA_CARRIERS.has(entry.id),
           flowOrigin: FLOW_ORIGIN,
         });
@@ -88,7 +93,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           sphere: partSphere(entry.bounds, SWAY.amplitude + 0.005, entry.gazePivot),
         };
       }),
-    [parts, plane, ids, sway, seam],
+    [parts, plane, ids, sway, seam, spot],
   );
 
   useEffect(
@@ -228,7 +233,8 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
       </group>
       <Motes />
       <GroundGlow parts={parts} seam={seam} />
-      <SectionCaps parts={parts} gaze={gaze} sway={sway} seam={seam} />
+      <SectionCaps parts={parts} gaze={gaze} sway={sway} seam={seam} spot={spot} />
+      <SpotRig spot={spot} />
       <SliceController bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />
     </>

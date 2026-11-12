@@ -83,6 +83,16 @@ void main() {
 
   colour = mix(colour, uInk, ink * uSection);
 
+  // Under the spotlight (lib/spot.glsl) cut faces are lit by it too, with a floor so
+  // the anatomy stays readable; glowing faces are self-lit.
+  if (uDrama > 0.0 && uPattern != 3) {
+    vec3 facing = normalize(uNormal);
+    if (dot(facing, cameraPosition - vWorldPosition) < 0.0) facing = -facing;
+    float spotDiffuse = max(dot(facing, normalize(uSpotPosition - vWorldPosition)), 0.0);
+    vec3 lit = vec3(0.45) + 0.85 * spotDiffuse * pwSpotLight(vWorldPosition);
+    colour *= mix(vec3(1.0), lit, uDrama);
+  }
+
   // Light where the cut face meets the rune circle on the ground (lib/seam.glsl).
   colour += pwGroundSeam(vWorldPosition);
   colour = colour * (1.0 + 0.7 * uFlare) + uWash * 0.3 * uFlare;

@@ -41,6 +41,7 @@ import {
 } from '../specimen/idle.ts';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import type { SeamUniforms } from '../rendering/materials/seam.ts';
+import type { SpotUniforms } from '../rendering/materials/spot.ts';
 import { addSway, type SwayUniforms } from '../rendering/materials/sway.ts';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
 import { usePlateStore } from '../state/plate-store.ts';
@@ -60,9 +61,11 @@ interface SectionCapsProps {
   readonly sway: SwayUniforms;
   /** The ground seam's shared uniforms, so cut faces glow where they meet the ground. */
   readonly seam: SeamUniforms;
+  /** The spotlight's shared uniforms, so cut faces are lit by it too. */
+  readonly spot: SpotUniforms;
 }
 
-export function SectionCaps({ parts, gaze, sway, seam }: SectionCapsProps) {
+export function SectionCaps({ parts, gaze, sway, seam, spot }: SectionCapsProps) {
   const reducedMotion = usePrefersReducedMotion();
   const { plane } = useClipPlane();
   const quad = useMemo(() => new PlaneGeometry(CAP_SIZE, CAP_SIZE), []);
@@ -90,10 +93,11 @@ export function SectionCaps({ parts, gaze, sway, seam }: SectionCapsProps) {
             carriesMana: MANA_CARRIERS.has(entry.id),
             flowOrigin: FLOW_ORIGIN,
             seam,
+            spot,
           }),
         };
       }),
-    [parts, plane, ids, sway, seam],
+    [parts, plane, ids, sway, seam, spot],
   );
 
   useEffect(
