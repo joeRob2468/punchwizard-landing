@@ -138,7 +138,7 @@ The scene is drawn as **pigment on white** (the scene background is white), then
 
 3. **`PaperEffect`**: multiplies the result onto procedural paper fixed to the screen (mottling, fibres, foxing, vignette). Pigment density is modulated by grain noise (granulation). Empty areas (white) become plain paper.
 
-**Part edges.** Surface and cap materials write a per-part id (manifest index + 1; `specimen/part-id.ts`) to the alpha channel, and the outline effect also inks wherever that id changes between neighbouring pixels. This outlines each tissue on a cut face, where caps are coplanar and depth alone shows nothing, and separates overlapping parts. Helpers that blend (the plane's guide lines) leave alpha untouched.
+**Part edges.** Surface and cap materials write a per-part id (manifest index + 1; `specimen/part-id.ts`) to the alpha channel, and the outline effect also inks wherever that id changes between neighbouring pixels. A part whose look sets `inkAs` writes another part's id instead, so one tissue split across two parts (the torso continuing the head's flesh below the neck) shows no seam. This outlines each tissue on a cut face, where caps are coplanar and depth alone shows nothing, and separates overlapping parts. Helpers that blend (the plane's guide lines) leave alpha untouched.
 
 Both effects use `BlendFunction.SET` and run in one merged pass, outline first. Shared noise functions are in `shaders/lib/noise.glsl` (prefixed `pw`).
 

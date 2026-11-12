@@ -16,7 +16,7 @@ import { SliceController } from '../slicing/SliceController.tsx';
 import { GazePivot } from './GazePivot.tsx';
 import { GazeRig } from './gaze.ts';
 import type { LoadedSpecimen } from './load-specimen.ts';
-import { partIdFor } from './part-id.ts';
+import { partIdFor, partIds } from './part-id.ts';
 
 interface SpecimenProps {
   readonly specimen: Promise<LoadedSpecimen>;
@@ -28,11 +28,12 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   const { parts, bounds } = loaded;
   const { plane } = useClipPlane();
 
+  const ids = useMemo(() => partIds(parts.map((p) => p.entry)), [parts]);
   const meshes = useMemo(
     () =>
       parts.map(({ entry, geometry }, index) => {
         const material = new InkWashMaterial({
-          partId: partIdFor(index),
+          partId: ids[index] ?? partIdFor(index),
           useOcclusion: true,
           wash: isPaletteKey(entry.look.wash) ? PALETTE[entry.look.wash] : PALETTE.ink,
           glow: entry.look.glow ?? 0,
@@ -41,7 +42,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
         material.clippingPlanes = [plane];
         return { id: entry.id, geometry, material, pivot: entry.gazePivot };
       }),
-    [parts, plane],
+    [parts, plane, ids],
   );
 
   useEffect(

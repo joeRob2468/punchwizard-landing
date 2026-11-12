@@ -28,7 +28,7 @@ import {
 
 import { PALETTE, type PaletteKey } from '../config/palette.ts';
 import { CapMaterial } from '../rendering/materials/cap-material.ts';
-import { partIdFor } from '../specimen/part-id.ts';
+import { partIdFor, partIds } from '../specimen/part-id.ts';
 import type { GazeRig } from '../specimen/gaze.ts';
 import { GazePivot } from '../specimen/GazePivot.tsx';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
@@ -50,6 +50,7 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
   const quad = useMemo(() => new PlaneGeometry(CAP_SIZE, CAP_SIZE), []);
   const capMeshes = useRef<(Mesh | null)[]>([]);
 
+  const ids = useMemo(() => partIds(parts.map((p) => p.entry)), [parts]);
   const layers = useMemo(
     () =>
       parts.map(({ entry, geometry }, index) => {
@@ -65,11 +66,11 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
             wash,
             pattern: section.pattern,
             centre: section.centre,
-            partId: partIdFor(index),
+            partId: ids[index] ?? partIdFor(index),
           }),
         };
       }),
-    [parts, plane],
+    [parts, plane, ids],
   );
 
   useEffect(

@@ -293,7 +293,7 @@ export function torsoPart(): PartDefinition {
   return {
     id: 'torso',
     layer: 'integument',
-    look: { wash: 'washFlesh', section: { pattern: 'hatch' } },
+    look: { wash: 'washFlesh', inkAs: 'head', section: { pattern: 'hatch' } },
     field: subtract(
       intersect(outsideHead, aboveBase),
       union(tissueAirway(0.006), canalField(CANAL_RADIUS)),

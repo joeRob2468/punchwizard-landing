@@ -29,6 +29,8 @@ export interface PartLook {
   readonly glow?: number;
   /** Hatching style: cross-contour (default) or lines along hanging strands (hair). */
   readonly hatch?: 'contour' | 'strands';
+  /** Outline as this part (no inked edge where they meet), for one tissue split in two. */
+  readonly inkAs?: string;
   readonly section?: {
     readonly pattern: SectionPattern;
     /** Centre for `rings` (rings are drawn around the vertical axis through it). */
