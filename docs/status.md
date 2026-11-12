@@ -36,13 +36,14 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Fallback:** without WebGL 2 (or if the plate fails), the border and title with a still of the specimen and a short note; `<noscript>` shows the same still.
 - **Touch:** no browser gestures on the plate (pinch zooms the camera, not the page), larger tap targets on touch screens, bottom controls stacked on phones, tooltips kept on screen (they open toward the middle, and upward low down).
 - **Ink-in:** the specimen inks in from its centre as the preloader fades (glows included), then the labels fade in.
-- **M6 (started):** Docker image, compose files and runbook written but never built or run.
+- **M6 (Docker):** the image builds (the bake runs inside it, ~85 s) and runs healthy locally with `docker compose up -d` on 127.0.0.1:8080; checked in the browser: gzip on text and specimen files, caching (assets immutable for a year, specimen an hour, pages revalidated), the security headers and CSP (the WebAssembly decoder runs), the manifest's MIME type, the health check.
 
 ## Next
 
 The look, the views, the layers and the flair round are done and reviewed. Launch prep is done: performance pass, preloader, metadata and icons, the fallback still, touch tuning and the ink-in (see Works and design.md). Next:
 
-1. **Ship:** build and test the Docker image locally (ask first: it pulls base images), then deploy (M8) only once the owner calls the site final.
+1. **Lighting (in progress):** a dramatic spotlight for the Tabula view (relight, then shadows, then a volumetric beam); see the lighting notes in design.md as they land.
+2. **Ship:** rebuild the image from the final source, then deploy (M8) only once the owner calls the site final.
 
 ## Working notes
 
