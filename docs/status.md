@@ -38,13 +38,15 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Fallback:** without WebGL 2 (or if the plate fails), the border and title with a still of the specimen and a short note; `<noscript>` shows the same still.
 - **Touch:** no browser gestures on the plate (pinch zooms the camera, not the page), larger tap targets on touch screens, bottom controls stacked on phones, tooltips kept on screen (they open toward the middle, and upward low down).
 - **Ink-in:** the specimen inks in from its centre as the preloader fades (glows included), then the labels fade in.
+- **M8 (deployed):** live at `https://<domain>` (2026-11-12) on the home server behind Traefik, `www.` redirecting to the apex; the repository is public on GitHub and the server pulls it with a read-only deploy key. Updates: see operations.md § Deploy and update.
 - **M6 (Docker):** the image builds (the bake runs inside it, ~85 s) and runs healthy locally with `docker compose up -d` on 127.0.0.1:8080; checked in the browser: gzip on text and specimen files, caching (assets immutable for a year, specimen an hour, pages revalidated), the security headers and CSP (the WebAssembly decoder runs), the manifest's MIME type, the health check.
 
 ## Next
 
-The look, the views, the layers and the flair round are done and reviewed. Launch prep is done: performance pass, preloader, metadata and icons, the fallback still, touch tuning and the ink-in (see Works and design.md). Next:
+Launched. Open items:
 
-1. **Ship:** rebuild the image from the final source, then deploy (M8) only once the owner calls the site final.
+1. `www.<domain>` needs its DNS record (and, on the LAN, a local DNS entry like the other names) before the redirect is reachable; the server already routes it.
+2. Any further changes: commit, push, then on the server `git pull && docker compose up -d --build` (operations.md).
 
 ## Working notes
 

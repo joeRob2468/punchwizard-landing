@@ -2,7 +2,7 @@
 
 Running and updating the site on the home server. Placeholders: `<server>` is the server's SSH host, `<domain>` is `DOMAIN` from `.env`. Commands run in the project folder on the server, `~/.services/punchwizard-landing`, next to the other stacks; its `.env` sets `COMPOSE_FILE=compose.yaml:compose.server.yaml`, so plain `docker compose` picks up the Traefik overlay.
 
-> **Status:** not deployed yet. Deployment is the last milestone (M8), once the site is called final. The Docker setup has not yet been built or run, locally or on the server.
+> **Status:** deployed (2026-11-12). The repository is public on GitHub; the server reads it with a read-only deploy key (`github-pwl` alias).
 
 ## At a glance
 
