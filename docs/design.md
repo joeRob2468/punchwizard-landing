@@ -246,7 +246,7 @@ Hovering, focusing or pinning a label sets the store's `highlight` to its part: 
 
 ## Camera and input
 
-`scene/CameraRig` wraps drei's `<CameraControls>` (the `camera-controls` library). Settings are in `src/config/camera.ts`. The start (and reset) view is a three-quarter angle at a set distance from the head's centre (`CAMERA.view`, `framingPosition`); the vertical field of view keeps the bust the same share of the screen's height, and windows narrower than 3:2 start further back so it still fits across.
+`scene/CameraRig` wraps drei's `<CameraControls>` (the `camera-controls` library). Settings are in `src/config/camera.ts`. The start (and reset) view is a three-quarter angle at a set distance from a point just above the head's centre (`CAMERA.view`, `framingPosition`); the vertical field of view keeps the bust the same share of the screen's height, and windows narrower than 3:2 start further back so it still fits across.
 
 | Input                              | Action                                                     |
 | ---------------------------------- | ---------------------------------------------------------- |
@@ -261,7 +261,7 @@ Hovering, focusing or pinning a label sets the store's `highlight` to its part: 
 | `[` / `]`                          | Move the cut in steps                                      |
 | `S`, section name                  | Change the section axis                                    |
 
-The polar angle is clamped so the camera can look down on the hat but not up from under the shoulders. After 8 s without input the camera turns slowly; this is off when `prefers-reduced-motion` is set (`hooks/use-prefers-reduced-motion`).
+The polar angle is clamped so the camera can look down on the hat but not up from under the shoulders. After 20 s without input the camera turns slowly (a full turn takes about two minutes); this is off when `prefers-reduced-motion` is set (`hooks/use-prefers-reduced-motion`).
 
 **Touch.** The plate has `touch-action: none`, so the browser never pans or zooms the page or cancels a drag: one finger orbits, a pinch zooms, two fingers dragged move the cut, and taps still click. On touch screens (`pointer: coarse`) the bottom controls get taller tap targets (`--control-row` in `global.css` sets how far stacked rows sit apart) and number-only labels are widened. Below 720 px wide the cut control moves up a row and the views above it, clear of the layer presets.
 

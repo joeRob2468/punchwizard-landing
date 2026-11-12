@@ -6,13 +6,14 @@ export const CAMERA = {
   /** Vertical field of view: the bust fills the same share of any screen's height. */
   fov: 30,
   /** Initial three-quarter view: angles about the target and distance from it. */
-  view: { azimuth: 0.56, polar: 1.535, distance: 7.45 },
+  view: { azimuth: 0.72, polar: 1.545, distance: 8.19 },
   /**
    * Below this aspect ratio (narrow or portrait windows) the camera starts further
    * back, so the bust still fits across with room for the margin labels.
    */
   narrowAspect: 1.5,
-  target: [0, 0, 0] as const,
+  /** What the camera orbits: a little above the origin, so the bust sits slightly low. */
+  target: [0, 0.08, 0] as const,
   minDistance: 2.2,
   maxDistance: 11,
   /** Radians from straight up: can look down on the hat, not up from under the shoulders. */
@@ -23,9 +24,9 @@ export const CAMERA = {
   /** Pan is kept within this box around the target (world units, half-extents). */
   panBounds: [1.5, 1.5, 1.5] as const,
   /** Seconds without input before the idle turn starts. */
-  idleDelay: 8,
+  idleDelay: 20,
   /** Radians per second for the idle turn. */
-  idleSpeed: 0.08,
+  idleSpeed: 0.05,
   /** World units of zoom per pixel of Ctrl/⌘ + wheel. */
   wheelZoom: 0.01,
   keyboard: {
