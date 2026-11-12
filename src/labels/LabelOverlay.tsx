@@ -38,6 +38,8 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
   const dots = useRef<(SVGCircleElement | null)[]>([]);
   const root = useRef<HTMLDivElement>(null);
   const [pinned, setPinned] = useState<string | null>(null);
+  // Labels fade in once the specimen has inked in (see the CSS).
+  const ready = usePlateStore((state) => state.specimenReady);
 
   useEffect(() => {
     let headerBottom = 0;
@@ -189,7 +191,7 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
   };
 
   return (
-    <div ref={root} className={styles.labels}>
+    <div ref={root} className={styles.labels} data-ready={ready ? '' : undefined}>
       <svg className={styles.leaders} aria-hidden="true">
         {ANATOMY.map((entry, index) => (
           <g key={entry.id}>

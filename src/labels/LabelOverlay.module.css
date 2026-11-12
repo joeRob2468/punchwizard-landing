@@ -2,6 +2,19 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  opacity: 0;
+}
+
+/* After the specimen has mostly inked in (FX.reveal: 1.8 s). */
+.labels[data-ready] {
+  opacity: 1;
+  transition: opacity 0.8s ease 1.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .labels[data-ready] {
+    transition-delay: 0.3s;
+  }
 }
 
 .leaders {

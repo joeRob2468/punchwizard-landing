@@ -3,6 +3,9 @@
 // paper. Paper features are fixed to the screen: the specimen turns, the page
 // doesn't. Marginalia (marginalia.glsl) are drawn into the paper where there is
 // nothing in front of it.
+//
+// On load the marks ink in (uReveal 0 → 1, lib/reveal.glsl); until the front
+// arrives the paper (and its marginalia) shows through.
 
 uniform vec3 uPaper;
 uniform vec3 uPaperShadow;
@@ -10,6 +13,7 @@ uniform vec3 uFoxing;
 uniform float uTexture; // 0–1 strength of mottling, fibres, foxing, vignette, granulation
 uniform vec3 uChalk; // colour of the marginalia
 uniform float uMarginalia; // 0–1 strength of the marginalia
+uniform float uReveal; // 0–1: how far the ink-in on load has got (1 = all inked)
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
   vec2 px = uv * resolution;
@@ -27,7 +31,10 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   paper = mix(paper, uPaperShadow * 0.88, vignette * 0.55 * uTexture);
 
   // Marginalia, in the page itself: only where nothing is in front of it.
-  float empty = step(0.9999, depth);
+  // Ink-in (lib/reveal.glsl): the outline pass has already masked the marks; the
+  // marginalia show through wherever the ink hasn't reached yet.
+  float inked = pwInked(uv, uCentre, uReveal);
+  float empty = max(step(0.9999, depth), 1.0 - inked);
   paper = mix(paper, uChalk, marginalia(uv) * uMarginalia * empty);
 
   // Granulation: pigment settles unevenly into the paper's tooth.

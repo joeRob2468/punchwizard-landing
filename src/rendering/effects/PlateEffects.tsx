@@ -12,7 +12,7 @@ import {
   Vignette,
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Vector2, Vector3 } from 'three';
 
 import { useFrame } from '@react-three/fiber';
@@ -50,12 +50,22 @@ export function PlateEffects() {
   // The marginalia centre on the specimen and turn slowly (still with reduced motion).
   const reducedMotion = usePrefersReducedMotion();
   const centre = useMemo(() => new Vector3(), []);
+  // When the specimen became ready (clock seconds), for the ink-in.
+  const readyAt = useRef<number | null>(null);
   useFrame(({ camera, clock }) => {
+    const now = clock.getElapsedTime();
+    if (readyAt.current === null && usePlateStore.getState().specimenReady) readyAt.current = now;
+    const seconds = reducedMotion ? FX.reveal.reducedMotionSeconds : FX.reveal.seconds;
+    const reveal = readyAt.current === null ? 0 : Math.min(1, (now - readyAt.current) / seconds);
+    paper.setReveal(reveal);
+
     // The camera controls leave its matrices stale until render; refresh them, or
     // the marginalia trail the specimen by a frame as it turns.
     camera.updateMatrixWorld();
     centre.set(...MARGINALIA_CENTRE).project(camera);
-    paper.frame((centre.x + 1) / 2, (centre.y + 1) / 2, reducedMotion ? 0 : clock.getElapsedTime());
+    const [u, v] = [(centre.x + 1) / 2, (centre.y + 1) / 2];
+    paper.frame(u, v, reducedMotion ? 0 : now);
+    outline.setReveal(reveal, u, v);
   });
 
   return (

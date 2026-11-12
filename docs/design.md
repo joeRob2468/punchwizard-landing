@@ -285,6 +285,8 @@ Both views get these post effects (tunables in `src/config/fx.ts`):
 - **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue. The composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
 - **Lens:** slight chromatic aberration, light grain and a vignette on the finished image.
 
+**Ink-in.** Once the specimen has drawn its first frame, it inks in over 1.8 s (0.4 s with reduced motion; `FX.reveal`): a ragged front soaks outward from its centre, slightly darker at the wet edge (`shaders/lib/reveal.glsl`). The outline pass applies the mask, so bloom (which reads that pass's output) and the paper only see what has inked in, and glows never run ahead of the wash; the paper shows its marginalia wherever the ink hasn't reached. The labels fade in after it.
+
 Stack order: outline, SMAA (smooths jaggies on silhouettes and ink lines), paper, bloom, lens. The composer doesn't multisample: SMAA alone looks the same, and a multisampled depth-stencil buffer cost about 30 ms a frame at 2500×1330 on Chrome/Windows (ANGLE resolves it slowly), against about 3 ms for the whole frame without it. The outline effect is flagged as a convolution so it always leads its own pass.
 
 ### Resolution

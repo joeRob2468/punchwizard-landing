@@ -20,6 +20,8 @@ uniform vec3 uInk;
 uniform float uWidth;
 uniform float uStrength;
 uniform float uPartEdgeStrength;
+uniform vec2 uCentre; // the specimen's centre in uv, for the ink-in
+uniform float uReveal; // 0–1: how far the ink-in on load has got
 
 const float SILHOUETTE_FROM = 0.015; // relative depth step where ink starts…
 const float SILHOUETTE_TO = 0.04; // …and is full
@@ -84,5 +86,10 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   float crease = smoothstep(0.004, 0.01, abs(laplacian) * scale) * 0.55;
   float ink = max(max(silhouette, crease), partEdge * uPartEdgeStrength) * uStrength * keep;
 
-  outputColor = vec4(mix(inputColor.rgb, uInk, ink), inputColor.a);
+  // Ink-in on load (lib/reveal.glsl): mask the scene here, before bloom and the
+  // paper, so nothing (glows included) shows ahead of the front; darker at the wet edge.
+  float inked = pwInked(uv, uCentre, uReveal);
+  float wetEdge = inked * (1.0 - inked) * 4.0;
+  vec3 colour = mix(inputColor.rgb, uInk, ink) * inked * (1.0 - 0.3 * wetEdge);
+  outputColor = vec4(colour, inputColor.a);
 }

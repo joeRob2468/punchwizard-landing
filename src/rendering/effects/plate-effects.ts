@@ -11,6 +11,7 @@ import { RENDER } from '../../config/render.ts';
 import marginalia from '../shaders/marginalia.glsl?raw';
 import noise from '../shaders/lib/noise.glsl?raw';
 import outline from '../shaders/outline.frag.glsl?raw';
+import reveal from '../shaders/lib/reveal.glsl?raw';
 import paper from '../shaders/paper.frag.glsl?raw';
 
 export class OutlineEffect extends Effect {
@@ -21,8 +22,14 @@ export class OutlineEffect extends Effect {
     numberUniform(this, 'uPartEdgeStrength').value = RENDER.partEdgeStrength * strength;
   }
 
+  /** The ink-in on load: how far it has got (0–1) and where it spreads from (uv). */
+  setReveal(value: number, centreU: number, centreV: number) {
+    numberUniform(this, 'uReveal').value = value;
+    (this.uniforms.get('uCentre')?.value as Vector2).set(centreU, centreV);
+  }
+
   constructor() {
-    super('OutlineEffect', `${noise}\n${outline}`, {
+    super('OutlineEffect', `${noise}\n${reveal}\n${outline}`, {
       // Samples neighbouring pixels, so it must lead its own pass.
       attributes: EffectAttribute.DEPTH | EffectAttribute.CONVOLUTION,
       blendFunction: BlendFunction.SET,
@@ -31,6 +38,9 @@ export class OutlineEffect extends Effect {
         ['uWidth', new Uniform(RENDER.outlineWidth)],
         ['uStrength', new Uniform(RENDER.outlineStrength)],
         ['uPartEdgeStrength', new Uniform(RENDER.partEdgeStrength)],
+        ['uCentre', new Uniform(new Vector2(0.5, 0.5))],
+        // Nothing inked until the specimen is ready (PlateEffects drives it).
+        ['uReveal', new Uniform(0)],
       ]),
     });
   }
@@ -42,6 +52,11 @@ export class PaperEffect extends Effect {
   paintMarginalia(chalk: string, strength: number) {
     colourUniform(this, 'uChalk').set(chalk);
     numberUniform(this, 'uMarginalia').value = strength;
+  }
+
+  /** How far the ink-in on load has got (0–1; 1 = everything inked). */
+  setReveal(value: number) {
+    numberUniform(this, 'uReveal').value = value;
   }
 
   /** Centres the marginalia on the specimen (uv) and moves them on to `seconds`. */
@@ -58,7 +73,7 @@ export class PaperEffect extends Effect {
   }
 
   constructor() {
-    super('PaperEffect', `${noise}\n${marginalia}\n${paper}`, {
+    super('PaperEffect', `${noise}\n${reveal}\n${marginalia}\n${paper}`, {
       attributes: EffectAttribute.DEPTH,
       blendFunction: BlendFunction.SET,
       uniforms: new Map<string, Uniform>([
@@ -68,6 +83,8 @@ export class PaperEffect extends Effect {
         ['uTexture', new Uniform(1)],
         ['uChalk', new Uniform(new Color('#ffffff'))],
         ['uMarginalia', new Uniform(0)],
+        // Nothing inked until the specimen is ready (PlateEffects drives it).
+        ['uReveal', new Uniform(0)],
         ['uCentre', new Uniform(new Vector2(0.5, 0.5))],
         ['uTime', new Uniform(0)],
       ]),

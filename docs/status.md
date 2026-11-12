@@ -33,14 +33,14 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Icons:** SVG favicon (the hat on dark paper) with ICO, touch and manifest (incl. maskable) renders, and a web manifest.
 - **Fallback:** without WebGL 2 (or if the plate fails), the border and title with a still of the specimen and a short note; `<noscript>` shows the same still.
 - **Touch:** no browser gestures on the plate (pinch zooms the camera, not the page), larger tap targets on touch screens, bottom controls stacked on phones, tooltips kept on screen (they open toward the middle, and upward low down).
+- **Ink-in:** the specimen inks in from its centre as the preloader fades (glows included), then the labels fade in.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
 
-The look, the views, the layers and the flair round are done and reviewed. Launch prep: the performance pass, the preloader and the metadata are done (see Works and design.md § Resolution, § Section caps, § Loading). Next:
+The look, the views, the layers and the flair round are done and reviewed. Launch prep is done: performance pass, preloader, metadata and icons, the fallback still, touch tuning and the ink-in (see Works and design.md). Next:
 
-1. **Polish for launch:** an ink-in on load.
-2. **Ship:** build and test the Docker image locally (ask first: it pulls base images), then deploy (M8) only once the owner calls the site final.
+1. **Ship:** build and test the Docker image locally (ask first: it pulls base images), then deploy (M8) only once the owner calls the site final.
 
 ## Working notes
 
