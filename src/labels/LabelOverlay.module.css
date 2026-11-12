@@ -17,9 +17,9 @@
 .casing {
   fill: none;
   stroke: var(--frame);
-  stroke-width: 3.2;
+  stroke-width: 2.4;
   stroke-linecap: round;
-  opacity: 0.55;
+  opacity: 0.3;
   transition: opacity 0.35s;
 }
 
