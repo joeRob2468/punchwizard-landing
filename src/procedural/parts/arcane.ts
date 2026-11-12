@@ -10,7 +10,10 @@ import { intersectLazy, offset, union } from '../sdf/index.ts';
 import { lerp, mirrorX } from '../sdf/math.ts';
 import type { Vec3 } from '../sdf/types.ts';
 import { headSkinField } from './head.ts';
-import { hatField, hatSpine } from './hat.ts';
+import { hornTip } from './cranium.ts';
+import { HEART_TOP } from './fantasy.ts';
+import { hatSpine } from './hat-shape.ts';
+import { hatField } from './hat.ts';
 import type { PartDefinition } from './part.ts';
 import { canalAt, FORAMEN_MAGNUM } from './spine-path.ts';
 import { robeField } from './robe.ts';
@@ -45,6 +48,15 @@ export function vesselsPart(): PartDefinition {
         ...curve(shoulder, lerp(shoulder, elbowward, 0.5), elbowward, 0.026, 0.022, 5),
       ];
     }),
+    // The mana heart's outflow, up behind the sternum to the vessels at the neck.
+    ...curve(
+      [HEART_TOP[0] - 0.01, HEART_TOP[1] + 0.04, HEART_TOP[2] - 0.03],
+      [0.02, -1.05, 0.02],
+      neck,
+      0.018,
+      0.016,
+      8,
+    ),
     // Core forward to each eye.
     ...[L.eyeLeft, mirrorX(L.eyeLeft)].flatMap((eye) =>
       curve(core, [eye[0] * 0.6, 0.14, 0.12], [eye[0], eye[1], eye[2] - 0.06], 0.022, 0.016, 6),
@@ -71,15 +83,21 @@ export function vesselsPart(): PartDefinition {
   };
 }
 
+/** Where the lattice's trunk bends on its way up through the brain to the fontanelle. */
+export const LATTICE_BEND: Vec3 = [0, 0.6, -0.1];
+
 export function latticePart(): PartDefinition {
   const random = createRandom(131);
   const { points } = hatSpine();
   const tip = points[points.length - 1] ?? L.hatTip;
-  const mid = points[Math.floor(points.length / 2)] ?? L.hatTip;
+  const shoulder = points[6] ?? L.hatTip;
+  const fontanelle = hornTip();
 
+  // Up through the brain's lobe in the horn core, out of the fontanelle at its tip,
+  // and on up the hat to its point.
   const trunk = [
-    ...curve(L.aethericCore, [0, 0.4, -0.06], L.fontanelle, 0.03, 0.03, 5),
-    ...curve(L.fontanelle, mid, tip, 0.03, 0.014, 12),
+    ...curve(L.aethericCore, LATTICE_BEND, fontanelle, 0.03, 0.028, 5),
+    ...curve(fontanelle, shoulder, tip, 0.026, 0.014, 10),
   ];
   const branches = sprout(random, trunk.slice(5), {
     count: 26,

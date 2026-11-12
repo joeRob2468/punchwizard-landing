@@ -3,8 +3,11 @@ import type { Vec3 } from '../procedural/sdf/types.ts';
 /** One labelled feature of the specimen. */
 export interface AnatomyEntry {
   readonly id: string;
-  /** Plate number, as printed next to the label. */
-  readonly number: number;
+  /**
+   * Plate number, as printed next to the label. Omitted for an aside: a remark
+   * rather than an anatomical feature, printed without a number.
+   */
+  readonly number?: number;
   readonly name: string;
   readonly latin: string;
   readonly description: string;

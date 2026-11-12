@@ -3,9 +3,19 @@
  * anchors are in specimen space (see src/procedural/landmarks.ts).
  */
 import { LANDMARKS as L } from '../procedural/landmarks.ts';
+import { LATTICE_BEND } from '../procedural/parts/arcane.ts';
 import { focusGemCentres } from '../procedural/parts/brain.ts';
+import {
+  COCHLEA_CENTRE,
+  GANGLIA_CENTRES,
+  HEART_TOP,
+  LEXICON_BINDING,
+  LEXICON_CENTRE,
+} from '../procedural/parts/fantasy.ts';
+import { SINUS_PIPES } from '../procedural/parts/face-organs.ts';
+import { hornTip } from '../procedural/parts/cranium.ts';
 import { canalAt } from '../procedural/parts/spine-path.ts';
-import { lerp, mirrorX } from '../procedural/sdf/math.ts';
+import { bezier, lerp, mirrorX } from '../procedural/sdf/math.ts';
 import type { AnatomyEntry } from './types.ts';
 
 export const ANATOMY: readonly AnatomyEntry[] = [
@@ -15,12 +25,12 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     name: 'The Hat',
     latin: 'Pileus arcanus',
     description:
-      'Not clothing but a horn of laminated keratin grown from the crown. One growth ring is laid down for each year of study.',
+      'Not clothing but a sheath of laminated keratin over a horn core of bone, into which the brain itself has grown. One growth ring is laid down for each year of study.',
     part: 'hat',
     section: [
-      [0, 1.1, -0.12],
-      [0, 0.75, -0.1],
-      [0.1, 1.4, -0.18],
+      [0.1, 1.45, -0.18],
+      [0.12, 1.6, -0.2],
+      [0, 0.75, 0.3],
     ],
     surface: [
       [-0.3, 1.1, 0.1],
@@ -36,12 +46,8 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     description:
       'Mana vessels that rise through the crown and branch up the hat to its tip, where surplus mana is discharged.',
     part: 'lattice',
-    section: [
-      [0.0, 0.45, -0.06],
-      [0.0, 0.82, -0.08],
-      [0.0, 0.72, -0.07],
-      [0.05, 1.15, -0.14],
-    ],
+    // Along the trunk, up through the brain to the fontanelle.
+    section: [0.35, 0.55, 0.75, 0.2].map((t) => bezier(L.aethericCore, LATTICE_BEND, hornTip(), t)),
     surface: [],
   },
   {
@@ -50,9 +56,9 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     name: 'Third Fontanelle',
     latin: 'Fonticulus tertius',
     description:
-      'An opening in the crown of the skull that never closes. The Conduit Lattice passes through it into the hat.',
+      "An opening at the tip of the skull's horn core that never closes. The Conduit Lattice passes through it into the hat.",
     part: 'lattice',
-    section: [L.fontanelle],
+    section: [hornTip()],
     surface: [],
   },
   {
@@ -111,7 +117,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     latin: 'Sinus incantatorius',
     description: 'A resonance chamber behind the nose that tunes the voice for incantation.',
     part: 'sinus',
-    section: [L.sinus, [0.04, 0.02, 0.13], [-0.04, 0.02, 0.13]],
+    section: [...SINUS_PIPES],
     surface: [],
   },
   {
@@ -148,7 +154,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     name: 'Aetherial Vessels',
     latin: 'Vasa aetheria',
     description:
-      'Carry mana from the core down the neck to the arms, for gesturing, and forward to the eyes.',
+      'Carry mana from the core down the spinal canal, out to the arms for gesturing and forward to the eyes. The Cor Aethericum drives them.',
     part: 'vessels',
     section: [
       [0, -0.45, canalAt(-0.45)[2] - 0.026],
@@ -168,5 +174,106 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     part: 'girdle',
     section: [L.familiarsPerch],
     surface: [[L.familiarsPerch[0], L.familiarsPerch[1] + 0.1, L.familiarsPerch[2]]],
+  },
+  {
+    id: 'pileal-lobe',
+    number: 13,
+    name: 'Pileal Lobe',
+    latin: 'Lobus pileatus',
+    description:
+      'The brain does not stop at the brim. It grows up the horn core into the hat for as long as the wizard keeps learning; the tallest hats hold the most.',
+    part: 'brain',
+    section: [
+      [0, 0.9, -0.02],
+      [0, 0.75, 0.02],
+      [0, 1.0, -0.06],
+    ],
+    surface: [],
+  },
+  {
+    id: 'lexicon',
+    number: 14,
+    name: 'Lexicon Lamellae',
+    latin: 'Lamellae lexicales',
+    description:
+      'Leaves of tissue stacked like the pages of a book behind the brow, one leaf to a spell. A wizard who forgets a spell has torn out a page.',
+    part: 'lexicon',
+    // On the binding along the leaves' inner edge.
+    section: [0, 0.02, -0.02].map((dy): [number, number, number] => [
+      0,
+      LEXICON_CENTRE[1] + dy,
+      LEXICON_CENTRE[2] - 0.12 + LEXICON_BINDING,
+    ]),
+    surface: [],
+  },
+  {
+    id: 'heart',
+    number: 15,
+    name: 'Cor Aethericum',
+    latin: 'Cor aethericum',
+    description:
+      'A second heart behind the breastbone, of four faceted chambers, that beats mana rather than blood. It quickens before a spell.',
+    part: 'heart',
+    section: [
+      [HEART_TOP[0] - 0.02, HEART_TOP[1] - 0.08, HEART_TOP[2]],
+      [HEART_TOP[0], HEART_TOP[1] - 0.12, HEART_TOP[2] + 0.01],
+    ],
+    surface: [],
+  },
+  {
+    id: 'cochlea',
+    number: 16,
+    name: 'Cochlea Arcana',
+    latin: 'Cochlea arcana',
+    description:
+      'A second inner ear by each of the first, coiled tighter, that hears the hum of enchanted things and the lies in a spoken charm.',
+    part: 'cochlea',
+    section: [
+      [COCHLEA_CENTRE[0], COCHLEA_CENTRE[1], COCHLEA_CENTRE[2] + 0.038],
+      [-COCHLEA_CENTRE[0], COCHLEA_CENTRE[1], COCHLEA_CENTRE[2] + 0.038],
+    ],
+    surface: [],
+  },
+  {
+    id: 'ganglia',
+    number: 17,
+    name: 'Ganglia Arcana',
+    latin: 'Ganglia arcana',
+    description:
+      'Beads of light strung down the front of the spinal cord, one to a vertebra. Each holds a reflex spell, cast faster than thought.',
+    part: 'ganglia',
+    section: GANGLIA_CENTRES.slice(2, 7),
+    surface: [],
+  },
+  {
+    id: 'beard-roots',
+    number: 18,
+    name: 'Radix Barbae',
+    latin: 'Radix barbae',
+    description:
+      'The root plexus along the jaw from which the Mnemonic Beard grows. Memories pass down it to be filed in the hairs.',
+    part: 'beard-roots',
+    section: [
+      [0, -0.43, 0.433],
+      [-0.06, -0.433, 0.425],
+    ],
+    surface: [],
+  },
+  {
+    id: 'superiority',
+    name: 'Signature look of superiority',
+    latin: 'Vultus superioritatis',
+    description:
+      'Perfected over centuries of looking down the nose at apprentices. Best delivered over the beard, in silence.',
+    part: 'head',
+    section: [
+      [0, 0.0, 0.6],
+      [0, 0.1, 0.5],
+    ],
+    surface: [
+      [0.1, 0.13, 0.49],
+      [-0.1, 0.13, 0.49],
+      [0, 0.05, 0.62],
+    ],
   },
 ];

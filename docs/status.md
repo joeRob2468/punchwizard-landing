@@ -4,17 +4,19 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 
 ## Works
 
-- **M0–M5:** scaffold, render pipeline, procedural specimen with bake, sectioning with stencil caps, internals (skeleton, brain, fantasy organs, mana vessels, conduit lattice), twelve labelled features with leader lines and tooltips.
+- **M0–M5:** scaffold, render pipeline, procedural specimen with bake, sectioning with stencil caps, internals (skeleton, brain, fantasy organs, mana vessels, conduit lattice), eighteen labelled features and an aside with leader lines and tooltips.
 - **Controls:** left-drag orbits, right-drag pans, the **wheel moves the cut** (Ctrl/⌘ + wheel or pinch zooms), two-finger drag moves the cut on touch, `S` / `[` `]` / `R` / arrows / `+` `-`, double-click resets. No on-screen slice handle.
 - **Shading:** four soft watercolour glazes, baked ambient occlusion, cross-contour engraved hatching at a steady screen spacing, depth and part-id outlines without flickering specks, paper composite.
 - **Face (realism pass, owner-approved):** an old man's face with large, forward-set eyes angled away from the nose, almond lids, fold, bags, filled inner corners, wrinkles. The head has no through-holes.
-- **Labels:** all twelve land after the realism pass (checked in the default cut and uncut views).
+- **Labels:** all land in the default cut except the Cochlea Arcana (by the ears; coronal or transverse cuts) and the Familiar's Perch (on the removed half).
 - **Hair (realism pass):** beard, moustache, eyebrows and hair are clumped locks over solid cores, grown with gravity and collision (`growth/locks.ts`); hair drapes over the shoulders; hair parts hatch along their strands.
 - **Hat (realism pass):** floppy lobed brim with a rolled edge, crumpled and creased cone, leather band with a metal buckle and a mana-blue gem.
 - **Robe (realism pass):** plum inner robe with folds, blue mantle with scalloped hem, V opening and stand collar, gold trim, two brooches with garnets and a chain; the Familiar's Perch stands clear of the mantle on the left shoulder.
 - **Internal anatomy (after the medical references):** skull with cranial fossae, palate, orbits and nasal cavity (septum, conchae, frontal and sphenoid sinuses); mandible and 32 teeth; brain with corpus callosum, ventricles, brainstem and cerebellum, meninges/CSF, spinal cord; C1–T10 with the cervical curve, discs and canal; tongue, soft palate, hyoid, larynx, trachea and oesophagus with open airways; clavicles, sternum, scapulae, humeri, ribs and costal cartilage; torso flesh under the robe. The resting sagittal cut sits just past the septum.
+- **Fantasy pass:** the head grows up into the hat as a horn core and the brain fills it (Pileal Lobe); refined Aetheric Core (crystal in crossed rings), Ethereal Gland (scaled cone), Focus Gems (crystal clusters) and Incantatory Sinus (organ pipes); new Lexicon Lamellae, Cor Aethericum, Cochlea Arcana, Ganglia Arcana and Radix Barbae, all labelled; an unnumbered aside, “Signature look of superiority”, points at the face.
+- **Layers:** shown, see-through or hidden per layer, with presets (Omnia, Ossa, Viscera; `L`), bottom left.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
-- **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 340k triangles, 3.6 MB, 60 s (over the plan's 300k budget; fine for the desktop audience).
+- **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 400k triangles, ~4 MB, a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next

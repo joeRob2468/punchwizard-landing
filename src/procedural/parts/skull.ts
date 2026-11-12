@@ -22,7 +22,15 @@ import {
 import type { Sdf, Vec3 } from '../sdf/types.ts';
 import { boneAirway, CHOANAE_Z, conchae, PALATE_TOP, septum } from './airways.ts';
 import type { PartDefinition } from './part.ts';
-import { cranialCavity, cranialFloor, smoothstep, vaultOuter } from './cranium.ts';
+import {
+  cranialCavity,
+  cranialFloor,
+  HORN,
+  hornCore,
+  hornTip,
+  smoothstep,
+  vaultOuter,
+} from './cranium.ts';
 import { headSkinField } from './head.ts';
 import { FORAMEN_MAGNUM } from './spine-path.ts';
 
@@ -90,14 +98,16 @@ const nasalAperture = ellipsoid([0, -0.06, 0.45], [0.05, 0.075, 0.06]);
 export function skullPart(): PartDefinition {
   const base: Sdf = (x, y, z) => baseUnderside(x, z) - y;
   // The vault, cut away below the skull base (the face keeps its own bone).
-  const cranium = intersect(vaultOuter, (x, y, z) => base(x, y, z) * 0.7);
+  const cranium = smoothUnion(
+    0.06,
+    intersect(vaultOuter, (x, y, z) => base(x, y, z) * 0.7),
+    hornCore(HORN.bone),
+  );
   let skull = smoothUnion(0.05, cranium, faceBones());
 
-  const fontanelle = capsule(
-    [L.fontanelle[0], 0.45, L.fontanelle[2]],
-    [L.fontanelle[0], 0.8, L.fontanelle[2]],
-    0.08,
-  );
+  // The Third Fontanelle: open at the tip of the horn core, into the hat.
+  const [tx, ty, tz] = hornTip();
+  const fontanelle = capsule([tx, ty, tz], [tx, ty + 0.25, tz], 0.04);
   const [, fy, fz] = FORAMEN_MAGNUM;
   const foramenMagnum = capsule([0, fy + 0.1, fz], [0, fy - 0.25, fz - 0.01], 0.06);
   const sinusChamber = ellipsoid(L.sinus, [0.07, 0.05, 0.075]);
@@ -122,7 +132,7 @@ export function skullPart(): PartDefinition {
     layer: 'skeleton',
     look: BONE,
     field: insideSkin,
-    bounds: { min: [-0.46, -0.32, -0.6], max: [0.46, 0.66, 0.54] },
+    bounds: { min: [-0.46, -0.32, -0.6], max: [0.46, 1.36, 0.54] },
     // Fontanelle, foramen magnum, orbits and nasal aperture open into the cavities.
     intendedHoles: 6,
     cellSize: 0.009,

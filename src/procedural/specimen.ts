@@ -16,6 +16,13 @@ import {
   spinalCordPart,
 } from './parts/brain.ts';
 import { sinusPart } from './parts/face-organs.ts';
+import {
+  beardRootsPart,
+  cochleaPart,
+  gangliaPart,
+  heartPart,
+  lexiconPart,
+} from './parts/fantasy.ts';
 import { beardPart, eyebrowsPart, hairPart, moustachePart } from './parts/hair.ts';
 import { eyesPart, headPart, irisPart, pupilPart } from './parts/head.ts';
 import { hatBandPart, hatBucklePart, hatGemPart, hatPart } from './parts/hat.ts';
@@ -68,6 +75,7 @@ export function specimenParts(): PartDefinition[] {
     sinusPart(),
     mandiblePart(),
     teethPart(),
+    beardRootsPart(),
     spinePart(),
     discsPart(),
     girdlePart(),
@@ -80,7 +88,9 @@ export function specimenParts(): PartDefinition[] {
     meningesPart(),
     brainPart(),
     callosumPart(),
+    lexiconPart(),
     spinalCordPart(),
+    gangliaPart(),
     focusGemsPart(),
     etherealGlandPart(),
     eyesPart(),
@@ -89,6 +99,8 @@ export function specimenParts(): PartDefinition[] {
     pupilPart('left'),
     pupilPart('right'),
     // Arcane systems last so they read on top of everything they pass through
+    heartPart(),
+    cochleaPart(),
     vesselsPart(),
     latticePart(),
     aethericCorePart(),

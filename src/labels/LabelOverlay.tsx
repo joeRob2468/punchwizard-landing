@@ -168,6 +168,7 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
             className={styles.label}
             data-visible="false"
             data-pinned={pinned === entry.id ? '' : undefined}
+            data-aside={entry.number === undefined ? '' : undefined}
             tabIndex={-1}
             aria-hidden="true"
             aria-describedby={tooltipId}
@@ -188,7 +189,7 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
               setActive(index, false);
             }}
           >
-            <span className={styles.number}>{entry.number}</span>
+            <span className={styles.number}>{entry.number ?? '†'}</span>
             <span className={styles.name}>{entry.name}</span>
             <span id={tooltipId} role="tooltip" className={styles.tooltip}>
               <span className={styles.tooltipName}>{entry.name}</span>

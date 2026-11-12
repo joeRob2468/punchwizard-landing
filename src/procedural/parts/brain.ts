@@ -9,7 +9,9 @@
  * Focus Gems in the cortex.
  */
 import { segmentsField } from '../growth/branches.ts';
+import { between, createRandom } from '../growth/random.ts';
 import { LANDMARKS as L } from '../landmarks.ts';
+import { add, cross, dot, normalise, scale, sub } from '../sdf/math.ts';
 import {
   capsule,
   displace,
@@ -19,10 +21,13 @@ import {
   mirrorX,
   octahedron,
   offset,
+  rotateX,
+  rotateZ,
   roundCone,
   smoothUnion,
   sphere,
   subtract,
+  torus,
   union,
 } from '../sdf/index.ts';
 import type { Sdf, Vec3 } from '../sdf/types.ts';
@@ -119,7 +124,7 @@ export function brainPart(): PartDefinition {
     layer: 'organs',
     look: { wash: 'washBrain', section: { pattern: 'gyri' } },
     field: brain,
-    bounds: { min: [-0.37, -0.25, -0.5], max: [0.37, 0.6, 0.4] },
+    bounds: { min: [-0.37, -0.25, -0.5], max: [0.37, 1.3, 0.4] },
     cellSize: 0.009,
   };
 }
@@ -143,13 +148,15 @@ export function callosumPart(): PartDefinition {
 export function meningesPart(): PartDefinition {
   return {
     id: 'meninges',
-    layer: 'organs',
+    // With the bones it lines, so it goes see-through with them and doesn't
+    // wrap the brain in an opaque shell when only the viscera are shown.
+    layer: 'skeleton',
     look: { wash: 'washCsf', section: { pattern: 'hatch' } },
     field: intersect(
       union(offset(cranialCavity, -0.002), canalField(CANAL_RADIUS - 0.002)),
       (_x, y) => L.bustBase[1] - y,
     ),
-    bounds: { min: [-0.37, L.bustBase[1] - 0.02, -0.52], max: [0.37, 0.6, 0.42] },
+    bounds: { min: [-0.37, L.bustBase[1] - 0.02, -0.52], max: [0.37, 1.3, 0.42] },
     cellSize: 0.009,
   };
 }
@@ -174,27 +181,45 @@ export function spinalCordPart(): PartDefinition {
   };
 }
 
+/**
+ * The Ethereal Gland, where the pineal would be: a small pine cone of a gland,
+ * pointing back and up, its surface in overlapping scales.
+ */
 export function etherealGlandPart(): PartDefinition {
   const c = L.etherealGland;
+  const cone = rotateX(ellipsoid(c, [0.032, 0.05, 0.034]), -0.7, c);
+  const scales: Sdf = (x, y, z) => {
+    const angle = Math.atan2(x - c[0], z - c[2]);
+    return -Math.abs(Math.sin(angle * 5 + (y - c[1]) * 70) * Math.sin((y - c[1]) * 90)) * 0.005;
+  };
   return {
     id: 'ethereal-gland',
     layer: 'organs',
     look: { wash: 'washOchre', glow: 0.3, section: { pattern: 'stipple' } },
-    field: smoothUnion(0.02, sphere(c, 0.035), sphere([c[0], c[1] + 0.03, c[2] - 0.02], 0.022)),
+    field: displace(cone, scales),
     bounds: box(c, 0.09),
-    cellSize: 0.006,
+    cellSize: 0.004,
   };
 }
 
+/**
+ * The Aetheric Core: a faceted nucleus of crystallised mana in an armillary of
+ * two crossed rings, like a small orrery at the centre of the brain.
+ */
 export function aethericCorePart(): PartDefinition {
   const c = L.aethericCore;
+  // A rhombic-ish crystal: an octahedron with its points ground off by a sphere.
+  const crystal = intersect(octahedron(c, 0.085), sphere(c, 0.06));
+  const ring = torus(c, 0.085, 0.006);
+  const rings = union(rotateX(ring, 0.6, c), rotateZ(rotateX(ring, -0.6, c), 1.1, c));
   return {
     id: 'aetheric-core',
     layer: 'arcane',
     look: { wash: 'arcaneMana', glow: 1, section: { pattern: 'glow' } },
-    field: sphere(c, 0.075),
+    field: union(crystal, rings),
     bounds: box(c, 0.11),
-    cellSize: 0.008,
+    cellSize: 0.004,
+    intendedHoles: 3, // the two rings, linked through each other
   };
 }
 
@@ -221,15 +246,50 @@ export function focusGemCentres(): Vec3[] {
   });
 }
 
+/** A double-pointed crystal (a stretched octahedron) along `dir`, centred on `c`. */
+function crystal(c: Vec3, dir: Vec3, length: number, width: number): Sdf {
+  const w = normalise(dir);
+  const u = normalise(cross(Math.abs(w[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0], w));
+  const v = cross(w, u);
+  return (x, y, z) => {
+    const d: Vec3 = [x - c[0], y - c[1], z - c[2]];
+    const a = Math.abs(dot(d, u)) / width;
+    const b = Math.abs(dot(d, v)) / width;
+    const h = Math.abs(dot(d, w)) / length;
+    return (a + b + h - 1) * Math.min(width, length) * 0.5;
+  };
+}
+
+/**
+ * The Focus Gems: a cluster of cut crystals at each site, each pointing out from
+ * the brain's centre, of uneven sizes, one for each discipline mastered.
+ */
 export function focusGemsPart(): PartDefinition {
-  const gems: Sdf[] = focusGemCentres().map((p, i) => octahedron(p, 0.045 + 0.012 * (i % 3)));
+  const random = createRandom(53);
+  const gems: Sdf[] = [];
+  focusGemCentres().forEach((c, i) => {
+    const out = normalise(sub(c, [0, 0.17, -0.06]));
+    const count = 2 + (i % 2);
+    for (let k = 0; k < count; k++) {
+      const tilt: Vec3 = [
+        between(random, -0.5, 0.5),
+        between(random, -0.5, 0.5),
+        between(random, -0.5, 0.5),
+      ];
+      const dir = normalise(add(out, tilt));
+      const size = k === 0 ? between(random, 0.06, 0.075) : between(random, 0.028, 0.042);
+      const offsetBy = k === 0 ? 0 : 0.03;
+      const at = add(c, scale(normalise(cross(dir, [0.3, 1, 0.2])), offsetBy * (k % 2 ? 1 : -1)));
+      gems.push(crystal(at, dir, size, size * 0.5));
+    }
+  });
   return {
     id: 'focus-gems',
     layer: 'organs',
     look: { wash: 'arcaneGarnet', glow: 0.6, section: { pattern: 'glow' } },
     field: union(...gems),
-    bounds: { min: [-0.4, 0.15, -0.3], max: [0.4, 0.62, 0.42] },
-    cellSize: 0.008,
+    bounds: { min: [-0.42, 0.1, -0.35], max: [0.42, 0.68, 0.46] },
+    cellSize: 0.004,
   };
 }
 
