@@ -1,13 +1,11 @@
-// Composites the scene onto aged paper. The scene is rendered as pigment on a white
-// background, so multiplying it by the paper makes washes and ink look absorbed.
-// On a dark ground (uDark) the scene is light on black and is screened onto the
-// paper instead. Paper features are fixed to the screen: the specimen turns, the
-// page doesn't.
+// Composites the scene onto dark aged paper. The scene is rendered as light on a
+// black background and screened onto the paper, so empty areas become plain
+// paper. Paper features are fixed to the screen: the specimen turns, the page
+// doesn't.
 
 uniform vec3 uPaper;
 uniform vec3 uPaperShadow;
 uniform vec3 uFoxing;
-uniform float uDark;
 uniform float uTexture; // 0–1 strength of mottling, fibres, foxing, vignette, granulation
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
@@ -26,11 +24,9 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   paper = mix(paper, uPaperShadow * 0.88, vignette * 0.55 * uTexture);
 
   // Granulation: pigment settles unevenly into the paper's tooth.
-  vec3 marks = mix(1.0 - inputColor.rgb, inputColor.rgb, uDark);
+  vec3 marks = inputColor.rgb;
   float grain = pwNoise2(px * 0.45) * 0.6 + pwNoise2(px * 0.11 + 3.0) * 0.4;
   marks *= mix(1.0, 0.84 + 0.3 * grain, uTexture);
 
-  vec3 multiplied = paper * (1.0 - marks);
-  vec3 screened = 1.0 - (1.0 - paper) * (1.0 - marks);
-  outputColor = vec4(mix(multiplied, screened, uDark), 1.0);
+  outputColor = vec4(1.0 - (1.0 - paper) * (1.0 - marks), 1.0);
 }

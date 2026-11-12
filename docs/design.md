@@ -134,7 +134,7 @@ Current output: about 340k triangles and 3.6 MB across 46 parts, baked in about 
 
 ## Render pipeline
 
-The scene is drawn as **pigment on white** (the scene background is white), then post-processed:
+The scene is drawn as **light on black** (the scene background is black), then post-processed:
 
 1. **Surface: `InkWashMaterial`** (`rendering/materials/`, shaders in `rendering/shaders/ink-wash.*.glsl`). A `ShaderMaterial` with clipping enabled.
    - Lit like a photograph, against lights fixed in **view space**, so the specimen is always lit the same way whichever way it's turned: a wrapped key light from the upper left with warm translucency at the terminator (light scattering under skin), a cool fill from the lower right, a rim from behind and a soft highlight. All are darkened by the baked occlusion attribute (specimen parts set `useOcclusion`). Pigment collects slightly in crevices and its density varies across the surface.
@@ -143,7 +143,7 @@ The scene is drawn as **pigment on white** (the scene background is white), then
 
    Colour is multisampled but the depth texture has one sample per pixel, so sub-pixel slivers (thin edges at grazing angles, stray cap samples) appear in depth or alpha as single odd pixels. To keep them from being inked as flickering specks, a difference only counts if it persists two steps out in the same direction, and a pixel nearer than at least 7 of its 8 neighbours is never inked.
 
-3. **`PaperEffect`**: multiplies the result onto procedural paper fixed to the screen (mottling, fibres, foxing, vignette). Pigment density is modulated by grain noise (granulation). Empty areas (white) become plain paper.
+3. **`PaperEffect`**: screens the result onto dark procedural paper fixed to the screen (mottling, fibres, foxing, vignette, at the view's texture strength). Grain noise modulates the marks (granulation). Empty areas (black) become plain paper.
 
 **Part edges.** Surface and cap materials write a per-part id (manifest index + 1; `specimen/part-id.ts`) to the alpha channel, and the outline effect also inks wherever that id changes between neighbouring pixels. A part whose look sets `inkAs` writes another part's id instead, so one tissue split across two parts (the torso continuing the head's flesh below the neck) shows no seam. This outlines each tissue on a cut face, where caps are coplanar and depth alone shows nothing, and separates overlapping parts. Helpers that blend (the plane's guide lines) leave alpha untouched.
 
@@ -240,31 +240,25 @@ The polar angle is clamped so the camera can look down on the hat but not up fro
 
 ## Palette
 
-Defined twice and kept in step: CSS custom properties in `src/styles/tokens.css`, and `PALETTE` in `src/config/palette.ts` for shaders. Washes are saturated Deyrolle-style pigments; arcane accents are cyan (mana) and garnet (gems).
+Defined twice and kept in step: CSS custom properties in `src/styles/tokens.css`, and `PALETTE` in `src/config/palette.ts` for shaders. Washes are Deyrolle-style pigments on ink-black paper; arcane accents are cyan (mana) and garnet (gems). The page is lettered in chalk (`--ink`).
 
-### Looks
+### Views
 
-`src/config/looks.ts` defines candidate looks for comparison; one will ship. Each look has:
+`src/config/looks.ts` defines the two views visitors switch between with `ui/ViewToggle` (bottom right, `V`):
 
-- a full palette, plus optional washes for particular parts (MRI blackens hair, hat and robe, which give no signal);
-- a line colour for outlines and section patterns (dark in every look: pale lines read as noise);
-- strengths for outlines and section patterns, and optional surface brightness per layer;
-- a paper texture strength (mottling, fibres, foxing, vignette, granulation);
-- a ground: **paper** (pigment on white, multiplied onto paper: Plate) or **dark** (light on black, screened onto dark paper: Nocturne, MRI).
+- **Tabula** (`nocturne`, the default): `PALETTE`, dark outlines and dark section lines on cut faces (pale lines read as noise).
+- **Resonantia** (`mri`): a T2-weighted MRI. Grey by tissue (fluid brightest, muscle and bone dark), the outside dimmed so the cut faces carry the image; hair, hat and robe are blackened (no signal) through per-part washes. Mana is the only colour.
 
-The look lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push it into their materials' and effects' uniforms (`paint(...)`), and `scene/Ground` sets the background, so switching needs no rebuild. The DOM chrome follows through `[data-look=…]` blocks in `tokens.css`. Production always uses `DEFAULT_LOOK` with no effects.
+Each view has a palette, optional per-part washes, outline and section-line colours and strengths, optional surface brightness per layer, and a paper texture strength. The view lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push it into their materials' and effects' uniforms (`paint(...)`), so switching needs no rebuild. `ViewToggle` sets `data-look` on the root, and `[data-look=…]` blocks in `tokens.css` restyle the DOM chrome.
 
-### Optional effects
+### Post effects
 
-`src/config/fx.ts` lists effects that can be toggled on top of any look:
+`src/config/fx.ts` lists the post effects, both on:
 
-- **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue; the composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
-- **Focus:** depth of field focused on the face.
-- **Lens:** chromatic aberration, grain and vignette on the finished image.
+- **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue. The composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
+- **Lens:** slight chromatic aberration, light grain and a vignette on the finished image.
 
-Stack order: outline, depth of field, paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass.
-
-In development, `ui/StylePanel` (top centre) switches looks (also `V`) and toggles effects. `?look=<id>&fx=<id>,<id>` opens a combination and is kept in the URL.
+Stack order: outline, paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass. In development, `ui/StylePanel` (top centre) switches effects off to compare. `?look=<id>&fx=<id>,<id>` opens a view and set of effects, and is kept in the URL.
 
 ## Typography
 

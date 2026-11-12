@@ -25,7 +25,7 @@ import {
 } from 'three';
 
 import { FX } from '../config/fx.ts';
-import { LOOKS, washFor } from '../config/looks.ts';
+import { DEFAULT_LOOK, LOOKS, washFor } from '../config/looks.ts';
 import { CapMaterial } from '../rendering/materials/cap-material.ts';
 import { partIdFor, partIds } from '../specimen/part-id.ts';
 import type { GazeRig } from '../specimen/gaze.ts';
@@ -64,7 +64,7 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
           pivot: entry.gazePivot,
           parity: stencilMaterial(plane),
           cap: new CapMaterial({
-            wash: washFor(LOOKS.plate, entry.id, entry.look.wash),
+            wash: washFor(LOOKS[DEFAULT_LOOK], entry.id, entry.look.wash),
             pattern: section.pattern,
             centre: section.centre,
             partId: ids[index] ?? partIdFor(index),
@@ -92,7 +92,6 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
       cap.paint({
         wash: washFor(look, id, wash),
         line: look.line,
-        dark: look.ground === 'dark',
         section: look.section,
         emission: fx.bloom ? FX.bloom.emission : 0,
       });

@@ -10,7 +10,6 @@ uniform vec3 uCentre; // rings centre
 uniform int uPattern; // 0 hatch, 1 stipple, 2 rings, 3 glow, 4 gyri, 5 strands
 uniform float uTime;
 uniform float uPartId;
-uniform vec3 uBlank; // the empty ground: white on paper, black on a dark ground
 uniform float uSection; // 0–1 section pattern strength
 uniform float uEmission; // how far past white glowing caps go (for bloom)
 
@@ -23,7 +22,7 @@ void main() {
   vec2 uv = vec2(dot(vWorldPosition, t), dot(vWorldPosition, b));
 
   vec3 colour = uWash * vec3(0.86, 0.8, 0.82);
-  colour = mix(colour, uBlank, 0.12 * pwNoise2(uv * 3.0));
+  colour *= 1.0 - 0.12 * pwNoise2(uv * 3.0);
   float ink = 0.0;
 
   if (uPattern == 0) {

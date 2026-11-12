@@ -5,8 +5,7 @@
 // ambient occlusion. Pigment collects slightly in crevices and its density varies
 // across the surface.
 //
-// On paper the colour is pigment on white and the paper effect multiplies it onto
-// paper; on a dark ground (uBlank black) it is light screened onto dark paper.
+// The colour is light on black; the paper effect screens it onto dark paper.
 
 #include <common>
 #include <clipping_planes_pars_fragment>
@@ -16,7 +15,6 @@ uniform vec3 uLightDirection; // view space, normalised
 uniform float uGlow; // 0 = ordinary pigment, 1 = self-lit arcane wash
 uniform float uTime;
 uniform float uPartId; // written to alpha for the outline effect's part edges
-uniform vec3 uBlank; // the empty ground: white on paper, black on a dark ground
 uniform float uGain; // surface brightness against the ground
 uniform float uEmission; // how far past white self-lit parts glow (for bloom)
 
@@ -50,8 +48,7 @@ void main() {
     + vec3(backRim + highlight) * mix(vec3(1.0), uWash, 0.3);
 
   colour *= mix(0.82, 1.0, smoothstep(0.35, 0.9, occlusion));
-  colour = mix(colour, uBlank, 0.1 * pwFbm3(p * 1.7 + 4.0));
-  colour = mix(uBlank, colour, uGain);
+  colour *= (1.0 - 0.1 * pwFbm3(p * 1.7 + 4.0)) * uGain;
 
   // Arcane parts are self-lit: pale at the heart, saturated at the rim, pulsing.
   // With emission the glow keeps its hue and goes past white, so only these parts

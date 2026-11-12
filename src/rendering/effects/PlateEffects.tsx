@@ -1,12 +1,10 @@
 /**
- * The plate's post-processing stack as an R3F component: ink outlines, optional
- * depth of field on the scene, the paper composite, then optional bloom and lens
- * effects on the finished image (see config/fx.ts).
+ * The plate's post-processing stack as an R3F component: ink outlines, the paper
+ * composite, then bloom and lens effects on the finished image (see config/fx.ts).
  */
 import {
   Bloom,
   ChromaticAberration,
-  DepthOfField,
   EffectComposer,
   Noise,
   Vignette,
@@ -37,26 +35,13 @@ export function PlateEffects() {
   const fx = usePlateStore((state) => state.fx);
   useEffect(() => {
     const { palette } = look;
-    outline.paint(look.line, look.outline);
-    paper.paint(
-      palette.paper,
-      palette.paperShadow,
-      palette.foxing,
-      look.paperTexture,
-      look.ground === 'dark',
-    );
+    outline.paint(look.outlineLine, look.outline);
+    paper.paint(palette.paper, palette.paperShadow, palette.foxing, look.paperTexture);
   }, [look, outline, paper]);
 
   return (
     <EffectComposer multisampling={4} stencilBuffer>
       <primitive object={outline} />
-      {fx.focus && (
-        <DepthOfField
-          target={FX.focus.target}
-          worldFocusRange={FX.focus.worldFocusRange}
-          bokehScale={FX.focus.bokehScale}
-        />
-      )}
       <primitive object={paper} />
       {fx.bloom && (
         <Bloom

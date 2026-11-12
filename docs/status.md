@@ -6,7 +6,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 
 - **M0–M5:** scaffold, render pipeline, procedural specimen with bake, sectioning with stencil caps, internals (skeleton, brain, fantasy organs, mana vessels, conduit lattice), nineteen labelled features with leader lines and tooltips.
 - **Controls:** left-drag orbits, right-drag pans, the **wheel moves the cut** (Ctrl/⌘ + wheel or pinch zooms), two-finger drag moves the cut on touch, `S` / `[` `]` / `R` / arrows / `+` `-`, double-click resets. No on-screen slice handle.
-- **Shading:** lit like a photograph (wrapped key, translucency, fill, rim, highlight) with baked ambient occlusion, depth and part-id outlines without flickering specks, paper composite.
+- **Shading:** lit like a photograph (wrapped key, translucency, fill, rim, highlight) with baked ambient occlusion, depth and part-id outlines without flickering specks, paper composite (screened onto dark paper).
 - **Face (realism pass, owner-approved):** an old man's face with large, forward-set eyes angled away from the nose, almond lids, fold, bags, filled inner corners, wrinkles. The head has no through-holes.
 - **Labels:** all land in the default cut except the Cochlea Arcana (by the ears; coronal or transverse cuts) and the Familiar's Perch (on the removed half).
 - **Hair (realism pass):** beard, moustache, eyebrows and hair are clumped locks over solid cores, grown with gravity and collision (`growth/locks.ts`); hair drapes over the shoulders.
@@ -17,14 +17,14 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Layers:** shown, see-through or hidden per layer, with presets (Omnia, Ossa, Viscera; `L`), bottom left. Internal features label from outside once what covers them is see-through or hidden.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 400k triangles, ~4 MB, a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).
-- **Looks and effects (dev comparison):** Plate (light paper texture), Nocturne (plate colours on ink-black paper, dark lines) and MRI (greys by tissue, hair and clothing black). Effects to toggle on any look: Bloom (coloured halos on arcane parts), Focus (depth of field), Lens (aberration, light grain, vignette). The dev panel is at top centre; `?look=…&fx=…`. See design.md § Looks.
+- **Views:** Tabula (default: Deyrolle washes on ink-black paper, dark outlines and section lines) and Resonantia (MRI greys, hair and clothing black), switched at the bottom right or with `V`. Bloom (coloured halos on arcane parts) and Lens (aberration, light grain, vignette) are on in both; a dev panel at top centre can switch them off. See design.md § Views.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
 
 Exterior, internal anatomy, fantasy organs, layers and framing are done and approved. In this order:
 
-1. **Stylisation checks:** the owner is refining Plate, Nocturne and MRI (Sepia, MRI colour and Haze were dropped; the lit shading replaced glazes and hatching). Then choose the default look and which effects ship, and remove the panel. Ideas not yet tried: god rays from the Aetheric Core, floating mana motes. Effects' cost on low-end GPUs isn't measured yet.
+1. **Stylisation:** decided: Tabula and Resonantia, lit shading, bloom and lens. Remaining: owner tuning of the two views; whether the dev effects panel goes before shipping; ideas not yet tried (god rays from the Aetheric Core, floating mana motes); effects' cost on low-end GPUs isn't measured yet.
 2. **Optimise:** bake is ~100 s (head with horn core, hair, beard dominate; consider coarser cells or splitting the head's horn into its own part), ~400k triangles / ~4 MB (simplification error, fewer hair locks), and label tracking cost (BVHs for every part now).
 3. **Finalise (M6 polish):** idle motion, ink-in on load, no-WebGL fallback image, touch tuning, build and test the Docker image locally (ask first: it pulls base images). Deploy (M8) only once the owner calls the site final.
 

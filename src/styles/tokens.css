@@ -1,42 +1,35 @@
 /*
- * Palette and typography tokens. The same palette is mirrored for shaders in
- * src/config/palette.ts; keep the two in step. The `[data-look]` blocks mirror the
- * candidate looks in src/config/looks.ts (paper and line colours only).
+ * Palette and typography tokens for the default view. The washes and paper are
+ * mirrored for shaders in src/config/palette.ts; keep the two in step. `--ink`
+ * here is the chalk the page is lettered in, not the dark pigment PALETTE.ink. `[data-look]` blocks
+ * mirror the other views (paper and line colours only).
  */
 :root {
-  /* Paper and ink */
-  --paper: #efe4cc;
-  --paper-shadow: #d9c7a3;
-  --foxing: #b3854f;
-  --ink: #3b2a1a;
-  --ink-faint: rgb(59 42 26 / 0.55);
-
-  /* Deyrolle washes */
-  --wash-flesh: #eda98a;
-  --wash-muscle: #b8423a;
-  --wash-bone: #f0e2c0;
-  --wash-brain: #d39a9c;
-  --wash-ochre: #d39a3c;
-  --wash-verdigris: #5f9e84;
-  --wash-vein: #3f66a8;
-  --wash-umber: #7a5233;
-  --wash-plum: #6e4a78;
-  --wash-cartilage: #a9c4c4;
-  --wash-csf: #cfe2e6;
-
-  /* Arcane accents */
-  --arcane-mana: #4fc3c9;
-  --arcane-garnet: #9b2335;
-
-  --font-plate: 'IM Fell English', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
-}
-
-:root[data-look='nocturne'] {
+  /* Paper and chalk */
   --paper: #17181c;
   --paper-shadow: #09090b;
   --foxing: #2b2620;
   --ink: #e8dcc0;
   --ink-faint: rgb(232 220 192 / 0.55);
+
+  /* Deyrolle washes */
+  --wash-flesh: #c98f76;
+  --wash-muscle: #a8483f;
+  --wash-bone: #d8ccb0;
+  --wash-brain: #c0898c;
+  --wash-ochre: #c8963f;
+  --wash-verdigris: #5f9e84;
+  --wash-vein: #5577b8;
+  --wash-umber: #8a6446;
+  --wash-plum: #7e5a8a;
+  --wash-cartilage: #9fbaba;
+  --wash-csf: #bcd6dc;
+
+  /* Arcane accents */
+  --arcane-mana: #5fe0e6;
+  --arcane-garnet: #c0304a;
+
+  --font-plate: 'IM Fell English', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
 }
 
 :root[data-look='mri'] {

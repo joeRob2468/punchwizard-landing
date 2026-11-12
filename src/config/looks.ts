@@ -1,9 +1,9 @@
 /**
- * Candidate looks for the plate, compared in development with the style panel
- * (`ui/StylePanel`); one will ship. A look is a full palette plus how marks sit
- * on the ground: pigment multiplied onto pale paper, or light laid onto a dark
- * ground. The DOM side of each look is mirrored in src/styles/tokens.css
- * (`[data-look=…]`); change both together.
+ * The plate's views, which visitors switch between (`ui/ViewToggle`): the default
+ * illustration and an MRI scan. Each is light laid onto a dark ground: a full
+ * palette, line colours and strengths. The DOM side of each is mirrored in
+ * src/styles/tokens.css (`:root` for the default, `[data-look=…]` for the
+ * others); change both together.
  */
 import type { Layer } from '../procedural/format/specimen-format.ts';
 import { PALETTE, type PaletteKey } from './palette.ts';
@@ -11,15 +11,16 @@ import { PALETTE, type PaletteKey } from './palette.ts';
 export type Palette = Readonly<Record<PaletteKey, string>>;
 
 export interface Look {
+  /** Shown on the view toggle. */
   readonly label: string;
-  /** Pigment on paper (multiplied), or light on a dark ground (screened). */
-  readonly ground: 'paper' | 'dark';
   /** 0–1 strength of the paper's mottling, fibres, foxing, vignette and granulation. */
   readonly paperTexture: number;
   /** Pigments, and paper / paper shadow / foxing for the ground. */
   readonly palette: Palette;
-  /** Colour of outlines and section patterns. */
+  /** Colour of section patterns on cut faces. */
   readonly line: string;
+  /** Colour of outlines. */
+  readonly outlineLine: string;
   /** 0–1 multipliers on the base outline and section-pattern strength. */
   readonly outline: number;
   readonly section: number;
@@ -29,43 +30,15 @@ export interface Look {
   readonly layerGain?: Partial<Readonly<Record<Layer, number>>>;
 }
 
-const PLATE: Look = {
-  label: 'Plate',
-  ground: 'paper',
-  paperTexture: 0.35,
-  palette: PALETTE,
-  line: PALETTE.ink,
-  outline: 1,
-  section: 1,
-};
-
-/** The plate's colours on ink-black paper, with dark lines. */
+/** Deyrolle washes on ink-black paper, with dark outlines and section lines. */
 const NOCTURNE: Look = {
-  label: 'Nocturne',
-  ground: 'dark',
+  label: 'Tabula',
   paperTexture: 0.8,
-  palette: {
-    paper: '#17181c',
-    paperShadow: '#09090b',
-    foxing: '#2b2620',
-    ink: '#0b0b0d',
-    washFlesh: '#c98f76',
-    washMuscle: '#a8483f',
-    washBone: '#d8ccb0',
-    washBrain: '#c0898c',
-    washOchre: '#c8963f',
-    washVerdigris: '#5f9e84',
-    washVein: '#5577b8',
-    washUmber: '#8a6446',
-    washPlum: '#7e5a8a',
-    washCartilage: '#9fbaba',
-    washCsf: '#bcd6dc',
-    arcaneMana: '#5fe0e6',
-    arcaneGarnet: '#c0304a',
-  },
-  line: '#050506',
+  palette: PALETTE,
+  line: '#030304',
+  outlineLine: '#050506',
   outline: 0.75,
-  section: 0.5,
+  section: 0.8,
 };
 
 /**
@@ -73,8 +46,7 @@ const NOCTURNE: Look = {
  * dark), the outside dimmed so the cut faces carry the image; mana is the only colour.
  */
 const MRI: Look = {
-  label: 'MRI',
-  ground: 'dark',
+  label: 'Resonantia',
   paperTexture: 0.6,
   palette: {
     paper: '#060607',
@@ -96,20 +68,17 @@ const MRI: Look = {
     arcaneGarnet: '#9a9ea0',
   },
   line: '#141617',
+  outlineLine: '#141617',
   outline: 0.8,
   section: 0.45,
   partWash: scanParts('#1a1c1e', '#8c9194', '#e8eef0'),
   layerGain: { integument: 0.25 },
 };
 
-export const LOOKS = {
-  plate: PLATE,
-  nocturne: NOCTURNE,
-  mri: MRI,
-} as const;
+export const LOOKS = { nocturne: NOCTURNE, mri: MRI } as const;
 export type LookId = keyof typeof LOOKS;
 export const LOOK_IDS = Object.keys(LOOKS) as readonly LookId[];
-export const DEFAULT_LOOK: LookId = 'plate';
+export const DEFAULT_LOOK: LookId = 'nocturne';
 
 export function isLookId(value: unknown): value is LookId {
   return typeof value === 'string' && value in LOOKS;

@@ -36,16 +36,12 @@ export class OutlineEffect extends Effect {
 }
 
 export class PaperEffect extends Effect {
-  /**
-   * Sets the paper colours, how strongly its texture shows (0–1), and whether the
-   * scene is pigment (multiplied) or light (screened).
-   */
-  paint(paper: string, shadow: string, foxing: string, texture: number, dark: boolean) {
+  /** Sets the paper colours and how strongly its texture shows (0–1). */
+  paint(paper: string, shadow: string, foxing: string, texture: number) {
     numberUniform(this, 'uTexture').value = texture;
     colourUniform(this, 'uPaper').set(paper);
     colourUniform(this, 'uPaperShadow').set(shadow);
     colourUniform(this, 'uFoxing').set(foxing);
-    numberUniform(this, 'uDark').value = dark ? 1 : 0;
   }
 
   constructor() {
@@ -55,7 +51,6 @@ export class PaperEffect extends Effect {
         ['uPaper', new Uniform(new Color(PALETTE.paper))],
         ['uPaperShadow', new Uniform(new Color(PALETTE.paperShadow))],
         ['uFoxing', new Uniform(new Color(PALETTE.foxing))],
-        ['uDark', new Uniform(0)],
         ['uTexture', new Uniform(1)],
       ]),
     });

@@ -38,8 +38,6 @@ export interface InkWashOptions {
 /** How a part is painted under the current look (see config/looks.ts). */
 export interface SurfacePaint {
   readonly wash: string;
-  /** Light laid on a dark ground rather than pigment on white. */
-  readonly dark: boolean;
   /** Brightness of the surface against the ground (1 = as painted). */
   readonly gain: number;
   /** How far past white self-lit parts glow (0 = not at all), for bloom. */
@@ -49,14 +47,12 @@ export interface SurfacePaint {
 export class InkWashMaterial extends ShaderMaterial {
   readonly #time: { value: number };
   readonly #wash: Color;
-  readonly #blank: Color;
   readonly #gain: { value: number };
   readonly #emission: { value: number };
 
   constructor({ wash, glow = 0, partId = 255, useOcclusion = false }: InkWashOptions) {
     const time = { value: 0 };
     const washColour = new Color(wash);
-    const blank = new Color(1, 1, 1);
     const gain = { value: 1 };
     const emission = { value: 0 };
     super({
@@ -65,7 +61,6 @@ export class InkWashMaterial extends ShaderMaterial {
       clipping: true,
       uniforms: {
         uWash: { value: washColour },
-        uBlank: { value: blank },
         uGain: gain,
         uEmission: emission,
         uLightDirection: { value: new Vector3(...RENDER.lightDirection).normalize() },
@@ -78,14 +73,12 @@ export class InkWashMaterial extends ShaderMaterial {
     this.name = 'InkWashMaterial';
     this.#time = time;
     this.#wash = washColour;
-    this.#blank = blank;
     this.#gain = gain;
     this.#emission = emission;
   }
 
-  paint({ wash, dark, gain, emission }: SurfacePaint) {
+  paint({ wash, gain, emission }: SurfacePaint) {
     this.#wash.set(wash);
-    this.#blank.setScalar(dark ? 0 : 1);
     this.#gain.value = gain;
     this.#emission.value = emission;
   }

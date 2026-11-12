@@ -8,7 +8,7 @@ import { use, useEffect, useMemo } from 'react';
 
 import { GHOST_OPACITY } from '../config/layers.ts';
 import { FX } from '../config/fx.ts';
-import { LOOKS, washFor } from '../config/looks.ts';
+import { DEFAULT_LOOK, LOOKS, washFor } from '../config/looks.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import type { LabelChannel } from '../labels/label-channel.ts';
 import { LabelTracker } from '../labels/LabelTracker.tsx';
@@ -38,7 +38,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
         const material = new InkWashMaterial({
           partId: ids[index] ?? partIdFor(index),
           useOcclusion: true,
-          wash: washFor(LOOKS.plate, entry.id, entry.look.wash),
+          wash: washFor(LOOKS[DEFAULT_LOOK], entry.id, entry.look.wash),
           glow: entry.look.glow ?? 0,
         });
         material.clippingPlanes = [plane];
@@ -77,7 +77,6 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
     meshes.forEach(({ id, layer, wash, material }) => {
       material.paint({
         wash: washFor(look, id, wash),
-        dark: look.ground === 'dark',
         gain: look.layerGain?.[layer] ?? 1,
         emission: fx.bloom ? FX.bloom.emission : 0,
       });

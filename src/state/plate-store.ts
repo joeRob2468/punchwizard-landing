@@ -5,7 +5,7 @@
 import { create } from 'zustand';
 
 import { LAYER_MODES, LAYER_PRESETS, type LayerModes } from '../config/layers.ts';
-import { FX_OFF, type FxId, type FxModes } from '../config/fx.ts';
+import { FX_DEFAULT, type FxId, type FxModes } from '../config/fx.ts';
 import { DEFAULT_LOOK, type LookId } from '../config/looks.ts';
 import { SLICE, SLICE_AXES, type SliceAxis } from '../config/slice.ts';
 import type { Layer } from '../procedural/format/specimen-format.ts';
@@ -39,10 +39,10 @@ interface PlateState {
   readonly setLayers: (modes: LayerModes) => void;
   /** Applies the next preset (keyboard). */
   readonly cycleLayerPreset: () => void;
-  /** The plate's look (palette and ground); only switched in development. */
+  /** The view: the default illustration or the MRI scan. */
   readonly look: LookId;
   readonly setLook: (look: LookId) => void;
-  /** Optional effects on top of the look; only switched in development. */
+  /** Post effects; only switched off in development. */
   readonly fx: FxModes;
   readonly setFx: (fx: FxModes) => void;
   readonly toggleFx: (id: FxId) => void;
@@ -65,7 +65,7 @@ export const usePlateStore = create<PlateState>()((set, get) => ({
     set({ look });
   },
 
-  fx: FX_OFF,
+  fx: FX_DEFAULT,
 
   setFx: (fx) => {
     set({ fx });
