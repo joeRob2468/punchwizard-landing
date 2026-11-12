@@ -48,6 +48,9 @@ export interface Look {
   readonly layerGain?: Partial<Readonly<Record<Layer, number>>>;
 }
 
+/** The default view's hair and beard: blue-black, lifted enough to read on the dark paper. */
+const HAIR_BLUE_BLACK = '#2f3648';
+
 /** Deyrolle washes on ink-black paper, with dark outlines and section lines. */
 const NOCTURNE: Look = {
   label: 'Tabula',
@@ -60,6 +63,13 @@ const NOCTURNE: Look = {
   moteColour: '#bfb59c',
   chalk: '#e8dcc0',
   marginalia: 0.035,
+  // Blue-black hair and beard (bone-pale washed out against the dark paper).
+  partWash: {
+    hair: HAIR_BLUE_BLACK,
+    beard: HAIR_BLUE_BLACK,
+    moustache: HAIR_BLUE_BLACK,
+    eyebrows: HAIR_BLUE_BLACK,
+  },
 };
 
 /**

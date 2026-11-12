@@ -269,13 +269,13 @@ The polar angle is clamped so the camera can look down on the hat but not up fro
 
 ## Palette
 
-Defined twice and kept in step: CSS custom properties in `src/styles/tokens.css`, and `PALETTE` in `src/config/palette.ts` for shaders. Washes are Deyrolle-style pigments on ink-black paper. The magical organs glow at full strength, each in its own hue (cyan mana in the lattice, vessels and eyes; violet core, rose heart, lime ganglia, magenta cochlea, gold gland, sapphire gems, emerald sinus, warm-white lexicon, ember beard roots), and keep those colours in every view; garnet is for the robe's gems. The page is lettered in chalk (`--ink`).
+Defined twice and kept in step: CSS custom properties in `src/styles/tokens.css`, and `PALETTE` in `src/config/palette.ts` for shaders. Washes are Deyrolle-style pigments on ink-black paper, kept fairly deep and saturated (pale pastels wash out against the dark ground); cut faces paint a deeper version of each part's wash, so they follow. The magical organs glow at full strength, each in its own hue (cyan mana in the lattice, vessels and eyes; violet core, rose heart, lime ganglia, magenta cochlea, gold gland, sapphire gems, emerald sinus, warm-white lexicon, ember beard roots), and keep those colours in every view; garnet is for the robe's gems. The page is lettered in chalk (`--ink`).
 
 ### Views
 
 `src/config/looks.ts` defines the two views visitors switch between with `ui/ViewToggle` (bottom right, `V`):
 
-- **Tabula** (`nocturne`, the default): `PALETTE`, dark outlines and dark section lines on cut faces (pale lines read as noise).
+- **Tabula** (`nocturne`, the default): `PALETTE`, with blue-black hair, beard, moustache and eyebrows (per-part washes), dark outlines and dark section lines on cut faces (pale lines read as noise).
 - **Resonantia** (`mri`): a T2-weighted MRI. Grey by tissue (fluid brightest, muscle and bone dark), the outside dimmed so the cut faces carry the image; hair, hat and robe are blackened (no signal) through per-part washes. Only the magical organs keep their colours.
 
 Each view has a palette, optional per-part washes, outline and section-line colours and strengths, optional surface brightness per layer, and a paper texture strength. The view lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push it into their materials' and effects' uniforms (`paint(...)`), so switching needs no rebuild. `ViewToggle` sets `data-look` on the root, and `[data-look=…]` blocks in `tokens.css` restyle the DOM chrome.
