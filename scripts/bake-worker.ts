@@ -38,9 +38,15 @@ const SIMPLIFY_ERROR = 0.2;
 const indices = workerData as number[];
 const parts = specimenParts();
 // Outer parts are shaded with occlusion from all outer parts together (the brim
-// shades the face, the beard the robe). Internal parts are only seen in section.
-const outer = parts.filter((p) => p.layer === 'integument');
-const outerField = union(...outer.map((p) => p.field));
+// shades the face, the beard the robe); bones from the skeleton together (eye
+// sockets, the nasal aperture, between the ribs). Other internals are only seen
+// in section.
+const fieldOf = (layer: string) =>
+  union(...parts.filter((p) => p.layer === layer).map((p) => p.field));
+const occluders: Partial<Record<string, ReturnType<typeof union>>> = {
+  integument: fieldOf('integument'),
+  skeleton: fieldOf('skeleton'),
+};
 for (const index of indices) {
   const part = parts[index];
   if (!part) continue;
@@ -51,7 +57,8 @@ for (const index of indices) {
       MIN_PIECE_TRIANGLES,
     );
     const { mesh } = orientOutward(await simplifyMesh(raw, part.cellSize * SIMPLIFY_ERROR));
-    const occlusion = part.layer === 'integument' ? bakeOcclusion(mesh, outerField) : null;
+    const occluder = occluders[part.layer];
+    const occlusion = occluder ? bakeOcclusion(mesh, occluder) : null;
     const { bytes, indexType } = encodePart(mesh, part.bounds, occlusion);
     const result: BakeResult = {
       index,
