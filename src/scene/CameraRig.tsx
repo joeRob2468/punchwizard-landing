@@ -8,7 +8,7 @@ import CameraControlsImpl from 'camera-controls';
 import { useEffect, useRef } from 'react';
 import { Box3, Vector3 } from 'three';
 
-import { CAMERA } from '../config/camera.ts';
+import { CAMERA, framingPosition } from '../config/camera.ts';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 
@@ -19,6 +19,7 @@ export function CameraRig() {
   const lastInput = useRef(0);
   const reducedMotion = usePrefersReducedMotion();
   const domElement = useThree((state) => state.gl.domElement);
+  const getState = useThree((state) => state.get);
 
   // Initial framing, limits, and the reset point.
   useEffect(() => {
@@ -33,10 +34,10 @@ export function CameraRig() {
     // fingers only pinch-zoom here; dragging them moves the cut (SliceController).
     c.mouseButtons.wheel = ACTION.NONE;
     c.touches.two = ACTION.TOUCH_DOLLY;
-    void c.setLookAt(...CAMERA.position, ...CAMERA.target, false);
-    c.saveState();
+    const { width, height } = getState().size;
+    void c.setLookAt(...framingPosition(width / height), ...CAMERA.target, false);
     lastInput.current = performance.now();
-  }, []);
+  }, [getState]);
 
   // Keyboard, Shift-to-pan, double-click reset.
   useEffect(() => {
@@ -91,8 +92,10 @@ export function CameraRig() {
   useEffect(() => {
     if (viewResets === 0) return;
     lastInput.current = performance.now();
-    void controls.current?.reset(true);
-  }, [viewResets]);
+    // Framed for the window as it is now, which may have been resized since.
+    const { width, height } = getState().size;
+    void controls.current?.setLookAt(...framingPosition(width / height), ...CAMERA.target, true);
+  }, [viewResets, getState]);
 
   useFrame((_, delta) => {
     const c = controls.current;

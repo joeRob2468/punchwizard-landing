@@ -223,7 +223,7 @@ Leaders are cubic curves from the label to the anchor with a small per-label wob
 
 ## Camera and input
 
-`scene/CameraRig` wraps drei's `<CameraControls>` (the `camera-controls` library). Settings are in `src/config/camera.ts`.
+`scene/CameraRig` wraps drei's `<CameraControls>` (the `camera-controls` library). Settings are in `src/config/camera.ts`. The start (and reset) view is a three-quarter angle at a set distance from the head's centre (`CAMERA.view`, `framingPosition`); the vertical field of view keeps the bust the same share of the screen's height, and windows narrower than 3:2 start further back so it still fits across.
 
 | Input                              | Action                                                     |
 | ---------------------------------- | ---------------------------------------------------------- |

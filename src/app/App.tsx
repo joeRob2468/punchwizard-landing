@@ -5,7 +5,7 @@ import { Canvas } from '@react-three/fiber';
 import { Suspense, useMemo } from 'react';
 
 import { ANATOMY } from '../anatomy/registry.ts';
-import { CAMERA } from '../config/camera.ts';
+import { CAMERA, framingPosition } from '../config/camera.ts';
 import { LabelChannel } from '../labels/label-channel.ts';
 import { LabelOverlay } from '../labels/LabelOverlay.tsx';
 import { PlateEffects } from '../rendering/effects/PlateEffects.tsx';
@@ -32,7 +32,12 @@ export function App() {
         flat
         dpr={[1, 2]}
         gl={{ antialias: false, stencil: true }}
-        camera={{ fov: CAMERA.fov, position: [...CAMERA.position], near: 0.1, far: 50 }}
+        camera={{
+          fov: CAMERA.fov,
+          position: framingPosition(window.innerWidth / window.innerHeight),
+          near: 0.1,
+          far: 50,
+        }}
         onCreated={({ gl }) => {
           // Materials clip against the sectioning plane individually.
           gl.localClippingEnabled = true;
