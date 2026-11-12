@@ -2,11 +2,13 @@
  * The bake's output format: `manifest.json` plus one binary file per part.
  * Simpler than glTF and needs no exporter in Node.
  *
- * Part file layout (little-endian, sections 4-byte aligned):
- *   positions  Int16 × 3 × vertexCount, quantised within the part's bounds, padded to 4 bytes
- *   normals    Int8 × 3 × vertexCount (normalised), padded to 4 bytes
- *   occlusion  Uint8 × vertexCount (normalised; 1 = open), padded to 4 bytes
- *   indices    Uint16 or Uint32 × indexCount
+ * Each vertex is 12 bytes, interleaved: position Int16 × 3 (quantised within the
+ * part's bounds), normal Int8 × 3 (normalised), occlusion Uint8 (normalised;
+ * 1 = open), one byte of padding. A part file holds that vertex buffer and then
+ * the index buffer (Uint16 or Uint32), each compressed with meshoptimizer's
+ * codec (the bake encodes, `specimen/load-specimen` decodes); `vertexStreamBytes`
+ * in the manifest says where the first ends. The codec plus gzip roughly halves
+ * the download against the raw buffers.
  *
  * Positions are decoded to Float32 on load, so quantisation only affects download
  * size (precision is bounds / 65534, well under a micron at specimen scale).
@@ -14,7 +16,7 @@
 import type { MeshData } from '../mesh/surface-nets.ts';
 import type { Bounds, Vec3 } from '../sdf/types.ts';
 
-export const FORMAT_VERSION = 3;
+export const FORMAT_VERSION = 4;
 
 /** Anatomical layers, outside in. */
 export const LAYERS = ['integument', 'musculature', 'skeleton', 'organs', 'arcane'] as const;
@@ -44,6 +46,8 @@ export interface PartEntry {
   readonly vertexCount: number;
   readonly indexCount: number;
   readonly indexType: 'uint16' | 'uint32';
+  /** Length of the compressed vertex buffer at the start of the part file. */
+  readonly vertexStreamBytes: number;
   readonly bounds: Bounds;
   /** Present on parts that turn to follow the pointer: the point they turn about. */
   readonly gazePivot?: Vec3;
@@ -55,78 +59,68 @@ export interface SpecimenManifest {
   readonly landmarks: Readonly<Record<string, Vec3>>;
 }
 
-const align4 = (n: number) => (n + 3) & ~3;
+/** Bytes per interleaved vertex (see the module comment). */
+export const VERTEX_STRIDE = 12;
 
 const QUANT = 32767;
 
-export function encodePart(
+/**
+ * Quantises and interleaves a mesh's vertices into the format's vertex layout.
+ * `order[i]` is where vertex i goes (or 0xffffffff to drop it), as a reordering
+ * for compression gives it; `count` is how many vertices remain.
+ */
+export function interleaveVertices(
   mesh: MeshData,
   bounds: Bounds,
   occlusion: Float32Array | null,
-): {
-  bytes: Uint8Array<ArrayBuffer>;
-  indexType: PartEntry['indexType'];
-} {
+  order: Uint32Array,
+  count: number,
+): Uint8Array {
+  const bytes = new Uint8Array(count * VERTEX_STRIDE);
+  const view = new DataView(bytes.buffer);
   const vertexCount = mesh.positions.length / 3;
-  const indexType = vertexCount <= 0xffff ? 'uint16' : 'uint32';
-  const positionBytes = align4(vertexCount * 3 * 2);
-  const normalBytes = align4(vertexCount * 3);
-  const occlusionBytes = align4(vertexCount);
-  const indexBytes = mesh.indices.length * (indexType === 'uint16' ? 2 : 4);
-
-  const buffer = new ArrayBuffer(positionBytes + normalBytes + occlusionBytes + indexBytes);
-  const positions = new Int16Array(buffer, 0, vertexCount * 3);
-  for (let i = 0; i < positions.length; i++) {
-    const axis = i % 3;
-    const lo = bounds.min[axis] ?? 0;
-    const hi = bounds.max[axis] ?? 1;
-    const t = ((mesh.positions[i] ?? 0) - lo) / (hi - lo); // 0–1 inside the bounds
-    positions[i] = Math.round(Math.max(-1, Math.min(1, t * 2 - 1)) * QUANT);
-  }
-  const normals = new Int8Array(buffer, positionBytes, vertexCount * 3);
-  for (let i = 0; i < normals.length; i++) {
-    normals[i] = Math.round(Math.max(-1, Math.min(1, mesh.normals[i] ?? 0)) * 127);
-  }
-  const occlusionView = new Uint8Array(buffer, positionBytes + normalBytes, vertexCount);
   for (let i = 0; i < vertexCount; i++) {
-    occlusionView[i] = Math.round(Math.max(0, Math.min(1, occlusion?.[i] ?? 1)) * 255);
+    const target = order[i] ?? 0xffffffff;
+    if (target === 0xffffffff) continue;
+    const at = target * VERTEX_STRIDE;
+    for (let axis = 0; axis < 3; axis++) {
+      const lo = bounds.min[axis] ?? 0;
+      const hi = bounds.max[axis] ?? 1;
+      const t = ((mesh.positions[i * 3 + axis] ?? 0) - lo) / (hi - lo); // 0–1 inside the bounds
+      view.setInt16(at + axis * 2, Math.round(Math.max(-1, Math.min(1, t * 2 - 1)) * QUANT), true);
+      const n = Math.max(-1, Math.min(1, mesh.normals[i * 3 + axis] ?? 0));
+      view.setInt8(at + 6 + axis, Math.round(n * 127));
+    }
+    bytes[at + 9] = Math.round(Math.max(0, Math.min(1, occlusion?.[i] ?? 1)) * 255);
   }
-  const indexOffset = positionBytes + normalBytes + occlusionBytes;
-  if (indexType === 'uint16') {
-    new Uint16Array(buffer, indexOffset, mesh.indices.length).set(mesh.indices);
-  } else {
-    new Uint32Array(buffer, indexOffset, mesh.indices.length).set(mesh.indices);
-  }
-  return { bytes: new Uint8Array(buffer), indexType };
+  return bytes;
 }
 
 export interface DecodedPart {
   readonly positions: Float32Array;
   readonly normals: Int8Array;
   readonly occlusion: Uint8Array;
-  readonly indices: Uint16Array | Uint32Array;
 }
 
-export function decodePart(buffer: ArrayBuffer, entry: PartEntry): DecodedPart {
-  const count = entry.vertexCount * 3;
-  const quantised = new Int16Array(buffer, 0, count);
-  const positions = new Float32Array(count);
+/** Splits decoded interleaved vertices back into attributes (positions as Float32). */
+export function deinterleaveVertices(bytes: Uint8Array, entry: PartEntry): DecodedPart {
+  const count = entry.vertexCount;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const positions = new Float32Array(count * 3);
+  const normals = new Int8Array(count * 3);
+  const occlusion = new Uint8Array(count);
   for (let i = 0; i < count; i++) {
-    const axis = i % 3;
-    const lo = entry.bounds.min[axis] ?? 0;
-    const hi = entry.bounds.max[axis] ?? 1;
-    positions[i] = lo + (((quantised[i] ?? 0) / QUANT + 1) / 2) * (hi - lo);
+    const at = i * VERTEX_STRIDE;
+    for (let axis = 0; axis < 3; axis++) {
+      const lo = entry.bounds.min[axis] ?? 0;
+      const hi = entry.bounds.max[axis] ?? 1;
+      const q = view.getInt16(at + axis * 2, true);
+      positions[i * 3 + axis] = lo + ((q / QUANT + 1) / 2) * (hi - lo);
+      normals[i * 3 + axis] = view.getInt8(at + 6 + axis);
+    }
+    occlusion[i] = bytes[at + 9] ?? 255;
   }
-  const positionBytes = align4(count * 2);
-  const normals = new Int8Array(buffer, positionBytes, count);
-  const occlusionOffset = positionBytes + align4(count);
-  const occlusion = new Uint8Array(buffer, occlusionOffset, entry.vertexCount);
-  const indexOffset = occlusionOffset + align4(entry.vertexCount);
-  const indices =
-    entry.indexType === 'uint16'
-      ? new Uint16Array(buffer, indexOffset, entry.indexCount)
-      : new Uint32Array(buffer, indexOffset, entry.indexCount);
-  return { positions, normals, occlusion, indices };
+  return { positions, normals, occlusion };
 }
 
 /** Narrow check for a fetched manifest; the bake is the only writer. */

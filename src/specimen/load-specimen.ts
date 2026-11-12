@@ -1,14 +1,17 @@
 /**
- * Fetches the baked specimen (manifest + part buffers) and builds geometries.
+ * Fetches the baked specimen (manifest + part buffers), decompresses the parts
+ * (meshoptimizer's decoder) and builds geometries.
  * The rest of the app depends on `LoadedSpecimen`, not on how parts were made.
  */
+import { MeshoptDecoder } from 'meshoptimizer/decoder';
 import { BufferAttribute, BufferGeometry, Sphere, Vector3 } from 'three';
 
 import {
-  decodePart,
+  deinterleaveVertices,
   isSpecimenManifest,
   type PartEntry,
   type SpecimenManifest,
+  VERTEX_STRIDE,
 } from '../procedural/format/specimen-format.ts';
 import type { Bounds } from '../procedural/sdf/types.ts';
 
@@ -36,6 +39,7 @@ export async function loadSpecimen(baseUrl: string): Promise<LoadedSpecimen> {
   const parts = await Promise.all(
     manifest.parts.map(async (entry) => {
       const buffer = await fetchBuffer(`${baseUrl}${entry.file}`);
+      await MeshoptDecoder.ready;
       return { entry, geometry: buildGeometry(buffer, entry) };
     }),
   );
@@ -55,7 +59,25 @@ function unionBounds(all: readonly Bounds[]): Bounds {
 }
 
 function buildGeometry(buffer: ArrayBuffer, entry: PartEntry): BufferGeometry {
-  const { positions, normals, occlusion, indices } = decodePart(buffer, entry);
+  const source = new Uint8Array(buffer);
+  const vertices = new Uint8Array(entry.vertexCount * VERTEX_STRIDE);
+  MeshoptDecoder.decodeVertexBuffer(
+    vertices,
+    entry.vertexCount,
+    VERTEX_STRIDE,
+    source.subarray(0, entry.vertexStreamBytes),
+  );
+  const indexSize = entry.indexType === 'uint16' ? 2 : 4;
+  const indexBytes = new Uint8Array(entry.indexCount * indexSize);
+  MeshoptDecoder.decodeIndexBuffer(
+    indexBytes,
+    entry.indexCount,
+    indexSize,
+    source.subarray(entry.vertexStreamBytes),
+  );
+  const indices =
+    indexSize === 2 ? new Uint16Array(indexBytes.buffer) : new Uint32Array(indexBytes.buffer);
+  const { positions, normals, occlusion } = deinterleaveVertices(vertices, entry);
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(positions, 3));
   geometry.setAttribute('normal', new BufferAttribute(normals, 3, true));

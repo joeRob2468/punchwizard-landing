@@ -49,6 +49,7 @@ async function bake(): Promise<void> {
       vertexCount: result.vertexCount,
       indexCount: result.indexCount,
       indexType: result.indexType,
+      vertexStreamBytes: result.vertexStreamBytes,
       bounds: part.bounds,
       ...(part.gazePivot ? { gazePivot: part.gazePivot } : {}),
     });

@@ -4,7 +4,7 @@
  */
 import { parentPort, workerData } from 'node:worker_threads';
 
-import { encodePart } from '../src/procedural/format/specimen-format.ts';
+import { encodePart } from './encode-part.ts';
 import { dropSmallComponents } from '../src/procedural/mesh/components.ts';
 import { bakeOcclusion } from '../src/procedural/mesh/occlusion.ts';
 import { orientOutward } from '../src/procedural/mesh/orient.ts';
@@ -20,6 +20,7 @@ export interface BakeResult {
   readonly indexType: 'uint16' | 'uint32';
   readonly vertexCount: number;
   readonly indexCount: number;
+  readonly vertexStreamBytes: number;
   /** Through-holes in the mesh; anything above 0 shows as a hole on screen. */
   readonly handles: number;
   readonly ms: number;
@@ -59,13 +60,15 @@ for (const index of indices) {
     const { mesh } = orientOutward(await simplifyMesh(raw, part.cellSize * SIMPLIFY_ERROR));
     const occluder = occluders[part.layer];
     const occlusion = occluder ? bakeOcclusion(mesh, occluder) : null;
-    const { bytes, indexType } = encodePart(mesh, part.bounds, occlusion);
+    const encoded = await encodePart(mesh, part.bounds, occlusion);
+    const { bytes } = encoded;
     const result: BakeResult = {
       index,
       bytes,
-      indexType,
-      vertexCount: mesh.positions.length / 3,
-      indexCount: mesh.indices.length,
+      indexType: encoded.indexType,
+      vertexCount: encoded.vertexCount,
+      indexCount: encoded.indexCount,
+      vertexStreamBytes: encoded.vertexStreamBytes,
       handles: countHandles(raw),
       ms: performance.now() - started,
     };
