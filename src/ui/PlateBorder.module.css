@@ -1,7 +1,64 @@
-.border {
+/* The outer rule is the frame's edge; the inner rule sits a band's depth inside. */
+.frame {
+  --band: 4px;
   position: absolute;
   inset: clamp(10px, 2.5vmin, 28px);
   border: 1px solid var(--ink-faint);
-  outline: 1px solid var(--ink-faint);
-  outline-offset: 4px;
+}
+
+.inner {
+  position: absolute;
+  inset: var(--band);
+  border: 1px solid var(--ink-faint);
+}
+
+.ornament {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  overflow: visible;
+}
+
+.runes path {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.75;
+  transition:
+    stroke 0.9s,
+    opacity 0.9s,
+    filter 0.9s;
+}
+
+.runes path[data-lit] {
+  stroke: var(--arcane-mana);
+  opacity: 1;
+  filter: drop-shadow(0 0 2px var(--arcane-mana));
+  transition-duration: 0.25s;
+}
+
+.medallion circle,
+.medallion path {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 0.9;
+}
+
+.medallion circle:first-child {
+  fill: var(--paper);
+}
+
+.medallion .medallionRune {
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Room for the rune band only on screens big enough not to crowd the controls. */
+@media (min-width: 900px) and (min-height: 600px) {
+  .frame {
+    --band: 13px;
+  }
 }

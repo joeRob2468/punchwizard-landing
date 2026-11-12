@@ -21,6 +21,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Rune circles:** Elder Futhark rings: a turning summoning circle with a valknut under the bust and a faint halo ring behind the head.
 - **Scrying cut:** the cut's outline glows where it meets the outer shell, and faint runes drift across the cut faces.
 - **Marginalia:** a faint slowly turning astrolabe, compass arcs and construction lines drawn into the paper behind the specimen.
+- **Border:** a band of runes in the double rule, corner medallions, and runes that catch the light now and then.
 - **Idle life:** glows breathe on their own rhythms, the heart beats, the eyes' glow blinks now and then, the hat sways (cuts and labels follow); sway and blinks respect reduced motion.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 400k triangles, ~4 MB, a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).
