@@ -33,6 +33,115 @@ export function footprintDistance(segments: readonly number[], grid: GroundGrid)
   return out;
 }
 
+/**
+ * Signed distance to the *outer* edge of the outline (negative inside): gaps the
+ * outline encloses count as inside, so only the silhouette has an edge. Within
+ * `band` of it the distance is exact (to the segments themselves); further in it
+ * comes from the grid.
+ */
+export function outlineDistance(
+  segments: readonly number[],
+  grid: GroundGrid,
+  band: number,
+): Float32Array {
+  const { size, min, max } = grid;
+  const cell = (max - min) / size;
+  const edge = rasterise(segments, grid);
+  const outside = floodOutside(edge, size);
+
+  // Coarse: distance to the nearest outside cell.
+  const squared = new Float64Array(size * size);
+  for (let i = 0; i < squared.length; i++) squared[i] = outside[i] ? 0 : Infinity;
+  distanceTransform2d(squared, size);
+
+  // The segments on the silhouette: those with an outside cell next to them.
+  const scale = size / (max - min);
+  const touchesOutside = (x: number, y: number) => {
+    const cx = Math.floor((x - min) * scale);
+    const cy = Math.floor((y - min) * scale);
+    for (let dy = -2; dy <= 2; dy++) {
+      for (let dx = -2; dx <= 2; dx++) {
+        const nx = cx + dx;
+        const ny = cy + dy;
+        if (nx >= 0 && ny >= 0 && nx < size && ny < size && outside[ny * size + nx]) return true;
+      }
+    }
+    return false;
+  };
+  const buckets = new Map<number, number[]>();
+  const bucketSize = Math.max(band, cell * 4);
+  const bucketCols = Math.ceil((max - min) / bucketSize) + 1;
+  const bucketOf = (x: number, y: number) =>
+    Math.floor((y - min) / bucketSize) * bucketCols + Math.floor((x - min) / bucketSize);
+  for (let i = 0; i + 3 < segments.length; i += 4) {
+    const x0 = segments[i] ?? 0;
+    const y0 = segments[i + 1] ?? 0;
+    const x1 = segments[i + 2] ?? 0;
+    const y1 = segments[i + 3] ?? 0;
+    if (!touchesOutside((x0 + x1) / 2, (y0 + y1) / 2)) continue;
+    const key = bucketOf((x0 + x1) / 2, (y0 + y1) / 2);
+    const list = buckets.get(key);
+    if (list) list.push(i);
+    else buckets.set(key, [i]);
+  }
+
+  const out = new Float32Array(size * size);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = y * size + x;
+      const coarse = Math.sqrt(squared[i] ?? 0) * cell;
+      if (outside[i]) {
+        out[i] = cell;
+        continue;
+      }
+      if (coarse > band + cell * 2) {
+        out[i] = -coarse;
+        continue;
+      }
+      // Exact: the nearest silhouette segment in the surrounding buckets.
+      const px = min + (x + 0.5) * cell;
+      const py = min + (y + 0.5) * cell;
+      const bx = Math.floor((px - min) / bucketSize);
+      const by = Math.floor((py - min) / bucketSize);
+      let best = coarse;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          for (const s of buckets.get((by + dy) * bucketCols + bx + dx) ?? []) {
+            best = Math.min(
+              best,
+              segmentDistance(
+                px,
+                py,
+                segments[s] ?? 0,
+                segments[s + 1] ?? 0,
+                segments[s + 2] ?? 0,
+                segments[s + 3] ?? 0,
+              ),
+            );
+          }
+        }
+      }
+      out[i] = -best;
+    }
+  }
+  return out;
+}
+
+function segmentDistance(
+  px: number,
+  py: number,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+): number {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const length2 = dx * dx + dy * dy || 1e-12;
+  const t = Math.min(1, Math.max(0, ((px - x0) * dx + (py - y0) * dy) / length2));
+  return Math.hypot(px - (x0 + dx * t), py - (y0 + dy * t));
+}
+
 /** Marks the cells the segments pass through, two cells thick so no diagonal gaps leak. */
 function rasterise(segments: readonly number[], { size, min, max }: GroundGrid): Uint8Array {
   const edge = new Uint8Array(size * size);

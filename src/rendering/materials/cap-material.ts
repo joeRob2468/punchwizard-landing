@@ -21,6 +21,8 @@ import vertex from '../shaders/cap.vert.glsl?raw';
 import noise from '../shaders/lib/noise.glsl?raw';
 import seamChunk from '../shaders/lib/seam.glsl?raw';
 import spotChunk from '../shaders/lib/spot.glsl?raw';
+import cutGlowChunk from '../shaders/lib/cut-glow.glsl?raw';
+import { type CutGlowUniforms, NO_CUT_GLOW } from './cut-glow.ts';
 import { NO_SPOT, type SpotUniforms } from './spot.ts';
 import { NO_SEAM, type SeamUniforms } from './seam.ts';
 
@@ -46,6 +48,8 @@ export interface CapOptions {
   readonly seam?: SeamUniforms;
   /** The spotlight's shared uniforms (materials/spot.ts); none if unset. */
   readonly spot?: SpotUniforms;
+  /** The cut edge's glow (materials/cut-glow.ts); none if unset. */
+  readonly cutGlow?: CutGlowUniforms;
 }
 
 /** How a cut face is painted under the current look (see config/looks.ts). */
@@ -81,6 +85,7 @@ export class CapMaterial extends ShaderMaterial {
     flowOrigin = [0, 0, 0],
     seam = NO_SEAM,
     spot = NO_SPOT,
+    cutGlow = NO_CUT_GLOW,
   }: CapOptions) {
     const time = { value: 0 };
     const normal = { value: new Vector3(0, 0, 1) };
@@ -96,7 +101,7 @@ export class CapMaterial extends ShaderMaterial {
       vertexShader: vertex,
       fragmentShader: fragment.replace(
         '#include <common>',
-        `#include <common>\n${noise}\n${seamChunk}\n${spotChunk}`,
+        `#include <common>\n${noise}\n${seamChunk}\n${spotChunk}\n${cutGlowChunk}`,
       ),
       side: DoubleSide,
       depthFunc: LessEqualDepth,
@@ -126,6 +131,7 @@ export class CapMaterial extends ShaderMaterial {
         uPartId: { value: partId },
         ...seam,
         ...spot,
+        ...cutGlow,
       },
     });
     this.name = 'CapMaterial';

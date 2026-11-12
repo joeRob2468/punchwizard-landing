@@ -21,6 +21,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Rune circles:** Elder Futhark rings: a turning summoning circle with a valknut under the bust and a faint halo ring behind the head.
 - **Spotlight (step 1):** a warm spot from the viewer's upper right (the cut side) that follows the camera lazily and drifts; deep shadows, rim kept; cut faces lit with a floor; casts shadows (brim on the face, beard on the robe); Tabula only.
 - **Grade:** halation, split-toning, a soft S-curve and a highlight shoulder (tone only in the scan view); `G` toggles it in dev.
+- **Cut edge glow:** a fine undulating line of the circle's light just inside the cut's outer edge.
 - **Ground seam:** the bust rises through the ground circle: a glowing band where every part (and cut face) meets the ground, and light on the ground along his outline there.
 - **Marginalia:** a faint astrolabe, zodiac band, planetary orbits, great arcs to the frame, constellations and construction lines, drawn into the paper behind the specimen (the rune pedestal blocks them).
 - **Border:** a solid black frame, a band of runes in the double rule, corner medallions, and runes that catch the light now and then.

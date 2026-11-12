@@ -42,6 +42,8 @@ import {
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import type { SeamUniforms } from '../rendering/materials/seam.ts';
 import type { SpotUniforms } from '../rendering/materials/spot.ts';
+import { cutGlowUniforms } from '../rendering/materials/cut-glow.ts';
+import { CutGlow } from './CutGlow.tsx';
 import { addSway, type SwayUniforms } from '../rendering/materials/sway.ts';
 import type { LoadedPart } from '../specimen/load-specimen.ts';
 import { usePlateStore } from '../state/plate-store.ts';
@@ -70,6 +72,8 @@ export function SectionCaps({ parts, gaze, sway, seam, spot }: SectionCapsProps)
   const { plane } = useClipPlane();
   const quad = useMemo(() => new PlaneGeometry(CAP_SIZE, CAP_SIZE), []);
   const capMeshes = useRef<(Mesh | null)[]>([]);
+  // Shared by every cut face: the glow along the cut's edge (CutGlow keeps it current).
+  const cutGlow = useMemo(() => cutGlowUniforms(), []);
   const stencilMeshes = useRef<(Mesh | null)[]>([]);
 
   const ids = useMemo(() => partIds(parts.map((p) => p.entry)), [parts]);
@@ -94,10 +98,11 @@ export function SectionCaps({ parts, gaze, sway, seam, spot }: SectionCapsProps)
             flowOrigin: FLOW_ORIGIN,
             seam,
             spot,
+            cutGlow,
           }),
         };
       }),
-    [parts, plane, ids, sway, seam, spot],
+    [parts, plane, ids, sway, seam, spot, cutGlow],
   );
 
   useEffect(
@@ -164,6 +169,7 @@ export function SectionCaps({ parts, gaze, sway, seam, spot }: SectionCapsProps)
 
   return (
     <group name="section-caps">
+      <CutGlow parts={parts} uniforms={cutGlow} />
       {layers.map(({ id, geometry, parity, cap, pivot }, i) => {
         const order = CAP_RENDER_ORDER_BASE + i * 2;
         // Visibility is set each frame (above).

@@ -94,6 +94,9 @@ void main() {
     colour *= mix(vec3(1.0), lit, uDrama);
   }
 
+  // A thin, faint glow along the cut's edge (lib/cut-glow.glsl).
+  colour += pwCutGlow(uv);
+
   // Light where the cut face meets the rune circle on the ground (lib/seam.glsl).
   colour += pwGroundSeam(vWorldPosition);
   colour = colour * (1.0 + 0.7 * uFlare) + uWash * 0.3 * uFlare;
