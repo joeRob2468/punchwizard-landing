@@ -1,7 +1,7 @@
 /**
  * Layer controls, bottom left: a preset row (everything, the bones, the viscera,
- * the arcana), each layer's on/off switch, and one see-through switch that turns
- * whatever covers the deepest layer that's on see-through (config/layers.ts).
+ * the arcana) and each layer's on/off switch, then one see-through switch: layers
+ * that are off show see-through when it's on, and not at all when it's off.
  * L steps through the presets; T toggles see-through.
  */
 import { useEffect } from 'react';
@@ -36,7 +36,7 @@ export function LayerControls() {
             key={preset.label}
             type="button"
             className={styles.preset}
-            aria-pressed={isPresetActive(preset, layersOn, seeThrough)}
+            aria-pressed={isPresetActive(preset, layersOn)}
             onClick={() => {
               applyPreset(preset);
             }}
@@ -69,7 +69,7 @@ export function LayerControls() {
           className={styles.seeThrough}
           aria-pressed={seeThrough}
           onClick={toggleSeeThrough}
-          title="See through the outer layers (T)"
+          title="Show the layers that are off as see-through (T)"
         >
           <span aria-hidden="true" className={styles.mark}>
             ◐

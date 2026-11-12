@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import {
   isPresetActive,
   LAYER_PRESETS,
+  SEE_THROUGH_DEFAULT,
   type LayerModes,
   type LayerPreset,
   layerModes,
@@ -41,7 +42,7 @@ interface PlateState {
   readonly resetSlice: () => void;
   /** Which layers are switched on. */
   readonly layersOn: LayersOn;
-  /** Whether layers over the deepest one that's on are drawn see-through. */
+  /** Whether layers that are off are drawn see-through (rather than hidden). */
   readonly seeThrough: boolean;
   /** How each layer is drawn (shown, ghost or hidden), derived from the two above. */
   readonly layers: LayerModes;
@@ -75,7 +76,7 @@ const layerState = (layersOn: LayersOn, seeThrough: boolean) => ({
 export const usePlateStore = create<PlateState>()((set, get) => ({
   viewResets: 0,
 
-  ...layerState(firstPreset.on, firstPreset.seeThrough),
+  ...layerState(firstPreset.on, SEE_THROUGH_DEFAULT),
 
   look: DEFAULT_LOOK,
 
@@ -104,14 +105,14 @@ export const usePlateStore = create<PlateState>()((set, get) => ({
   },
 
   applyPreset: (preset) => {
-    set(layerState(preset.on, preset.seeThrough));
+    set(({ seeThrough }) => layerState(preset.on, seeThrough));
   },
 
   cycleLayerPreset: () => {
     set(({ layersOn, seeThrough }) => {
-      const at = LAYER_PRESETS.findIndex((p) => isPresetActive(p, layersOn, seeThrough));
+      const at = LAYER_PRESETS.findIndex((p) => isPresetActive(p, layersOn));
       const next = LAYER_PRESETS[(at + 1) % LAYER_PRESETS.length];
-      return next ? layerState(next.on, next.seeThrough) : {};
+      return next ? layerState(next.on, seeThrough) : {};
     });
   },
 

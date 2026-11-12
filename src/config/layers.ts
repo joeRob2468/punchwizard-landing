@@ -1,6 +1,7 @@
 /**
- * Specimen layers the viewer can switch on and off, the one see-through switch,
- * and the presets the layer controls offer. Layer ids match the manifest's.
+ * Specimen layers the viewer can switch on and off, the see-through switch for the
+ * layers that are off, and the presets the layer controls offer. Layer ids match
+ * the manifest's.
  *
  * The renderer draws each layer shown, ghost (see-through) or hidden; `layerModes`
  * derives that from which layers are on and whether see-through is on.
@@ -19,50 +20,39 @@ export const VIEWABLE_LAYERS: readonly { readonly id: Layer; readonly label: str
   { id: 'arcane', label: 'Arcana' },
 ];
 
+/** A preset switches layers on and off; see-through is left as it is. */
 export interface LayerPreset {
   readonly label: string;
   readonly on: LayersOn;
-  readonly seeThrough: boolean;
 }
 
 export const LAYER_PRESETS: readonly LayerPreset[] = [
   {
     label: 'Omnia',
     on: { integument: true, musculature: true, skeleton: true, organs: true, arcane: true },
-    seeThrough: false,
   },
   {
     label: 'Ossa',
-    on: { integument: true, musculature: false, skeleton: true, organs: false, arcane: false },
-    seeThrough: true,
+    on: { integument: false, musculature: false, skeleton: true, organs: false, arcane: false },
   },
   {
     label: 'Viscera',
-    on: { integument: true, musculature: false, skeleton: true, organs: true, arcane: true },
-    seeThrough: true,
+    on: { integument: false, musculature: false, skeleton: false, organs: true, arcane: true },
   },
   {
-    // The arcane organs alone, inside a see-through outline of the head and body.
     label: 'Arcana',
-    on: { integument: true, musculature: false, skeleton: false, organs: false, arcane: true },
-    seeThrough: true,
+    on: { integument: false, musculature: false, skeleton: false, organs: false, arcane: true },
   },
 ];
 
-/**
- * How each layer is drawn. Off layers are hidden. With see-through on, whatever
- * covers the deepest layer that's on is drawn see-through: the arcana are never
- * see-through (they glow), and the deepest other layer stays solid unless the
- * arcana are on and it isn't the organs they sit in.
- */
+/** Whether see-through starts on (layers that are off show as a faint outline). */
+export const SEE_THROUGH_DEFAULT = true;
+
+/** How each layer is drawn: on layers solid; off layers see-through or hidden. */
 export function layerModes(on: LayersOn, seeThrough: boolean): LayerModes {
-  const ordinary = LAYERS.filter((layer) => layer !== 'arcane' && on[layer]);
-  const deepest = ordinary[ordinary.length - 1];
-  const solid = new Set<Layer>(['arcane']);
-  if (deepest && (!on.arcane || deepest === 'organs')) solid.add(deepest);
   const mode = (layer: Layer): LayerMode => {
-    if (!on[layer]) return 'hidden';
-    return !seeThrough || solid.has(layer) ? 'shown' : 'ghost';
+    if (on[layer]) return 'shown';
+    return seeThrough ? 'ghost' : 'hidden';
   };
   return Object.fromEntries(LAYERS.map((layer) => [layer, mode(layer)])) as Record<
     Layer,
@@ -70,11 +60,9 @@ export function layerModes(on: LayersOn, seeThrough: boolean): LayerModes {
   >;
 }
 
-/** Whether a choice of layers (those with controls) and see-through is a preset's. */
-export function isPresetActive(preset: LayerPreset, on: LayersOn, seeThrough: boolean): boolean {
-  return (
-    preset.seeThrough === seeThrough && VIEWABLE_LAYERS.every(({ id }) => preset.on[id] === on[id])
-  );
+/** Whether the layers that have controls are switched as in a preset. */
+export function isPresetActive(preset: LayerPreset, on: LayersOn): boolean {
+  return VIEWABLE_LAYERS.every(({ id }) => preset.on[id] === on[id]);
 }
 
 /** Opacity of a ghosted layer's wash. */
