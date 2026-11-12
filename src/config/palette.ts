@@ -8,7 +8,7 @@ export const PALETTE = {
   paperShadow: '#09090b',
   foxing: '#2b2620',
   ink: '#0b0b0d',
-  washFlesh: '#ab7167',
+  washFlesh: '#c48476',
   washMuscle: '#8d2b22',
   washBone: '#b5a98c',
   washBrain: '#a1696c',
