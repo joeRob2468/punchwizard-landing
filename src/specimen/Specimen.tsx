@@ -21,6 +21,7 @@ import { useClipPlane } from '../slicing/clip-plane.tsx';
 import { SectionCaps } from '../slicing/SectionCaps.tsx';
 import { SliceController } from '../slicing/SliceController.tsx';
 import { GazePivot } from './GazePivot.tsx';
+import { Motes } from './Motes.tsx';
 import { GazeRig } from './gaze.ts';
 import {
   FLOW_ORIGIN,
@@ -187,6 +188,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           );
         })}
       </group>
+      <Motes />
       <SectionCaps parts={parts} gaze={gaze} sway={sway} />
       <SliceController bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />
