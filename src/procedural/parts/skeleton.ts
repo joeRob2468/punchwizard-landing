@@ -108,7 +108,7 @@ export function spinePart(): PartDefinition {
   };
 }
 
-/** Clavicles, and on the left one the Familiar's Perch, poking out through the robe. */
+/** Clavicles, and on the left one the Familiar's Perch, poking out through the mantle. */
 export function girdlePart(): PartDefinition {
   const sternal: [number, number, number] = [0.07, -1.02, 0.22];
   const mid: [number, number, number] = [0.36, -1.0, 0.16];
@@ -120,15 +120,15 @@ export function girdlePart(): PartDefinition {
   const [px, py, pz] = L.familiarsPerch;
   const perch = smoothUnion(
     0.04,
-    roundCone([px - 0.06, -1.0, pz + 0.04], [px, py - 0.03, pz], 0.045, 0.035), // strut from the clavicle
-    roundBox([px, py, pz], [0.13, 0.018, 0.08], 0.016), // the shelf
+    roundCone([0.62, -1.06, pz], [px, py - 0.03, pz], 0.05, 0.035), // strut from the clavicle's end
+    roundBox([px + 0.02, py, pz], [0.13, 0.02, 0.09], 0.016), // the shelf, clear of mantle and hair
   );
   return {
     id: 'girdle',
     layer: 'skeleton',
     look: BONE,
     field: smoothUnion(0.03, clavicles, perch),
-    bounds: { min: [-0.75, -1.2, -0.15], max: [0.75, -0.82, 0.32] },
+    bounds: { min: [-0.75, -1.2, -0.15], max: [1.05, -0.6, 0.32] },
     cellSize: 0.012,
   };
 }

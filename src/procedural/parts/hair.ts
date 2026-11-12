@@ -23,7 +23,8 @@ import type { Sdf, Vec3 } from '../sdf/types.ts';
 import { hatField } from './hat.ts';
 import { headSkinField } from './head.ts';
 import type { PartDefinition } from './part.ts';
-import { robeField } from './robe.ts';
+import { mantleField, robeField } from './robe.ts';
+import { girdlePart } from './skeleton.ts';
 
 const SEED = 37;
 
@@ -33,11 +34,11 @@ const strands =
   (x, y, z) =>
     fbm(seed, x * 14, y * 2.5, z * 14) * amplitude;
 
-/** Head, robe and hat together: what locks drape over. Built once; the head is costly. */
+/** Head, robe, mantle, the Familiar's Perch and hat: what locks drape over. Built once; the head is costly. */
 let colliders: { body: Sdf; withHat: Sdf } | undefined;
 function getColliders() {
   if (!colliders) {
-    const body = union(headSkinField(), robeField());
+    const body = union(headSkinField(), robeField(), mantleField(), girdlePart().field);
     colliders = { body, withHat: union(body, hatField()) };
   }
   return colliders;
@@ -225,12 +226,6 @@ export function hairPart(): PartDefinition {
     halfSpace([0, 0, 0.12], [0, 0, 1]),
     halfSpace([0, -0.12, 0], [0, -1, 0]),
   );
-  // Hair hanging down the back to the shoulders, under the locks.
-  const back = intersect(
-    ellipsoid([0, -0.38, -0.3], [0.44, 0.62, 0.2]),
-    halfSpace([0, 0, -0.05], [0, 0, 1]),
-  );
-  const core = smoothUnion(0.12, cap, back);
 
   // Two rows of roots around the back and sides of the head, just under the cap.
   // Side locks lean forward so some fall in front of the shoulders.
@@ -264,7 +259,7 @@ export function hairPart(): PartDefinition {
   });
 
   const field = intersect(
-    smoothUnion(0.06, displace(core, strands(SEED + 5, 0.02)), segmentsField(locks, 0.022, 0.07)),
+    smoothUnion(0.06, displace(cap, strands(SEED + 5, 0.02)), segmentsField(locks, 0.022, 0.07)),
     aboveBustBase,
   );
   return {

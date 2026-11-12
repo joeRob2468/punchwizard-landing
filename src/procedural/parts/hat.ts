@@ -4,7 +4,7 @@
  * Lore says it is a horn grown from the crown, so it is modelled solid.
  */
 import { LANDMARKS as L } from '../landmarks.ts';
-import { add, bezier, cross, dot, normalise, scale, sub } from '../sdf/math.ts';
+import { bezier } from '../sdf/math.ts';
 import {
   displace,
   fbm,
@@ -19,8 +19,8 @@ import {
   torus,
   warp,
 } from '../sdf/index.ts';
-import { normalAt, snapToSurface } from '../sdf/surface.ts';
 import type { Sdf, Vec3 } from '../sdf/types.ts';
+import { framesBounds, inFrame, surfaceFrame, type SurfaceFrame } from './frame.ts';
 import type { PartDefinition } from './part.ts';
 
 const SEED = 23;
@@ -141,36 +141,9 @@ export function hatBandPart(): PartDefinition {
   };
 }
 
-/**
- * The front of the band, where the buckle sits: a point on the band's surface and
- * a frame there (u across, v up the cone, w out of it).
- */
-function buckleFrame(): { origin: Vec3; u: Vec3; v: Vec3; w: Vec3 } {
-  const crown = crownField();
-  const y = BY + (BAND_LOW + BAND_HIGH) / 2;
-  const onCone = snapToSurface(crown, [0.12, y, BZ + 0.6]);
-  const w = normalAt(crown, onCone);
-  const u = normalise(cross([0, 1, 0], w));
-  const v = cross(w, u);
-  return { origin: add(onCone, scale(w, 0.022)), u, v, w };
-}
-
-/** Evaluates a field built around the origin with +z out of the band, in the buckle's frame. */
-function inBuckleFrame(local: Sdf): Sdf {
-  const { origin, u, v, w } = buckleFrame();
-  return (x, y, z) => {
-    const d = sub([x, y, z], origin);
-    return local(dot(d, u), dot(d, v), dot(d, w));
-  };
-}
-
-const buckleBounds = (r: number) => {
-  const { origin } = buckleFrame();
-  return {
-    min: [origin[0] - r, origin[1] - r, origin[2] - r] as Vec3,
-    max: [origin[0] + r, origin[1] + r, origin[2] + r] as Vec3,
-  };
-};
+/** The front of the band, a little off-centre, where the buckle sits. */
+const buckleFrame = (): SurfaceFrame =>
+  surfaceFrame(crownField(), [0.12, BY + (BAND_LOW + BAND_HIGH) / 2, BZ + 0.6], 0.022);
 
 /** A square metal buckle frame over the band. */
 export function hatBucklePart(): PartDefinition {
@@ -182,8 +155,8 @@ export function hatBucklePart(): PartDefinition {
     id: 'hat-buckle',
     layer: 'integument',
     look: { wash: 'washOchre', section: { pattern: 'stipple' } },
-    field: inBuckleFrame(frame),
-    bounds: buckleBounds(0.13),
+    field: inFrame(frame, buckleFrame()),
+    bounds: framesBounds([buckleFrame()], 0.13),
     cellSize: 0.004,
     intendedHoles: 1, // the frame's opening
   };
@@ -200,8 +173,8 @@ export function hatGemPart(): PartDefinition {
     id: 'hat-gem',
     layer: 'integument',
     look: { wash: 'arcaneMana', glow: 0.55, section: { pattern: 'glow' } },
-    field: inBuckleFrame(gem),
-    bounds: buckleBounds(0.1),
+    field: inFrame(gem, buckleFrame()),
+    bounds: framesBounds([buckleFrame()], 0.1),
     cellSize: 0.003,
   };
 }

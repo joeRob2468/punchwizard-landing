@@ -12,7 +12,7 @@ import { beardPart, eyebrowsPart, hairPart, moustachePart } from './parts/hair.t
 import { eyesPart, headPart, irisPart, pupilPart } from './parts/head.ts';
 import { hatBandPart, hatBucklePart, hatGemPart, hatPart } from './parts/hat.ts';
 import type { PartDefinition } from './parts/part.ts';
-import { robePart } from './parts/robe.ts';
+import { claspGemsPart, claspsPart, mantlePart, mantleTrimPart, robePart } from './parts/robe.ts';
 import { girdlePart, mandiblePart, skullPart, spinePart } from './parts/skeleton.ts';
 
 export function specimenParts(): PartDefinition[] {
@@ -26,6 +26,10 @@ export function specimenParts(): PartDefinition[] {
     moustachePart(),
     hairPart(),
     beardPart(),
+    claspGemsPart(),
+    claspsPart(),
+    mantleTrimPart(),
+    mantlePart(),
     robePart(),
     headPart(),
     // Bone, then the soft organs it houses

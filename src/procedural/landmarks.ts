@@ -31,7 +31,7 @@ export const LANDMARKS = {
   foramen: [0, -0.2, -0.13],
   sinus: [0, 0.03, 0.3],
   tongue: [0, -0.31, 0.22],
-  familiarsPerch: [0.5, -0.9, -0.02],
+  familiarsPerch: [0.84, -0.76, -0.02],
 } as const satisfies Record<string, Vec3>;
 
 export type LandmarkName = keyof typeof LANDMARKS;
