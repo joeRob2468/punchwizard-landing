@@ -27,7 +27,7 @@ void main() {
   float shimmer = 0.78 + 0.22 * wave;
 
   float outside = max(d, 0.0);
-  float edge = 1.0 - smoothstep(0.0, 0.03, abs(d));
+  float edge = 1.0 - smoothstep(0.0, 0.045, abs(d));
   float spread = exp(-outside / (uSpread * (1.0 + 0.4 * wave))) * step(-0.01, d);
   float light = (edge * 1.4 + spread * 0.55) * shimmer;
   light *= 1.0 - smoothstep(uFadeRadius * 0.75, uFadeRadius, length(vWorld.xz));
