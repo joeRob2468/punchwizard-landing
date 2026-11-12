@@ -64,6 +64,8 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           sway,
           carriesMana: MANA_CARRIERS.has(entry.id),
           flowOrigin: FLOW_ORIGIN,
+          // The cut's outline glows where it meets the outer shell.
+          rim: entry.layer === 'integument' ? 1 : 0,
         });
         material.clippingPlanes = [plane];
         return {
@@ -105,6 +107,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
         wash: colours[id],
         gain: look.layerGain?.[layer] ?? 1,
         emission: FX.bloom.emission,
+        rimColour: look.palette.arcaneMana,
       });
     });
     usePlateStore.getState().setPartColours(colours);

@@ -46,6 +46,8 @@ export interface InkWashOptions {
   /** Whether pulses of mana run through the part, and where they start. */
   readonly carriesMana?: boolean;
   readonly flowOrigin?: Vec3;
+  /** 0–1: how strongly the part's edge glows where the cut meets it. */
+  readonly rim?: number;
 }
 
 /** How a part is painted under the current look (see config/looks.ts). */
@@ -55,6 +57,8 @@ export interface SurfacePaint {
   readonly gain: number;
   /** How far past white self-lit parts glow (0 = not at all), for bloom. */
   readonly emission: number;
+  /** Colour of the glowing line where the cut meets the part. */
+  readonly rimColour: string;
 }
 
 export class InkWashMaterial extends ShaderMaterial {
@@ -67,6 +71,7 @@ export class InkWashMaterial extends ShaderMaterial {
   readonly #pulse: { value: number };
   readonly #glowLevel: { value: number };
   readonly #flowFronts: { value: Vector2 };
+  readonly #rimColour: { value: Color };
 
   constructor({
     wash,
@@ -77,6 +82,7 @@ export class InkWashMaterial extends ShaderMaterial {
     sway = swayUniforms(1e9, 2e9),
     carriesMana = false,
     flowOrigin = [0, 0, 0],
+    rim = 0,
   }: InkWashOptions) {
     const time = { value: 0 };
     const washColour = new Color(wash);
@@ -86,6 +92,7 @@ export class InkWashMaterial extends ShaderMaterial {
     const pulse = { value: 0.5 };
     const glowLevel = { value: 1 };
     const flowFronts = { value: new Vector2(-1, -1) };
+    const rimColour = { value: new Color(1, 1, 1) };
     super({
       vertexShader: vertex.replace('#include <sway>', swayChunk),
       fragmentShader: insertAfterCommon(fragment, noise),
@@ -114,6 +121,8 @@ export class InkWashMaterial extends ShaderMaterial {
         uFlowFronts: flowFronts,
         uFlowOrigin: { value: new Vector3(...flowOrigin) },
         uFlow: { value: carriesMana ? 1 : 0 },
+        uRim: { value: rim },
+        uRimColour: rimColour,
         ...sway,
       },
     });
@@ -127,10 +136,12 @@ export class InkWashMaterial extends ShaderMaterial {
     this.#pulse = pulse;
     this.#glowLevel = glowLevel;
     this.#flowFronts = flowFronts;
+    this.#rimColour = rimColour;
     this.ghost = null;
   }
 
-  paint({ wash, gain, emission }: SurfacePaint) {
+  paint({ wash, gain, emission, rimColour }: SurfacePaint) {
+    this.#rimColour.value.set(rimColour);
     this.#wash.set(wash);
     this.#gain.value = gain;
     this.#emission.value = emission;

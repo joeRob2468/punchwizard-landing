@@ -166,6 +166,8 @@ The irises and pupils are separate left and right parts that carry a `gazePivot`
 
 `scene/RuneCircles` draws rune rings (`ornament/rune-ring.ts`: circles, bands of transliterated Latin, dial ticks, a valknut) onto canvas textures: a summoning circle on the ground just under the bust (outer and inner rings turning opposite ways) and a fainter ring that always stands behind the head facing the camera. They're drawn additively in the view's mana colour, below the bloom threshold, and hold still with reduced motion.
 
+The **scrying cut**: the surface shader adds a thin shimmering line of the mana colour where the section plane meets an outer-layer part (`rim`; its distance to the plane comes from three's clipping data), and the cap shader lets a shared tile of random runes (`drawRuneTile`) drift slowly across every cut face, showing faintly in moving patches.
+
 ## Sectioning
 
 ### State

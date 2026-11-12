@@ -3,7 +3,7 @@
  * the scene: concentric circles, bands of runes spelling a Latin phrase in the
  * Elder Futhark, tick marks like a dial, and optionally a valknut at the centre.
  */
-import { type Rune, strokeRune, transliterate } from './futhark.ts';
+import { type Rune, RUNES, strokeRune, transliterate } from './futhark.ts';
 
 export interface RuneBand {
   /** Inner and outer radius as fractions of the canvas's half-width. */
@@ -111,4 +111,40 @@ function drawValknut(ctx: CanvasRenderingContext2D, radius: number, size: number
     }
     ctx.stroke();
   }
+}
+
+/**
+ * A tileable canvas of runes in rows (white on transparent), each a random rune,
+ * for faint writing that drifts across the cut faces.
+ */
+export function drawRuneTile(size: number, rows: number, seed: number): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('no 2D canvas');
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = size / 400;
+  const pitch = size / rows;
+  const height = pitch * 0.55;
+  const perRow = Math.floor(size / (height * 0.9));
+  let state = seed;
+  const random = () => {
+    state = (state * 16807) % 2147483647;
+    return state / 2147483647;
+  };
+  for (let row = 0; row < rows; row++) {
+    for (let i = 0; i < perRow; i++) {
+      if (random() < 0.18) continue; // gaps between words
+      const rune = RUNES[Math.floor(random() * RUNES.length)];
+      if (!rune) continue;
+      ctx.save();
+      ctx.translate((i + 0.5) * (size / perRow), (row + 0.5) * pitch);
+      strokeRune(ctx, rune, height);
+      ctx.restore();
+    }
+  }
+  return canvas;
 }
