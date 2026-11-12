@@ -3,8 +3,8 @@
  * outline of his body there (the outer layer's meshes sliced at the ground) and
  * spreading a little past it, in the circle's colour: with the seam on the body
  * itself (shaders/lib/seam.glsl) he seems to rise up through the circle, the rest
- * of him below. Clipped by the sectioning plane, so the cut-away half leaves no
- * outline, and hidden with the outer layer.
+ * of him below. It fades out just past the sectioning plane, so the cut-away half
+ * leaves no outline, and hides with the outer layer.
  */
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
@@ -19,6 +19,7 @@ import {
   OneFactor,
   PlaneGeometry,
   SRGBColorSpace,
+  Vector4,
   ZeroFactor,
 } from 'three';
 
@@ -33,10 +34,12 @@ import type { LoadedPart } from './load-specimen.ts';
 /** Ground area covered (x, then z), around the base. */
 const EXTENT = { minX: -1.9, maxX: 1.9, minZ: -1.9, maxZ: 1.9 } as const;
 const PIXELS_PER_UNIT = 160;
+/** How far past the cut (ground units) the light fades out on the cut-away side. */
+const CUT_FADE = 0.3;
 /** The light fades out by the rune circle's rim (radius, ground units). */
 const FADE_RADIUS = 1.8;
-/** Sliced just above the ground, where the body is still whole. */
-const SLICE_Y = GROUND_Y + 0.005;
+/** Sliced this far above the outer layer's lowest point, where the body is whole. */
+const SLICE_ABOVE_BASE = 0.006;
 
 interface GroundGlowProps {
   readonly parts: readonly LoadedPart[];
@@ -44,6 +47,8 @@ interface GroundGlowProps {
 
 export function GroundGlow({ parts }: GroundGlowProps) {
   const { plane } = useClipPlane();
+  // The sectioning plane (normal, constant), kept current each frame.
+  const cut = useMemo(() => ({ value: new Vector4() }), []);
   const mesh = useRef<Mesh>(null);
   const look = usePlateStore((state) => state.look);
   const layers = usePlateStore((state) => state.layers);
@@ -59,13 +64,14 @@ export function GroundGlow({ parts }: GroundGlowProps) {
       // Light is added (alpha ignored), so it's drawn as brightness on black.
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // The outer layer's real base (manifest bounds are padded).
+      const outer = parts.filter(({ entry }) => entry.layer === 'integument');
+      const sliceY = lowestPoint(outer) + SLICE_ABOVE_BASE;
       ctx.beginPath();
-      for (const { entry, geometry } of parts) {
-        if (entry.layer !== 'integument') continue;
-        if (entry.bounds.min[1] > SLICE_Y || entry.bounds.max[1] < SLICE_Y) continue;
+      for (const { geometry } of outer) {
         const index = geometry.index;
         if (!index) continue;
-        const s = sliceAtHeight(geometry.attributes.position?.array ?? [], index.array, SLICE_Y);
+        const s = sliceAtHeight(geometry.attributes.position?.array ?? [], index.array, sliceY);
         for (let i = 0; i + 3 < s.length; i += 4) {
           ctx.moveTo(px(s[i] ?? 0), pz(s[i + 1] ?? 0));
           ctx.lineTo(px(s[i + 2] ?? 0), pz(s[i + 3] ?? 0));
@@ -76,11 +82,14 @@ export function GroundGlow({ parts }: GroundGlowProps) {
       ctx.shadowColor = '#fff';
       // Wide, faint washes of light spreading out across the ground, then tighter,
       // brighter ones, then the line itself at the body's edge. Blur in pixels.
+      // Thin lines with doubling blurs, so the falloff is smooth, not banded.
       for (const [line, blur, alpha] of [
-        [40, 150, 0.35],
-        [20, 70, 0.45],
-        [8, 24, 0.7],
-        [2, 5, 1],
+        [3, 140, 0.3],
+        [3, 80, 0.35],
+        [3, 44, 0.4],
+        [3, 22, 0.5],
+        [3, 10, 0.7],
+        [2, 4, 1],
       ] as const) {
         ctx.globalAlpha = alpha;
         ctx.lineWidth = line;
@@ -101,25 +110,42 @@ export function GroundGlow({ parts }: GroundGlowProps) {
     const texture = new CanvasTexture(canvas);
     texture.colorSpace = SRGBColorSpace;
     texture.anisotropy = 4;
-    return {
-      geometry: new PlaneGeometry(width, depth),
-      material: new MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        depthWrite: false,
-        side: DoubleSide,
-        toneMapped: false,
-        clippingPlanes: [plane],
-        blending: CustomBlending,
-        blendEquation: AddEquation,
-        blendSrc: OneFactor,
-        blendDst: OneFactor,
-        // Keep the part ids the outline effect reads from alpha.
-        blendSrcAlpha: ZeroFactor,
-        blendDstAlpha: OneFactor,
-      }),
+    const material = new MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+      side: DoubleSide,
+      toneMapped: false,
+      blending: CustomBlending,
+      blendEquation: AddEquation,
+      blendSrc: OneFactor,
+      blendDst: OneFactor,
+      // Keep the part ids the outline effect reads from alpha.
+      blendSrcAlpha: ZeroFactor,
+      blendDstAlpha: OneFactor,
+    });
+    // Rather than clipped hard by the sectioning plane (a straight edge across the
+    // faint wash), the light fades out over CUT_FADE on the cut-away side.
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.uCut = cut;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec3 vGroundWorld;')
+        .replace(
+          '#include <project_vertex>',
+          '#include <project_vertex>\nvGroundWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+        );
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          '#include <common>',
+          `#include <common>\nuniform vec4 uCut;\nvarying vec3 vGroundWorld;`,
+        )
+        .replace(
+          '#include <opaque_fragment>',
+          `outgoingLight *= smoothstep(${(-CUT_FADE).toFixed(3)}, 0.02, dot(uCut.xyz, vGroundWorld) + uCut.w);\n#include <opaque_fragment>`,
+        );
     };
-  }, [parts, plane]);
+    return { geometry: new PlaneGeometry(width, depth), material };
+  }, [parts, cut]);
 
   useEffect(
     () => () => {
@@ -132,6 +158,7 @@ export function GroundGlow({ parts }: GroundGlowProps) {
 
   const colour = useMemo(() => new Color(LOOKS[look].palette.arcaneMana), [look]);
   useFrame(() => {
+    cut.value.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant);
     material.color.copy(colour).multiplyScalar(FX.groundGlow.strength);
   });
 
@@ -150,6 +177,17 @@ export function GroundGlow({ parts }: GroundGlowProps) {
       visible={layers.integument !== 'hidden'}
     />
   );
+}
+
+/** The lowest vertex height among these parts. */
+function lowestPoint(parts: readonly LoadedPart[]): number {
+  let lowest = Infinity;
+  for (const { geometry } of parts) {
+    const positions = geometry.attributes.position?.array ?? [];
+    for (let i = 1; i < positions.length; i += 3)
+      lowest = Math.min(lowest, positions[i] ?? Infinity);
+  }
+  return lowest;
 }
 
 /** Canvas x for ground x (left to right). */
