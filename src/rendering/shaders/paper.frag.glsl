@@ -1,14 +1,17 @@
 // Composites the scene onto dark aged paper. The scene is rendered as light on a
 // black background and screened onto the paper, so empty areas become plain
 // paper. Paper features are fixed to the screen: the specimen turns, the page
-// doesn't.
+// doesn't. Marginalia (marginalia.glsl) are drawn into the paper where there is
+// nothing in front of it.
 
 uniform vec3 uPaper;
 uniform vec3 uPaperShadow;
 uniform vec3 uFoxing;
 uniform float uTexture; // 0–1 strength of mottling, fibres, foxing, vignette, granulation
+uniform vec3 uChalk; // colour of the marginalia
+uniform float uMarginalia; // 0–1 strength of the marginalia
 
-void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
   vec2 px = uv * resolution;
   vec2 q = vec2((uv.x - 0.5) * aspect, uv.y - 0.5);
 
@@ -22,6 +25,10 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 
   float vignette = smoothstep(0.45, 1.05, length(q));
   paper = mix(paper, uPaperShadow * 0.88, vignette * 0.55 * uTexture);
+
+  // Marginalia, in the page itself: only where nothing is in front of it.
+  float empty = step(0.9999, depth);
+  paper = mix(paper, uChalk, marginalia(uv) * uMarginalia * empty);
 
   // Granulation: pigment settles unevenly into the paper's tooth.
   vec3 marks = inputColor.rgb;

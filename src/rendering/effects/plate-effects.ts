@@ -4,10 +4,11 @@
  * outlines are drawn before the paper multiplies everything.
  */
 import { BlendFunction, Effect, EffectAttribute } from 'postprocessing';
-import { Color, Uniform } from 'three';
+import { Color, Uniform, Vector2 } from 'three';
 
 import { PALETTE } from '../../config/palette.ts';
 import { RENDER } from '../../config/render.ts';
+import marginalia from '../shaders/marginalia.glsl?raw';
 import noise from '../shaders/lib/noise.glsl?raw';
 import outline from '../shaders/outline.frag.glsl?raw';
 import paper from '../shaders/paper.frag.glsl?raw';
@@ -37,6 +38,18 @@ export class OutlineEffect extends Effect {
 
 export class PaperEffect extends Effect {
   /** Sets the paper colours and how strongly its texture shows (0–1). */
+  /** Marginalia colour and strength (0–1). */
+  paintMarginalia(chalk: string, strength: number) {
+    colourUniform(this, 'uChalk').set(chalk);
+    numberUniform(this, 'uMarginalia').value = strength;
+  }
+
+  /** Centres the marginalia on the specimen (uv) and moves them on to `seconds`. */
+  frame(centreU: number, centreV: number, seconds: number) {
+    (this.uniforms.get('uCentre')?.value as Vector2).set(centreU, centreV);
+    numberUniform(this, 'uTime').value = seconds;
+  }
+
   paint(paper: string, shadow: string, foxing: string, texture: number) {
     numberUniform(this, 'uTexture').value = texture;
     colourUniform(this, 'uPaper').set(paper);
@@ -45,13 +58,18 @@ export class PaperEffect extends Effect {
   }
 
   constructor() {
-    super('PaperEffect', `${noise}\n${paper}`, {
+    super('PaperEffect', `${noise}\n${marginalia}\n${paper}`, {
+      attributes: EffectAttribute.DEPTH,
       blendFunction: BlendFunction.SET,
       uniforms: new Map<string, Uniform>([
         ['uPaper', new Uniform(new Color(PALETTE.paper))],
         ['uPaperShadow', new Uniform(new Color(PALETTE.paperShadow))],
         ['uFoxing', new Uniform(new Color(PALETTE.foxing))],
         ['uTexture', new Uniform(1)],
+        ['uChalk', new Uniform(new Color('#ffffff'))],
+        ['uMarginalia', new Uniform(0)],
+        ['uCentre', new Uniform(new Vector2(0.5, 0.5))],
+        ['uTime', new Uniform(0)],
       ]),
     });
   }

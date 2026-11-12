@@ -39,6 +39,9 @@ export interface Look {
   readonly section: number;
   /** Washes for particular parts (by part id), overriding their palette key. */
   readonly partWash?: Readonly<Record<string, string>>;
+  /** Colour and strength (0–1) of the marginalia drawn into the paper. */
+  readonly chalk: string;
+  readonly marginalia: number;
   /** Colour of the faint motes floating around the specimen. */
   readonly moteColour: string;
   /** Surface brightness per layer (cut faces unaffected); 1 where unset. */
@@ -55,6 +58,8 @@ const NOCTURNE: Look = {
   outline: 0.75,
   section: 0.8,
   moteColour: '#bfb59c',
+  chalk: '#e8dcc0',
+  marginalia: 0.085,
 };
 
 /**
@@ -90,6 +95,8 @@ const MRI: Look = {
   outline: 0.8,
   section: 0.45,
   moteColour: '#8f9a9e',
+  chalk: '#c9d3d6',
+  marginalia: 0.06,
   partWash: scanParts('#1a1c1e', '#8c9194', '#e8eef0'),
   layerGain: { integument: 0.25 },
 };

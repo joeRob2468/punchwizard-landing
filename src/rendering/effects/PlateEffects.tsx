@@ -11,12 +11,18 @@ import {
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { useEffect, useMemo } from 'react';
-import { Vector2 } from 'three';
+import { Vector2, Vector3 } from 'three';
+
+import { useFrame } from '@react-three/fiber';
 
 import { FX } from '../../config/fx.ts';
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion.ts';
 import { LOOKS } from '../../config/looks.ts';
 import { usePlateStore } from '../../state/plate-store.ts';
 import { OutlineEffect, PaperEffect } from './plate-effects.ts';
+
+/** The point (specimen space) the marginalia are centred on. */
+const MARGINALIA_CENTRE = [0, 0.15, 0] as const;
 
 export function PlateEffects() {
   const outline = useMemo(() => new OutlineEffect(), []);
@@ -36,7 +42,16 @@ export function PlateEffects() {
     const { palette } = look;
     outline.paint(look.outlineLine, look.outline);
     paper.paint(palette.paper, palette.paperShadow, palette.foxing, look.paperTexture);
+    paper.paintMarginalia(look.chalk, look.marginalia);
   }, [look, outline, paper]);
+
+  // The marginalia centre on the specimen and turn slowly (still with reduced motion).
+  const reducedMotion = usePrefersReducedMotion();
+  const centre = useMemo(() => new Vector3(), []);
+  useFrame(({ camera, clock }) => {
+    centre.set(...MARGINALIA_CENTRE).project(camera);
+    paper.frame((centre.x + 1) / 2, (centre.y + 1) / 2, reducedMotion ? 0 : clock.getElapsedTime());
+  });
 
   return (
     <EffectComposer multisampling={4} stencilBuffer>
