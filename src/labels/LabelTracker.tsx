@@ -111,6 +111,10 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
   const scratch = useMemo(() => ({ v: new Vector3(), ray: new Ray(), dir: new Vector3() }), []);
 
   useFrame(() => {
+    // The camera controls move the camera without refreshing its matrices (the
+    // renderer does that later), so update them here or anchors are projected
+    // with last frame's camera and trail the model.
+    camera.updateMatrixWorld();
     const { slice, layers } = usePlateStore.getState();
     // Only solid layers hide what's behind them.
     const solidFields = outerFields.filter((o) => layers[o.layer] === 'shown').map((o) => o.field);

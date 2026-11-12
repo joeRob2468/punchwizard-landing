@@ -207,7 +207,7 @@ The scroll wheel moves the cut: `SliceController` listens for wheel events on th
 
 1. **Section anchors.** If the cut is in (not parked) and the camera is on the removed side, each candidate is projected onto the plane and kept if the part's SDF is negative there (`anchors.sectionAnchor`). The fields come from `specimenParts()`, the same pure code the bake uses, so labels sit exactly on the cut face and follow it as the plane moves.
 2. **Surface anchors.** Snapped onto the part's surface at start-up (Newton steps on the field). Every 6 frames each is checked: it must face the camera; if the cut is in, it must be on the kept side and the sight line must not cross the plane inside an outer part (that would be looking through a cap); and no kept geometry may be in the way, tested with `three-mesh-bvh` raycasts against every part whose layer is shown (ghosted and hidden layers don't occlude). The BVHs are built one part at a time after start-up to avoid a stall.
-3. Visible anchors are projected to CSS pixels and written to a `LabelChannel` (`setSample`, `setViewport`), which notifies its subscriber.
+3. Visible anchors are projected to CSS pixels (after refreshing the camera's matrices, which the camera controls leave stale until render, so leader lines don't trail the model by a frame) and written to a `LabelChannel` (`setSample`, `setViewport`), which notifies its subscriber.
 
 ### Overlay (in the DOM)
 
