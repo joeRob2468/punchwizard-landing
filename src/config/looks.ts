@@ -8,6 +8,19 @@
 import type { Layer } from '../procedural/format/specimen-format.ts';
 import { PALETTE, type PaletteKey } from './palette.ts';
 
+/** The magical organs keep their glow colours in every view. */
+const ORGAN_GLOWS = {
+  arcaneViolet: PALETTE.arcaneViolet,
+  arcaneRose: PALETTE.arcaneRose,
+  arcaneLime: PALETTE.arcaneLime,
+  arcaneMagenta: PALETTE.arcaneMagenta,
+  arcaneGold: PALETTE.arcaneGold,
+  arcaneSapphire: PALETTE.arcaneSapphire,
+  arcaneEmerald: PALETTE.arcaneEmerald,
+  arcaneLumen: PALETTE.arcaneLumen,
+  arcaneEmber: PALETTE.arcaneEmber,
+} as const;
+
 export type Palette = Readonly<Record<PaletteKey, string>>;
 
 export interface Look {
@@ -43,7 +56,8 @@ const NOCTURNE: Look = {
 
 /**
  * A T2-weighted MRI: near-black, grey by tissue (fluid brightest, muscle and bone
- * dark), the outside dimmed so the cut faces carry the image; mana is the only colour.
+ * dark), the outside dimmed so the cut faces carry the image; only the magical organs
+ * keep their colours.
  */
 const MRI: Look = {
   label: 'Resonantia',
@@ -66,6 +80,7 @@ const MRI: Look = {
     washCsf: '#f2f6f8',
     arcaneMana: '#4fd8e0',
     arcaneGarnet: '#9a9ea0',
+    ...ORGAN_GLOWS,
   },
   line: '#141617',
   outlineLine: '#141617',

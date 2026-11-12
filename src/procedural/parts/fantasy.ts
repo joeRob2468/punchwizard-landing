@@ -60,7 +60,7 @@ export function lexiconPart(): PartDefinition {
   return {
     id: 'lexicon',
     layer: 'organs',
-    look: { wash: 'washOchre', glow: 0.25, section: { pattern: 'strands' } },
+    look: { wash: 'arcaneLumen', glow: 1, section: { pattern: 'glow' } },
     field: leaves,
     bounds: box(LEXICON_CENTRE, 0.12),
     cellSize: 0.003,
@@ -78,7 +78,7 @@ export function gangliaPart(): PartDefinition {
   return {
     id: 'ganglia',
     layer: 'arcane',
-    look: { wash: 'arcaneMana', glow: 0.9, section: { pattern: 'glow' } },
+    look: { wash: 'arcaneLime', glow: 1, section: { pattern: 'glow' } },
     field: union(...beads),
     bounds: { min: [-0.04, L.bustBase[1] - 0.02, -0.3], max: [0.04, -0.15, 0.0] },
     cellSize: 0.004,
@@ -110,7 +110,7 @@ export function cochleaPart(): PartDefinition {
   return {
     id: 'cochlea',
     layer: 'arcane',
-    look: { wash: 'arcaneMana', glow: 0.6, section: { pattern: 'glow' } },
+    look: { wash: 'arcaneMagenta', glow: 1, section: { pattern: 'glow' } },
     field: mirrorX(segmentsField(segments, 0.006, 0.04)),
     bounds: {
       min: [-cx - 0.07, cy - 0.07, cz - 0.07],
@@ -145,7 +145,7 @@ export function heartPart(): PartDefinition {
   return {
     id: 'heart',
     layer: 'arcane',
-    look: { wash: 'arcaneGarnet', glow: 0.55, section: { pattern: 'glow' } },
+    look: { wash: 'arcaneRose', glow: 1, section: { pattern: 'glow' } },
     field: intersect(displace(chambers, facets), (_x, y) => L.bustBase[1] + 0.01 - y),
     bounds: {
       min: [hx - 0.12, L.bustBase[1] - 0.02, hz - 0.1],
@@ -181,7 +181,7 @@ export function beardRootsPart(): PartDefinition {
   return {
     id: 'beard-roots',
     layer: 'organs',
-    look: { wash: 'washOchre', glow: 0.2, section: { pattern: 'strands' } },
+    look: { wash: 'arcaneEmber', glow: 1, section: { pattern: 'glow' } },
     field: segmentsField([...trunks, ...rootlets], 0.005, 0.05),
     bounds: { min: [-0.36, -0.58, -0.02], max: [0.36, -0.26, 0.5] },
     cellSize: 0.003,

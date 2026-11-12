@@ -28,6 +28,15 @@
   /* Arcane accents */
   --arcane-mana: #5fe0e6;
   --arcane-garnet: #c0304a;
+  --arcane-violet: #b06cff;
+  --arcane-rose: #ff3d7a;
+  --arcane-lime: #a4ff4f;
+  --arcane-magenta: #ff4fd8;
+  --arcane-gold: #ffc53d;
+  --arcane-sapphire: #4a74ff;
+  --arcane-emerald: #2effa6;
+  --arcane-lumen: #fff1c2;
+  --arcane-ember: #ff6a2a;
 
   --font-plate: 'IM Fell English', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
 }

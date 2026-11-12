@@ -18,7 +18,7 @@ import type { PartDefinition } from './part.ts';
 import { canalAt, FORAMEN_MAGNUM } from './spine-path.ts';
 import { robeField } from './robe.ts';
 
-const MANA = { wash: 'arcaneMana', glow: 0.85, section: { pattern: 'glow' } } as const;
+const MANA = { wash: 'arcaneMana', glow: 1, section: { pattern: 'glow' } } as const;
 
 export function vesselsPart(): PartDefinition {
   const random = createRandom(97);

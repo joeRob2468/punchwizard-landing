@@ -21,6 +21,16 @@ export const PALETTE = {
   washCsf: '#bcd6dc',
   arcaneMana: '#5fe0e6',
   arcaneGarnet: '#c0304a',
+  // Glows of the magical organs, one hue each; shared by every view.
+  arcaneViolet: '#b06cff',
+  arcaneRose: '#ff3d7a',
+  arcaneLime: '#a4ff4f',
+  arcaneMagenta: '#ff4fd8',
+  arcaneGold: '#ffc53d',
+  arcaneSapphire: '#4a74ff',
+  arcaneEmerald: '#2effa6',
+  arcaneLumen: '#fff1c2',
+  arcaneEmber: '#ff6a2a',
 } as const;
 
 export type PaletteKey = keyof typeof PALETTE;

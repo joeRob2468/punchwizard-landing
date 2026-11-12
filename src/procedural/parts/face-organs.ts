@@ -32,7 +32,7 @@ export function sinusPart(): PartDefinition {
   return {
     id: 'sinus',
     layer: 'organs',
-    look: { wash: 'washVerdigris', section: { pattern: 'rings', centre: L.sinus } },
+    look: { wash: 'arcaneEmerald', glow: 1, section: { pattern: 'glow' } },
     field: union(wall, chest, ...pipes),
     bounds: { min: [x - 0.1, y - 0.08, z - 0.1], max: [x + 0.1, y + 0.08, z + 0.1] },
     cellSize: 0.003,

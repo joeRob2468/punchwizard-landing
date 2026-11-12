@@ -195,7 +195,7 @@ export function etherealGlandPart(): PartDefinition {
   return {
     id: 'ethereal-gland',
     layer: 'organs',
-    look: { wash: 'washOchre', glow: 0.3, section: { pattern: 'stipple' } },
+    look: { wash: 'arcaneGold', glow: 1, section: { pattern: 'glow' } },
     field: displace(cone, scales),
     bounds: box(c, 0.09),
     cellSize: 0.004,
@@ -215,7 +215,7 @@ export function aethericCorePart(): PartDefinition {
   return {
     id: 'aetheric-core',
     layer: 'arcane',
-    look: { wash: 'arcaneMana', glow: 1, section: { pattern: 'glow' } },
+    look: { wash: 'arcaneViolet', glow: 1, section: { pattern: 'glow' } },
     field: union(crystal, rings),
     bounds: box(c, 0.11),
     cellSize: 0.004,
@@ -286,7 +286,7 @@ export function focusGemsPart(): PartDefinition {
   return {
     id: 'focus-gems',
     layer: 'organs',
-    look: { wash: 'arcaneGarnet', glow: 0.6, section: { pattern: 'glow' } },
+    look: { wash: 'arcaneSapphire', glow: 1, section: { pattern: 'glow' } },
     field: union(...gems),
     bounds: { min: [-0.42, 0.1, -0.35], max: [0.42, 0.68, 0.46] },
     cellSize: 0.004,

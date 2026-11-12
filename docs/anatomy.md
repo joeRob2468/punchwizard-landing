@@ -32,15 +32,15 @@ The Common Punchwizard's anatomy is entirely fictional. This file is the source 
 
 **3. Third Fontanelle (_Fonticulus tertius_).** The opening at the tip of the skull's horn core that closes in other species and never does in this one. The Conduit Lattice passes through it into the hat. _Art:_ a clean gap in the stippled vault on the midline.
 
-**4. Aetheric Core (_Nucleus aethericus_).** A glowing nodule at the centre of the brain where mana is stored; every vessel leads to it. _Art:_ bright cyan sphere, pale at the heart.
+**4. Aetheric Core (_Nucleus aethericus_).** A glowing nodule at the centre of the brain where mana is stored; every vessel leads to it. _Art:_ bright violet crystal, pale at the heart.
 
-**5. Ethereal Gland (_Glandula aetheris_).** A small double-lobed gland behind the core that meters out spell potency. When it is overworked the wizard suffers "burnout": dim eyes, a limp hat. _Art:_ ochre, faint glow.
+**5. Ethereal Gland (_Glandula aetheris_).** A small double-lobed gland behind the core that meters out spell potency. When it is overworked the wizard suffers "burnout": dim eyes, a limp hat. _Art:_ glowing gold.
 
-**6. Focus Gems (_Gemmae cogitationis_).** Garnet-like crystals just under the cortex. One forms with each discipline mastered; old wizards carry many. _Art:_ garnet octahedra, glowing in section.
+**6. Focus Gems (_Gemmae cogitationis_).** Garnet-like crystals just under the cortex. One forms with each discipline mastered; old wizards carry many. _Art:_ glowing sapphire octahedra.
 
 **7. Crystalline Eye (_Oculus crystallinus_).** Eyes fed directly by the vessels, able to see ley lines and the glow of enchanted things. _Art:_ softly glowing cyan.
 
-**8. Incantatory Sinus (_Sinus incantatorius_).** A three-lobed resonance chamber behind the nose that tunes the voice for incantation; a blocked sinus spoils spells. _Art:_ verdigris, with resonance rings in section.
+**8. Incantatory Sinus (_Sinus incantatorius_).** A three-lobed resonance chamber behind the nose that tunes the voice for incantation; a blocked sinus spoils spells. _Art:_ glowing emerald pipes.
 
 **9. Glossal Arcanum (_Lingua sigillata_).** A tongue with ridges like engraved sigils, built for the precise consonants of old spell-tongues. _Art:_ muscle red, ridged, hatched in section.
 
@@ -52,15 +52,15 @@ The Common Punchwizard's anatomy is entirely fictional. This file is the source 
 
 **13. Pileal Lobe (_Lobus pileatus_).** The brain does not stop at the brim: it grows up the horn core into the hat for as long as the wizard keeps learning, so the tallest hats hold the most. _Art:_ brain rose, folded, tapering to a point under the fontanelle.
 
-**14. Lexicon Lamellae (_Lamellae lexicales_).** Leaves of tissue stacked like the pages of a book in the frontal lobe, one leaf to a spell; forgetting a spell is tearing out a page. _Art:_ gilt leaves fanned round a binding, seen edge-on in section.
+**14. Lexicon Lamellae (_Lamellae lexicales_).** Leaves of tissue stacked like the pages of a book in the frontal lobe, one leaf to a spell; forgetting a spell is tearing out a page. _Art:_ leaves of warm white light fanned round a binding, seen edge-on in section.
 
-**15. Cor Aethericum (_Cor aethericum_).** A second heart behind the breastbone, of four faceted chambers, that beats mana rather than blood and drives the Aetherial Vessels; it quickens before a spell. _Art:_ garnet glow, cut-stone facets.
+**15. Cor Aethericum (_Cor aethericum_).** A second heart behind the breastbone, of four faceted chambers, that beats mana rather than blood and drives the Aetherial Vessels; it quickens before a spell. _Art:_ rose glow, cut-stone facets.
 
-**16. Cochlea Arcana (_Cochlea arcana_).** A second inner ear by each of the first, coiled tighter, that hears the hum of enchanted things and the lies in a spoken charm. _Art:_ a glowing cyan spiral, seen in coronal and transverse sections.
+**16. Cochlea Arcana (_Cochlea arcana_).** A second inner ear by each of the first, coiled tighter, that hears the hum of enchanted things and the lies in a spoken charm. _Art:_ a glowing magenta spiral, seen in coronal and transverse sections.
 
-**17. Ganglia Arcana (_Ganglia arcana_).** Beads of light strung down the front of the spinal cord, one to a vertebra, each holding a reflex spell cast faster than thought. _Art:_ cyan beads on the cord.
+**17. Ganglia Arcana (_Ganglia arcana_).** Beads of light strung down the front of the spinal cord, one to a vertebra, each holding a reflex spell cast faster than thought. _Art:_ lime beads of light on the cord.
 
-**18. Radix Barbae (_Radix barbae_).** The root plexus along the jaw from which the Mnemonic Beard grows; memories pass down it to be filed in the hairs. _Art:_ fine gilt roots under the skin of the chin and jaw.
+**18. Radix Barbae (_Radix barbae_).** The root plexus along the jaw from which the Mnemonic Beard grows; memories pass down it to be filed in the hairs. _Art:_ fine ember-orange glowing roots under the skin of the chin and jaw.
 
 **19. Signature Look of Superiority (_Vultus superioritatis_).** Not an organ but an expression: perfected over centuries of looking down the nose at apprentices, best delivered over the beard, in silence.
 

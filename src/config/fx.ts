@@ -4,7 +4,7 @@
  */
 export const FX = {
   /** Arcane parts glow past white and bloom into a soft halo. */
-  bloom: { label: 'Bloom', emission: 1.8, intensity: 2.2, threshold: 0.95, smoothing: 0.3 },
+  bloom: { label: 'Bloom', emission: 3.2, intensity: 2.6, threshold: 0.95, smoothing: 0.3 },
   /** Camera lens: vignette, grain and slight chromatic aberration. */
   lens: { label: 'Lens', vignette: 0.55, grain: 0.06, aberration: 0.0012 },
 } as const;
