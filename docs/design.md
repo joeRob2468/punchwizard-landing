@@ -13,6 +13,8 @@ How the site works. The rationale and roadmap are in [PLAN.md](PLAN.md); this fi
 
 `<Fallback>` shows the same border and title on CSS paper (`ui/PaperBackdrop`). It's used when WebGL 2 is missing and, through `ui/ErrorBoundary`, when the plate fails to render (for example, the specimen can't be fetched).
 
+`index.html` carries the title, description, canonical URL and link-preview tags (Open Graph and X/Twitter `summary_large_image`). The preview image, `public/og-image.jpg`, is a 1200 × 630 capture of the plate in its resting cut (taken at 2× and downscaled, with the bottom controls hidden); retake it if the plate's look changes. Preview tags need absolute URLs, so these name the live domain.
+
 In dev, `scene/DevHandle` exposes the R3F state getter as `window.__plate` for inspection.
 
 ## Procedural specimen

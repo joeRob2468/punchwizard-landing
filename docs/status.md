@@ -28,6 +28,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised, meshopt-compressed format v4. About 400k triangles, 2.2 MB (2.0 MB gzipped), a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).
 - **Views:** Tabula (default: Deyrolle washes on ink-black paper, dark outlines and section lines) and Resonantia (MRI greys, hair and clothing black), switched at the bottom right or with `V`. Bloom (each magical organ glows in its own colour, in both views, and through see-through layers) and Lens (aberration, light grain, vignette) are part of both. See design.md § Views.
 - **Preloader:** a ring of Futhark runes that ink in as the specimen loads, captioned _Praeparatur specimen_, fading out on the first frame.
+- **Metadata:** title, description, canonical URL, Open Graph and X/Twitter cards with a 1200 × 630 preview image of the plate.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
