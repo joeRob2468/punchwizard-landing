@@ -27,17 +27,17 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised, meshopt-compressed format v4. About 400k triangles, 2.2 MB (2.0 MB gzipped), a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).
 - **Views:** Tabula (default: Deyrolle washes on ink-black paper, dark outlines and section lines) and Resonantia (MRI greys, hair and clothing black), switched at the bottom right or with `V`. Bloom (each magical organ glows in its own colour, in both views, and through see-through layers) and Lens (aberration, light grain, vignette) are part of both. See design.md § Views.
+- **Performance:** about 3 ms a frame on the GPU at 2500 × 1330 (no MSAA; SMAA alone), cut faces drawn only for parts the plane crosses, label overlay writes only what changed, pixel ratio adapts on weak devices; the specimen is meshopt-compressed (2.0 MB gzipped) and preloaded from the HTML.
 - **Preloader:** a ring of Futhark runes that ink in as the specimen loads, captioned _Praeparatur specimen_, fading out on the first frame.
 - **Metadata:** title, description, canonical URL, Open Graph and X/Twitter cards with a 1200 × 630 preview image of the plate.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
 
-The look, the views, the layers and the flair round are done and reviewed. Next, preparing for launch:
+The look, the views, the layers and the flair round are done and reviewed. Launch prep: the performance pass, the preloader and the metadata are done (see Works and design.md § Resolution, § Section caps, § Loading). Next:
 
-1. **Optimise:** load size (~4 MB specimen, ~1.1 MB bundle) and time to first frame; frame cost with all effects (bloom, SMAA, lens, outline, marginalia) on low-end GPUs and phones (consider a lighter quality tier); label tracking cost (BVHs for every part); bake ~90 s (head with horn core, hair and beard dominate).
-2. **Polish for launch:** a preloader while the specimen loads (in the plate's style), HTML metadata (title, description, Open Graph and Twitter cards with a preview image), favicon and touch icons, the no-WebGL fallback image, touch tuning, an ink-in on load.
-3. **Ship:** build and test the Docker image locally (ask first: it pulls base images), then deploy (M8) only once the owner calls the site final.
+1. **Polish for launch:** favicon and touch icons (the built page 404s on `/favicon.ico` until then), the no-WebGL fallback image, touch tuning (below 720 px wide the layer presets run into the cut control at the bottom), an ink-in on load.
+2. **Ship:** build and test the Docker image locally (ask first: it pulls base images), then deploy (M8) only once the owner calls the site final.
 
 ## Working notes
 
@@ -53,6 +53,7 @@ The look, the views, the layers and the flair round are done and reviewed. Next,
 - The bake warns about holes in hair parts (real gaps between locks), the skull (openings into its cavities) and a few internals; none show as defects on screen.
 
 - React Three Fiber logs a `THREE.Clock` deprecation warning (inside the library; harmless).
-- The production bundle is one ~1.1 MB chunk (three.js, about 310 KB gzipped); splitting wouldn't reduce what a visitor downloads, so the warning is silenced.
+- The production bundle is one ~1.56 MB chunk (three.js, postprocessing, the SDF fields the labels use; about 470 KB gzipped); splitting wouldn't reduce what a visitor downloads, so the warning is silenced.
+- Ink lines along the beard's and moustache's edges still shimmer slightly while the model turns (owner: acceptable).
 - `npm audit` reports a moderate advisory in `minimatch`, used only by ESLint tooling (not shipped).
 - Under-eye tear-trough ends can leave a small dimple on one cheek; tidy in a later face pass.
