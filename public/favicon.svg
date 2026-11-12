@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The Punchwizard's hat on the plate's dark paper, outlined in chalk. -->
+  <rect width="64" height="64" rx="13" fill="#17181c"/>
+  <rect x="2.5" y="2.5" width="59" height="59" rx="11" fill="none" stroke="#e8dcc0" stroke-opacity="0.35" stroke-width="1.5"/>
+  <g stroke="#e8dcc0" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Cone, crumpled and bent over at the tip -->
+    <path d="M17 45 C22 37 25 27 28 19 C30.5 12.5 36 8.5 47 8 C41.5 11.5 39 16.5 38.5 23 C38 31 40.5 38.5 47 45 Z" fill="#5577b8"/>
+    <!-- Leather band with the mana gem -->
+    <path d="M18.5 40.5 C27 42.5 37 42.5 45.5 40.5 L47 45.5 C37 47.5 27 47.5 17 45.5 Z" fill="#8a6446" stroke-width="2"/>
+    <!-- Floppy brim -->
+    <path d="M6 49.5 C10 45 20 44 32 44 C44 44 54 45 58 49.5 C54 54 44 55.5 32 55.5 C20 55.5 10 54 6 49.5 Z" fill="#5577b8"/>
+  </g>
+  <path d="M32 39.6 L34.6 43 L32 46.4 L29.4 43 Z" fill="#5fe0e6" stroke="#e8dcc0" stroke-width="0.8"/>
+</svg>

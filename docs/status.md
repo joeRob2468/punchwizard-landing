@@ -30,13 +30,14 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Performance:** about 3 ms a frame on the GPU at 2500 × 1330 (no MSAA; SMAA alone), cut faces drawn only for parts the plane crosses, label overlay writes only what changed, pixel ratio adapts on weak devices; the specimen is meshopt-compressed (2.0 MB gzipped) and preloaded from the HTML.
 - **Preloader:** a ring of Futhark runes that ink in as the specimen loads, captioned _Praeparatur specimen_, fading out on the first frame.
 - **Metadata:** title, description, canonical URL, Open Graph and X/Twitter cards with a 1200 × 630 preview image of the plate.
+- **Icons:** SVG favicon (the hat on dark paper) with ICO, touch and manifest (incl. maskable) renders, and a web manifest.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
 
 The look, the views, the layers and the flair round are done and reviewed. Launch prep: the performance pass, the preloader and the metadata are done (see Works and design.md § Resolution, § Section caps, § Loading). Next:
 
-1. **Polish for launch:** favicon and touch icons (the built page 404s on `/favicon.ico` until then), the no-WebGL fallback image, touch tuning (below 720 px wide the layer presets run into the cut control at the bottom), an ink-in on load.
+1. **Polish for launch:** the no-WebGL fallback image, touch tuning (below 720 px wide the layer presets run into the cut control at the bottom), an ink-in on load.
 2. **Ship:** build and test the Docker image locally (ask first: it pulls base images), then deploy (M8) only once the owner calls the site final.
 
 ## Working notes
