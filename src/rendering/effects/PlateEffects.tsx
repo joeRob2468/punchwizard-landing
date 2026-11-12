@@ -49,6 +49,9 @@ export function PlateEffects() {
   const reducedMotion = usePrefersReducedMotion();
   const centre = useMemo(() => new Vector3(), []);
   useFrame(({ camera, clock }) => {
+    // The camera controls leave its matrices stale until render; refresh them, or
+    // the marginalia trail the specimen by a frame as it turns.
+    camera.updateMatrixWorld();
     centre.set(...MARGINALIA_CENTRE).project(camera);
     paper.frame((centre.x + 1) / 2, (centre.y + 1) / 2, reducedMotion ? 0 : clock.getElapsedTime());
   });

@@ -9,7 +9,6 @@ import {
   NotEqualStencilFunc,
   ReplaceStencilOp,
   ShaderMaterial,
-  type Texture,
   Vector2,
   Vector3,
 } from 'three';
@@ -39,8 +38,6 @@ export interface CapOptions {
   /** Whether pulses of mana run through the part, and where they start. */
   readonly carriesMana?: boolean;
   readonly flowOrigin?: Vec3;
-  /** A tile of runes (repeating) that drifts faintly across the face. */
-  readonly runes?: Texture | null;
 }
 
 /** How a cut face is painted under the current look (see config/looks.ts). */
@@ -50,8 +47,7 @@ export interface CapPaint {
   readonly line: string;
   /** 0–1 multiplier on the section pattern. */
   readonly section: number;
-  /** Colour of the runes drifting across the face. */
-  readonly runeColour: string;
+
   /** How far past white glowing caps go (0 = not at all), for bloom. */
   readonly emission: number;
 }
@@ -67,7 +63,6 @@ export class CapMaterial extends ShaderMaterial {
   readonly #pulse: { value: number };
   readonly #glowLevel: { value: number };
   readonly #flowFronts: { value: Vector2 };
-  readonly #runeColour: { value: Color };
 
   constructor({
     wash,
@@ -76,7 +71,6 @@ export class CapMaterial extends ShaderMaterial {
     partId,
     carriesMana = false,
     flowOrigin = [0, 0, 0],
-    runes = null,
   }: CapOptions) {
     const time = { value: 0 };
     const normal = { value: new Vector3(0, 0, 1) };
@@ -88,7 +82,6 @@ export class CapMaterial extends ShaderMaterial {
     const pulse = { value: 0.5 };
     const glowLevel = { value: 1 };
     const flowFronts = { value: new Vector2(-1, -1) };
-    const runeColour = { value: new Color(0, 0, 0) };
     super({
       vertexShader: vertex,
       fragmentShader: fragment.replace('#include <common>', `#include <common>\n${noise}`),
@@ -112,8 +105,7 @@ export class CapMaterial extends ShaderMaterial {
         uFlowFronts: flowFronts,
         uFlowOrigin: { value: new Vector3(...flowOrigin) },
         uFlow: { value: carriesMana ? 1 : 0 },
-        uRunes: { value: runes },
-        uRuneColour: runeColour,
+
         uNormal: normal,
         uCentre: { value: new Vector3(...centre) },
         uPattern: { value: PATTERN_IDS[pattern] },
@@ -132,11 +124,9 @@ export class CapMaterial extends ShaderMaterial {
     this.#pulse = pulse;
     this.#glowLevel = glowLevel;
     this.#flowFronts = flowFronts;
-    this.#runeColour = runeColour;
   }
 
-  paint({ wash, line, section, emission, runeColour }: CapPaint) {
-    this.#runeColour.value.set(runeColour);
+  paint({ wash, line, section, emission }: CapPaint) {
     this.#emission.value = emission;
     this.#wash.set(wash);
     this.#line.set(line);

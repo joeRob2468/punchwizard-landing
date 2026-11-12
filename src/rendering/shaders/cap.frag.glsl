@@ -17,8 +17,6 @@ uniform float uGlowLevel; // 0–1: dims the glow (a blink)
 uniform vec3 uFlowOrigin; // the Aetheric Core, where mana pulses start
 uniform vec2 uFlowFronts; // radii of the two latest pulses' fronts (negative: none)
 uniform float uFlow; // 1 for parts that carry mana
-uniform sampler2D uRunes; // tile of runes (white on transparent)
-uniform vec3 uRuneColour;
 uniform float uEmission; // how far past white glowing caps go (for bloom)
 
 varying vec3 vWorldPosition;
@@ -85,13 +83,6 @@ void main() {
 
   colour = mix(colour, uInk, ink * uSection);
 
-  // Scrying cut: faint runes drift across the face, showing in slow patches.
-  if (uPattern != 3) {
-    vec2 drift = vec2(uTime * 0.012, uTime * 0.005);
-    float rune = texture2D(uRunes, uv * 1.4 + drift).a;
-    float showing = smoothstep(0.5, 0.78, pwNoise2(uv * 1.3 + vec2(uTime * 0.03, -uTime * 0.02)));
-    colour += uRuneColour * rune * showing * 0.4;
-  }
   colour = colour * (1.0 + 0.7 * uFlare) + uWash * 0.3 * uFlare;
   gl_FragColor = vec4(colour, uPartId / 255.0);
   #include <colorspace_fragment>

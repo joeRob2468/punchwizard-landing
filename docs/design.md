@@ -164,17 +164,15 @@ The irises and pupils are separate left and right parts that carry a `gazePivot`
 
 `src/ornament/futhark.ts` is the plate's one alphabet: the 24 Elder Futhark runes as straight strokes on a 4 × 8 grid, a Latin transliteration, and helpers that draw a rune as SVG path data or onto a canvas. Every rune on the plate comes from it.
 
-`scene/RuneCircles` draws rune rings (`ornament/rune-ring.ts`: circles, bands of transliterated Latin, dial ticks, a valknut) onto canvas textures: a summoning circle on the ground just under the bust (outer and inner rings turning opposite ways) and a fainter ring that always stands behind the head facing the camera. They're drawn additively in the view's mana colour, below the bloom threshold, and hold still with reduced motion.
+`scene/RuneCircles` draws rune rings (`ornament/rune-ring.ts`: circles, bands of transliterated Latin, dial ticks, a valknut) onto canvas textures: a brighter summoning circle on the ground just under the bust (outer and inner rings turning opposite ways, fast enough to read against the camera's idle turn) and a fainter ring that always stands behind the head facing the camera. They're drawn additively in the view's mana colour (the ground circle just past the bloom threshold, the halo faint), and hold still with reduced motion.
 
-The **border** (`ui/PlateBorder`) is a double rule whose band carries a line of runes (Latin about the specimen, transliterated) placed to fit the window, with a medallion (ring, diamond and rune) at each corner; every second or so a random rune lights up in the mana colour and fades (not with reduced motion). On small screens it's a plain double rule.
+The **border** (`ui/PlateBorder`) is a solid black frame (`--frame`, everything outside the inner rule) with a double rule whose band carries a line of runes (Latin about the specimen, transliterated) placed to fit the window, with a medallion (ring, diamond and rune) at each corner; every second or so a random rune lights up in the mana colour and fades (not with reduced motion). On small screens it's a plain double rule.
 
 The **inset study** (`ui/GlowKey`, top right) is the key of lights: each magical organ's plate number and Latin name beside a swatch in the colour it glows in the current view (from `partColours`), hovering a row flaring that organ, with a small ruled scale. The label overlay starts its right-hand column below it; it hides on small screens.
 
 **Cipher notes** (`ui/CipherNote`) are short Latin notes written in runes that cross-fade to the Latin on hover or focus (screen readers get the Latin): one under the taxonomy, one at the foot of the key of lights.
 
-**Marginalia** are drawn into the paper by the paper effect (`shaders/marginalia.glsl`), only where the depth buffer is empty, so they sit in the page behind the specimen: a faint astrolabe centred on the specimen's projected centre (rings and degree ticks turning very slowly one way, twelve spokes the other), two large compass arcs struck from off to the sides, and dashed construction lines, all anti-aliased, in the view's `chalk` at its `marginalia` strength.
-
-The **scrying cut**: the surface shader adds a thin shimmering line of the mana colour where the section plane meets an outer-layer part (`rim`; its distance to the plane comes from three's clipping data), and the cap shader lets a shared tile of random runes (`drawRuneTile`) drift slowly across every cut face, showing faintly in moving patches.
+**Marginalia** are drawn into the paper by the paper effect (`shaders/marginalia.glsl`), only where the depth buffer is empty, so they sit in the page behind the specimen, centred on the specimen with fresh camera matrices so they don't trail it: a faint astrolabe centred on the specimen's projected centre (rings and degree ticks turning very slowly one way, twelve spokes the other), two large compass arcs struck from off to the sides, and dashed construction lines, all anti-aliased, in the view's `chalk` at its `marginalia` strength.
 
 ## Sectioning
 

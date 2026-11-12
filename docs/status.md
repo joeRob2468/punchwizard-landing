@@ -19,9 +19,8 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Mana flow:** slow pulses of light leave the Aetheric Core at random moments and travel along the lattice, vessels and ganglia.
 - **Motes:** a few faint specks float around the model, for depth as the camera moves.
 - **Rune circles:** Elder Futhark rings: a turning summoning circle with a valknut under the bust and a faint halo ring behind the head.
-- **Scrying cut:** the cut's outline glows where it meets the outer shell, and faint runes drift across the cut faces.
 - **Marginalia:** a faint slowly turning astrolabe, compass arcs and construction lines drawn into the paper behind the specimen.
-- **Border:** a band of runes in the double rule, corner medallions, and runes that catch the light now and then.
+- **Border:** a solid black frame, a band of runes in the double rule, corner medallions, and runes that catch the light now and then.
 - **Key of lights:** an inset (top right) with each magical organ's glow colour, number and Latin name (hover to flare it), and a scale.
 - **Cipher notes:** two short notes in runes (under the taxonomy and in the key) that read as Latin on hover.
 - **Idle life:** glows breathe on their own rhythms, the heart beats, the eyes' glow blinks now and then, the hat sways (cuts and labels follow); sway and blinks respect reduced motion.
@@ -34,7 +33,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 
 Exterior, internal anatomy, fantasy organs, layers and framing are done and approved. In this order:
 
-1. **Flair review:** the owner reviews the new flair (label pulse, idle life, mana pulses, motes, rune circles, scrying cut, marginalia, rune border, key of lights, cipher notes) and asks for changes. Not measured yet: the cost of the added effects on low-end GPUs.
+1. **Flair review:** the owner reviews the new flair (label pulse, idle life, mana pulses, motes, rune circles, marginalia, rune border, key of lights, cipher notes) and asks for changes. Not measured yet: the cost of the added effects on low-end GPUs.
 2. **Optimise:** bake is ~100 s (head with horn core, hair, beard dominate; consider coarser cells or splitting the head's horn into its own part), ~400k triangles / ~4 MB (simplification error, fewer hair locks), and label tracking cost (BVHs for every part now).
 3. **Finalise (M6 polish):** idle motion, ink-in on load, no-WebGL fallback image, touch tuning, build and test the Docker image locally (ask first: it pulls base images). Deploy (M8) only once the owner calls the site final.
 

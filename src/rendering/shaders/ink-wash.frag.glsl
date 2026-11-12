@@ -35,8 +35,6 @@ uniform float uGlowLevel; // 0–1: dims the glow (a blink)
 uniform vec3 uFlowOrigin; // the Aetheric Core, where mana pulses start
 uniform vec2 uFlowFronts; // radii of the two latest pulses' fronts (negative: none)
 uniform float uFlow; // 1 for parts that carry mana
-uniform vec3 uRimColour; // glow where the cut meets the part
-uniform float uRim; // 0–1: how strongly this part's cut edge glows
 
 varying vec3 vViewNormal;
 varying vec3 vViewPosition;
@@ -128,14 +126,6 @@ void main() {
   glow *= 1.0 + 2.2 * manaWave(p);
   colour = mix(colour, glow, uGlow * uGlowLevel);
 
-  // Scrying cut: a shimmering line of light where the section plane meets the part.
-  #if NUM_CLIPPING_PLANES > 0
-    vec4 cut = clippingPlanes[0];
-    float toCut = cut.w - dot(vClipPosition, cut.xyz);
-    float shimmer = 0.7 + 0.3 * sin(uTime * 3.0 + dot(p, vec3(9.0, 13.0, 7.0)));
-    float rim = exp(-pow(toCut / 0.006, 2.0)) * shimmer * uRim;
-    colour += uRimColour * rim * 2.2;
-  #endif
 
   // Flare: brighter and lit from within in the part's own colour.
   colour = colour * (1.0 + 0.7 * uFlare) + mix(albedo, uWash, uGlow) * 0.3 * uFlare;

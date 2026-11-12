@@ -1,15 +1,21 @@
 /* The outer rule is the frame's edge; the inner rule sits a band's depth inside. */
+/*
+ * Everything outside the inner rule is a solid black frame: the frame's shadow
+ * covers the page outside it, the inner rule's covers the band between the rules.
+ */
 .frame {
   --band: 4px;
   position: absolute;
   inset: clamp(10px, 2.5vmin, 28px);
   border: 1px solid var(--ink-faint);
+  box-shadow: 0 0 0 100vmax var(--frame);
 }
 
 .inner {
   position: absolute;
   inset: var(--band);
   border: 1px solid var(--ink-faint);
+  box-shadow: 0 0 0 var(--band) var(--frame);
 }
 
 .ornament {
@@ -47,7 +53,7 @@
 }
 
 .medallion circle:first-child {
-  fill: var(--paper);
+  fill: var(--frame);
 }
 
 .medallion .medallionRune {

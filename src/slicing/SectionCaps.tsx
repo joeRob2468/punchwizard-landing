@@ -14,7 +14,6 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import {
   AlwaysStencilFunc,
-  CanvasTexture,
   DoubleSide,
   InvertStencilOp,
   type Mesh,
@@ -22,14 +21,12 @@ import {
   type Plane,
   PlaneGeometry,
   Quaternion,
-  RepeatWrapping,
   Vector3,
 } from 'three';
 
 import { FX } from '../config/fx.ts';
 import { DEFAULT_LOOK, LOOKS, washFor } from '../config/looks.ts';
 import { RENDER } from '../config/render.ts';
-import { drawRuneTile } from '../ornament/rune-ring.ts';
 import { CapMaterial } from '../rendering/materials/cap-material.ts';
 import { partIdFor, partIds } from '../specimen/part-id.ts';
 import type { GazeRig } from '../specimen/gaze.ts';
@@ -62,20 +59,6 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
   const capMeshes = useRef<(Mesh | null)[]>([]);
 
   const ids = useMemo(() => partIds(parts.map((p) => p.entry)), [parts]);
-  // One tile of runes, shared by every cut face.
-  const runes = useMemo(() => {
-    const texture = new CanvasTexture(drawRuneTile(1024, 9, 7));
-    texture.wrapS = RepeatWrapping;
-    texture.wrapT = RepeatWrapping;
-    texture.anisotropy = 4;
-    return texture;
-  }, []);
-  useEffect(
-    () => () => {
-      runes.dispose();
-    },
-    [runes],
-  );
   const layers = useMemo(
     () =>
       parts.map(({ entry, geometry }, index) => {
@@ -94,11 +77,10 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
             partId: ids[index] ?? partIdFor(index),
             carriesMana: MANA_CARRIERS.has(entry.id),
             flowOrigin: FLOW_ORIGIN,
-            runes,
           }),
         };
       }),
-    [parts, plane, ids, sway, runes],
+    [parts, plane, ids, sway],
   );
 
   useEffect(
@@ -119,7 +101,6 @@ export function SectionCaps({ parts, gaze, sway }: SectionCapsProps) {
         wash: washFor(look, id, wash),
         line: look.line,
         section: look.section,
-        runeColour: look.palette.arcaneMana,
         emission: FX.bloom.emission,
       });
     });

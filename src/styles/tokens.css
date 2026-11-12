@@ -11,6 +11,8 @@
   --foxing: #2b2620;
   --ink: #e8dcc0;
   --ink-faint: rgb(232 220 192 / 0.55);
+  /* The solid frame outside the plate's inner rule. */
+  --frame: #000000;
 
   /* Deyrolle washes */
   --wash-flesh: #c98f76;
