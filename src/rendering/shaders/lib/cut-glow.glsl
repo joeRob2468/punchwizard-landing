@@ -15,8 +15,9 @@ vec3 pwCutGlow(vec2 uv) {
   float inside = max(-d, 0.0);
   float wave = pwUndulate(uv);
   // Cut faces only draw inside the outline, so the edge is just its inner side.
-  float edge = 1.0 - smoothstep(0.0, 0.009, abs(d));
-  float spread = exp(-inside / (0.025 * (1.0 + 0.4 * wave)));
-  float shimmer = 0.78 + 0.22 * wave;
+  // The line itself swells and thins with the waves, as well as its haze.
+  float edge = 1.0 - smoothstep(0.0, 0.016 * (1.0 + 0.45 * wave), abs(d));
+  float spread = exp(-inside / (0.035 * (1.0 + 0.5 * wave)));
+  float shimmer = 0.7 + 0.3 * wave;
   return uSeamColour * (edge * 0.8 + spread * 0.22) * shimmer * uSeamStrength;
 }
