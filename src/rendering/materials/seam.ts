@@ -10,6 +10,8 @@ export interface SeamUniforms {
   readonly uSeamColour: { value: Color };
   readonly uSeamWidth: { value: number };
   readonly uSeamStrength: { value: number };
+  /** Seconds, for the undulation (0 holds it still). */
+  readonly uSeamTime: { value: number };
 }
 
 export function seamUniforms(y: number, width: number, strength: number): SeamUniforms {
@@ -18,8 +20,14 @@ export function seamUniforms(y: number, width: number, strength: number): SeamUn
     uSeamColour: { value: new Color('#ffffff') },
     uSeamWidth: { value: width },
     uSeamStrength: { value: strength },
+    uSeamTime: { value: 0 },
   };
 }
 
 /** For materials that never touch the ground. */
 export const NO_SEAM: SeamUniforms = seamUniforms(-1e9, 1, 0);
+
+/** Moves the seam's undulation (and the ground glow's) on to `seconds`. */
+export function setSeamTime(seam: SeamUniforms, seconds: number): void {
+  seam.uSeamTime.value = seconds;
+}

@@ -84,7 +84,7 @@ void main() {
   colour = mix(colour, uInk, ink * uSection);
 
   // Light where the cut face meets the rune circle on the ground (lib/seam.glsl).
-  colour += pwGroundSeam(vWorldPosition, uTime);
+  colour += pwGroundSeam(vWorldPosition);
   colour = colour * (1.0 + 0.7 * uFlare) + uWash * 0.3 * uFlare;
   gl_FragColor = vec4(colour, uPartId / 255.0);
   #include <colorspace_fragment>

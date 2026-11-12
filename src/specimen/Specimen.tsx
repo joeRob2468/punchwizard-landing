@@ -17,7 +17,7 @@ import type { LabelChannel } from '../labels/label-channel.ts';
 import { LabelTracker } from '../labels/LabelTracker.tsx';
 import { usePrefersReducedMotion } from '../hooks/use-prefers-reduced-motion.ts';
 import { InkWashMaterial } from '../rendering/materials/ink-wash-material.ts';
-import { seamUniforms } from '../rendering/materials/seam.ts';
+import { seamUniforms, setSeamTime } from '../rendering/materials/seam.ts';
 import { swayUniforms } from '../rendering/materials/sway.ts';
 import { LANDMARKS } from '../procedural/landmarks.ts';
 import { useClipPlane } from '../slicing/clip-plane.tsx';
@@ -187,6 +187,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
     const [sx, sz] = reducedMotion ? [0, 0] : swayAtTip(t);
     const [f1, f2] = reducedMotion ? [-1, -1] : flowFronts(t);
     sway.uSway.value.set(sx, sz);
+    setSeamTime(seam, reducedMotion ? 0 : t);
     meshes.forEach(({ id, material }, i) => {
       material.time = t;
       material.pulse = glowPulse(id, i, t);
@@ -226,7 +227,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
         })}
       </group>
       <Motes />
-      <GroundGlow parts={parts} />
+      <GroundGlow parts={parts} seam={seam} />
       <SectionCaps parts={parts} gaze={gaze} sway={sway} seam={seam} />
       <SliceController bounds={bounds} />
       <LabelTracker specimen={loaded} channel={labels} />
