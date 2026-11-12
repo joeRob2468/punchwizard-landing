@@ -76,10 +76,13 @@ void main() {
   vec3 p = vObjectPosition;
   float occlusion = vOcclusion;
 
-  // Fine relief, faded out where it would be finer than a pixel (it would shimmer).
+  // Fine relief, each octave faded out where it would be finer than a pixel (it
+  // would shimmer as the model turns: the hair's strands are finest across).
   vec3 q = p * uGrain * uStretch;
-  float tooFine = smoothstep(0.35, 0.9, length(fwidth(q)));
-  float relief = (pwNoise3(q) * 0.65 + pwNoise3(q * 2.3 + 5.0) * 0.35) * uBump * (1.0 - tooFine);
+  float footprint = length(fwidth(q));
+  float octave1 = pwNoise3(q) * 0.65 * (1.0 - smoothstep(0.3, 0.8, footprint));
+  float octave2 = pwNoise3(q * 2.3 + 5.0) * 0.35 * (1.0 - smoothstep(0.3, 0.8, footprint * 2.3));
+  float relief = (octave1 + octave2) * uBump;
   // Coarser undulation, always visible.
   relief += pwNoise3(p * 22.0 * uStretch) * uBump * 1.5;
   n = bumped(n, relief);
