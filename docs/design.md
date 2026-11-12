@@ -230,7 +230,7 @@ The scroll wheel moves the cut: `SliceController` listens for wheel events on th
 
 ### Overlay (in the DOM)
 
-`labels/LabelOverlay` renders one button per feature (number, italic name, and a tooltip with the Latin name and lore) and an SVG of leader paths and anchor dots, once. On each channel update it lays out the visible labels (`layout.layoutLabels`: left or right column by the anchor's side of the specimen's centre, sorted by height, pushed apart to a minimum row height and kept within the column's limits; the left column starts below the title block) and writes positions, paths and visibility straight to the elements.
+`labels/LabelOverlay` renders one button per feature (number, italic name, and a tooltip with the Latin name and lore) and an SVG of leader paths and anchor dots, once. On each channel update it lays out the visible labels (`layout.layoutLabels`: left or right column by the anchor's side of the specimen's centre, sorted by height, pushed apart to a minimum row height and kept within the column's limits; the left column starts below the title block) and writes positions, paths and visibility straight to the elements, only where they changed (a still camera costs no DOM work). Labels are placed by `transform`, so moving them skips layout.
 
 Leaders are cubic curves from the label to the anchor with a small per-label wobble. Hovering or focusing a label thickens its leader; hover, focus or click shows its tooltip, and a click pins it until Escape or a press elsewhere. Hidden labels are taken out of the tab order and hidden from assistive tech. Below 720 px wide, labels show their number only and the tooltip adds the name.
 

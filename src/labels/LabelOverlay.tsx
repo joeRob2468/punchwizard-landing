@@ -43,6 +43,8 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
     };
     measure();
     window.addEventListener('resize', measure);
+    // What was last written to each label's elements.
+    const written: { side: string; transform: string; path: string }[] = [];
 
     const unsubscribe = channel.subscribe(() => {
       const { width, height } = channel;
@@ -90,24 +92,31 @@ export function LabelOverlay({ channel }: LabelOverlayProps) {
         }
         if (!place) return;
 
-        label.dataset.side = place.side;
-        if (place.side === 'left') {
-          label.style.left = '';
-          label.style.right = `${width - place.x}px`;
-        } else {
-          label.style.right = '';
-          label.style.left = `${place.x}px`;
+        // Only touch what changed: a still camera then costs no DOM work at all, and
+        // labels move by transform, which skips layout.
+        const last = written[index] ?? (written[index] = { side: '', transform: '', path: '' });
+        if (last.side !== place.side) {
+          last.side = place.side;
+          label.dataset.side = place.side;
         }
-        label.style.top = `${place.y}px`;
+        const shiftX = place.side === 'left' ? '-100%' : '0';
+        const transform = `translate(${place.x.toFixed(1)}px,${place.y.toFixed(1)}px) translate(${shiftX},-50%)`;
+        if (last.transform !== transform) {
+          last.transform = transform;
+          label.style.transform = transform;
+        }
 
         const sx = place.side === 'left' ? place.x + LEADER_GAP : place.x - LEADER_GAP;
         const dx = sample.x - sx;
         const wobble = ((index * 37) % 11) - 5;
         const path = `M${sx.toFixed(1)},${place.y.toFixed(1)} C${(sx + dx * 0.45).toFixed(1)},${(place.y + wobble).toFixed(1)} ${(sample.x - dx * 0.25).toFixed(1)},${sample.y.toFixed(1)} ${sample.x.toFixed(1)},${sample.y.toFixed(1)}`;
-        leader.setAttribute('d', path);
-        casing?.setAttribute('d', path);
-        dot.setAttribute('cx', sample.x.toFixed(1));
-        dot.setAttribute('cy', sample.y.toFixed(1));
+        if (last.path !== path) {
+          last.path = path;
+          leader.setAttribute('d', path);
+          casing?.setAttribute('d', path);
+          dot.setAttribute('cx', sample.x.toFixed(1));
+          dot.setAttribute('cy', sample.y.toFixed(1));
+        }
       });
     });
     return () => {
