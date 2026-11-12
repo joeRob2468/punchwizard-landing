@@ -17,14 +17,14 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Layers:** shown, see-through or hidden per layer, with presets (Omnia, Ossa, Viscera; `L`), bottom left. Internal features label from outside once what covers them is see-through or hidden.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 400k triangles, ~4 MB, a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).
-- **Looks (dev comparison):** Plate (current), Nocturne (plate colours on ink-black paper, chalk lines), MRI (greys by tissue, outside dimmed, mana the only colour) and Sepia (one brown ink). Switch with the dev switcher at top centre, `V`, or `?look=<id>`; see design.md § Looks.
+- **Looks and effects (dev comparison):** Plate, Nocturne (plate colours on ink-black paper, dark outlines, pale hatching), MRI (greys by tissue), MRI colour (false colour after the colourised scans: blue brain, red-orange soft tissue and bone), Sepia. Effects to toggle on any look: Bloom (coloured halos on arcane parts), Haze (depth haze and rising wisps), Focus (depth of field), Lit (smooth photographic lighting instead of glazes and hatching), Lens (aberration, grain, vignette). The dev panel is at top centre; `?look=…&fx=…`. See design.md § Looks.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
 
 Exterior, internal anatomy, fantasy organs, layers and framing are done and approved. In this order:
 
-1. **Stylisation checks:** the owner compares the four looks and picks one (or asks for changes). Then make it `DEFAULT_LOOK`, and decide whether to drop the others and the switcher before shipping. Open points: MRI cut faces of hat, hair and robe are still mid-grey (could go black like air in a scan); Nocturne's chalk outlines are heavy on hair.
+1. **Stylisation checks:** the owner compares looks and effects and picks a combination (or asks for changes). Then make it the default, and decide whether to drop the rest and the panel before shipping. Ideas not yet tried: god rays from the Aetheric Core, floating mana motes (particles), screen-space AO in Lit mode (needs clipping-aware normals). Effects' cost on low-end GPUs isn't measured yet.
 2. **Optimise:** bake is ~100 s (head with horn core, hair, beard dominate; consider coarser cells or splitting the head's horn into its own part), ~400k triangles / ~4 MB (simplification error, fewer hair locks), and label tracking cost (BVHs for every part now).
 3. **Finalise (M6 polish):** idle motion, ink-in on load, no-WebGL fallback image, touch tuning, build and test the Docker image locally (ask first: it pulls base images). Deploy (M8) only once the owner calls the site final.
 

@@ -18,7 +18,7 @@ import { Specimen } from '../specimen/Specimen.tsx';
 import { PlateBorder } from '../ui/PlateBorder.tsx';
 import { PlateHeader } from '../ui/PlateHeader.tsx';
 import { LayerControls } from '../ui/LayerControls.tsx';
-import { LookSwitcher } from '../ui/LookSwitcher.tsx';
+import { StylePanel } from '../ui/StylePanel.tsx';
 import { SliceControls } from '../ui/SliceControls.tsx';
 import styles from './App.module.css';
 
@@ -61,7 +61,7 @@ export function App() {
         <LabelOverlay channel={labels} />
         <SliceControls />
         <LayerControls />
-        {import.meta.env.DEV && <LookSwitcher />}
+        {import.meta.env.DEV && <StylePanel />}
       </div>
     </main>
   );

@@ -4,10 +4,12 @@
  * outlines are drawn before the paper multiplies everything.
  */
 import { BlendFunction, Effect, EffectAttribute } from 'postprocessing';
-import { Color, Uniform } from 'three';
+import { Color, Uniform, Vector2, type WebGLRenderer, type WebGLRenderTarget } from 'three';
 
 import { PALETTE } from '../../config/palette.ts';
 import { RENDER } from '../../config/render.ts';
+import { FX } from '../../config/fx.ts';
+import haze from '../shaders/haze.frag.glsl?raw';
 import noise from '../shaders/lib/noise.glsl?raw';
 import outline from '../shaders/outline.frag.glsl?raw';
 import paper from '../shaders/paper.frag.glsl?raw';
@@ -22,7 +24,8 @@ export class OutlineEffect extends Effect {
 
   constructor() {
     super('OutlineEffect', `${noise}\n${outline}`, {
-      attributes: EffectAttribute.DEPTH,
+      // Samples neighbouring pixels, so it must lead its own pass.
+      attributes: EffectAttribute.DEPTH | EffectAttribute.CONVOLUTION,
       blendFunction: BlendFunction.SET,
       uniforms: new Map<string, Uniform>([
         ['uInk', new Uniform(new Color(PALETTE.ink))],
@@ -31,6 +34,38 @@ export class OutlineEffect extends Effect {
         ['uPartEdgeStrength', new Uniform(RENDER.partEdgeStrength)],
       ]),
     });
+  }
+}
+
+/** Depth haze and drifting wisps (see haze.frag.glsl). */
+export class HazeEffect extends Effect {
+  constructor() {
+    super('HazeEffect', `${noise}\n${haze}`, {
+      attributes: EffectAttribute.DEPTH,
+      blendFunction: BlendFunction.SET,
+      uniforms: new Map<string, Uniform>([
+        ['uHaze', new Uniform(new Color('#ffffff'))],
+        ['uTime', new Uniform(0)],
+        ['uRange', new Uniform(new Vector2(...FX.haze.range))],
+        ['uDepthStrength', new Uniform(FX.haze.depth)],
+        ['uWispStrength', new Uniform(FX.haze.wisps)],
+      ]),
+    });
+  }
+
+  paint(haze: string) {
+    colourUniform(this, 'uHaze').set(haze);
+  }
+
+  /** Places the depth haze relative to the distance to the specimen's centre. */
+  focusAt(distance: number) {
+    const range = this.uniforms.get('uRange')?.value as Vector2;
+    range.set(distance + FX.haze.range[0], distance + FX.haze.range[1]);
+  }
+
+  override update(renderer: WebGLRenderer, inputBuffer: WebGLRenderTarget, deltaTime?: number) {
+    super.update(renderer, inputBuffer, deltaTime);
+    numberUniform(this, 'uTime').value += deltaTime ?? 0;
   }
 }
 

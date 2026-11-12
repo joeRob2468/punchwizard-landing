@@ -50,6 +50,10 @@ export interface SurfacePaint {
   readonly hatch: number;
   /** Brightness of the surface against the ground (1 = as painted). */
   readonly gain: number;
+  /** Smooth photographic lighting instead of glazes and hatching. */
+  readonly lit: boolean;
+  /** How far past white self-lit parts glow (0 = not at all), for bloom. */
+  readonly emission: number;
 }
 
 export class InkWashMaterial extends ShaderMaterial {
@@ -60,6 +64,8 @@ export class InkWashMaterial extends ShaderMaterial {
   readonly #dark: { value: number };
   readonly #hatch: { value: number };
   readonly #gain: { value: number };
+  readonly #lit: { value: number };
+  readonly #emission: { value: number };
 
   constructor({
     wash,
@@ -76,6 +82,8 @@ export class InkWashMaterial extends ShaderMaterial {
     const dark = { value: 0 };
     const hatch = { value: 1 };
     const gain = { value: 1 };
+    const lit = { value: 0 };
+    const emission = { value: 0 };
     super({
       vertexShader: vertex,
       fragmentShader: insertAfterCommon(fragment, noise),
@@ -87,6 +95,8 @@ export class InkWashMaterial extends ShaderMaterial {
         uDark: dark,
         uHatch: hatch,
         uGain: gain,
+        uLit: lit,
+        uEmission: emission,
         uLightDirection: { value: new Vector3(...RENDER.lightDirection).normalize() },
         uHatchScale: { value: hatchScale },
         uGlow: { value: glow },
@@ -104,9 +114,13 @@ export class InkWashMaterial extends ShaderMaterial {
     this.#dark = dark;
     this.#hatch = hatch;
     this.#gain = gain;
+    this.#lit = lit;
+    this.#emission = emission;
   }
 
-  paint({ wash, line, dark, hatch, gain }: SurfacePaint) {
+  paint({ wash, line, dark, hatch, gain, lit, emission }: SurfacePaint) {
+    this.#lit.value = lit ? 1 : 0;
+    this.#emission.value = emission;
     this.#wash.set(wash);
     this.#line.set(line);
     this.#blank.setScalar(dark ? 0 : 1);

@@ -24,6 +24,7 @@ import {
   Vector3,
 } from 'three';
 
+import { FX } from '../config/fx.ts';
 import { LOOKS, washFor } from '../config/looks.ts';
 import { CapMaterial } from '../rendering/materials/cap-material.ts';
 import { partIdFor, partIds } from '../specimen/part-id.ts';
@@ -63,7 +64,7 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
           pivot: entry.gazePivot,
           parity: stencilMaterial(plane),
           cap: new CapMaterial({
-            wash: washFor(LOOKS.plate, entry.look.wash),
+            wash: washFor(LOOKS.plate, entry.id, entry.look.wash),
             pattern: section.pattern,
             centre: section.centre,
             partId: ids[index] ?? partIdFor(index),
@@ -85,16 +86,18 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
   );
 
   const look = LOOKS[usePlateStore((state) => state.look)];
+  const fx = usePlateStore((state) => state.fx);
   useEffect(() => {
-    layers.forEach(({ wash, cap }) => {
+    layers.forEach(({ id, wash, cap }) => {
       cap.paint({
-        wash: washFor(look, wash),
+        wash: washFor(look, id, wash),
         line: look.line,
         dark: look.ground === 'dark',
         section: look.section,
+        emission: fx.bloom ? FX.bloom.emission : 0,
       });
     });
-  }, [layers, look]);
+  }, [layers, look, fx]);
 
   const point = useMemo(() => new Vector3(), []);
   const rotation = useMemo(() => new Quaternion(), []);

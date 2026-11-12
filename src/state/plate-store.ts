@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 
 import { LAYER_MODES, LAYER_PRESETS, type LayerModes } from '../config/layers.ts';
+import { FX_OFF, type FxId, type FxModes } from '../config/fx.ts';
 import { DEFAULT_LOOK, type LookId } from '../config/looks.ts';
 import { SLICE, SLICE_AXES, type SliceAxis } from '../config/slice.ts';
 import type { Layer } from '../procedural/format/specimen-format.ts';
@@ -41,6 +42,10 @@ interface PlateState {
   /** The plate's look (palette and ground); only switched in development. */
   readonly look: LookId;
   readonly setLook: (look: LookId) => void;
+  /** Optional effects on top of the look; only switched in development. */
+  readonly fx: FxModes;
+  readonly setFx: (fx: FxModes) => void;
+  readonly toggleFx: (id: FxId) => void;
 }
 
 const clampTo = (value: number, [lo, hi]: readonly [number, number]) =>
@@ -58,6 +63,16 @@ export const usePlateStore = create<PlateState>()((set, get) => ({
 
   setLook: (look) => {
     set({ look });
+  },
+
+  fx: FX_OFF,
+
+  setFx: (fx) => {
+    set({ fx });
+  },
+
+  toggleFx: (id) => {
+    set(({ fx }) => ({ fx: { ...fx, [id]: !fx[id] } }));
   },
 
   cycleLayer: (layer) => {

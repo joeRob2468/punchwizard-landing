@@ -31,6 +31,8 @@ uniform vec3 uBlank; // the empty ground: white on paper, black on a dark ground
 uniform float uDark; // 1 = light on a dark ground
 uniform float uHatch; // 0–1 hatching strength
 uniform float uGain; // surface brightness against the ground
+uniform float uLit; // 1 = smooth photographic lighting instead of glazes and hatching
+uniform float uEmission; // how far past white self-lit parts glow (for bloom)
 
 varying vec3 vViewNormal;
 varying vec3 vObjectPosition;
@@ -38,6 +40,9 @@ varying vec3 vObjectNormal;
 varying float vOcclusion;
 
 const float GLAZES = 4.0;
+// Lit mode: a cool fill from the lower right and a rim from behind, in view space.
+const vec3 FILL = vec3(0.6, -0.25, 0.75);
+const vec3 RIM = vec3(0.3, 0.4, -0.85);
 const float CROSS_LINES_PER_TURN = 8.0;
 // Target spacing of hatch lines, in device pixels.
 const float HATCH_SPACING_PX = 9.0;
@@ -89,9 +94,25 @@ void main() {
   vec3 lit = mix(uWash * 0.08, mix(uWash, vec3(1.0), 0.15), smoothstep(0.15, 1.0, glazed));
   vec3 colour = mix(pigment, lit, uDark);
 
+  // Lit: wrapped key light with warm translucency at the terminator (light
+  // scattering under skin), a cool fill, a rim, and a soft highlight.
+  float ndl = dot(n, uLightDirection);
+  float wrapped = clamp((ndl + 0.45) / 1.45, 0.0, 1.0);
+  float ao = mix(0.35, 1.0, occlusion);
+  float fill = max(dot(n, normalize(FILL)), 0.0) * 0.28;
+  float backRim = pow(1.0 - max(n.z, 0.0), 3.0) * max(dot(n, normalize(RIM)) + 0.6, 0.0) * 0.5;
+  vec3 halfway = normalize(uLightDirection + vec3(0.0, 0.0, 1.0));
+  float highlight = pow(max(dot(n, halfway), 0.0), 36.0) * 0.35 * occlusion;
+  vec3 translucency = uWash * vec3(0.9, 0.3, 0.15) * (wrapped - max(ndl, 0.0)) * 0.6;
+  vec3 photo = uWash * (0.12 + 0.95 * wrapped) * ao
+    + uWash * vec3(0.8, 0.9, 1.1) * fill * ao
+    + translucency * ao
+    + vec3(backRim + highlight) * mix(vec3(1.0), uWash, 0.3);
+  colour = mix(colour, photo, uLit);
+
   // A dried glaze leaves a darker rim; pigment also settles into crevices.
   float rim = 1.0 - smoothstep(0.0, 0.09, abs(edge - 0.5));
-  colour *= 1.0 - 0.07 * rim;
+  colour *= 1.0 - 0.07 * rim * (1.0 - uLit);
   colour *= mix(0.82, 1.0, smoothstep(0.35, 0.9, occlusion));
 
   // Uneven wash density across the surface.
@@ -128,13 +149,17 @@ void main() {
   float strandLines = engravedLines(across, perPixel, wobble * 0.5, strandWidth)
     * smoothstep(0.3, 0.6, darkness);
   hatch = mix(hatch, strandLines, uStrands);
-  colour = mix(colour, uInk, hatch * 0.62 * uHatch);
+  colour = mix(colour, uInk, hatch * 0.62 * uHatch * (1.0 - uLit));
   colour = mix(uBlank, colour, uGain);
 
   // Arcane parts are self-lit: pale at the heart, saturated at the rim, pulsing.
   float pulse = 0.5 + 0.5 * sin(uTime * 1.3);
   float rimLight = 1.0 - abs(n.z);
   vec3 glow = mix(mix(vec3(1.0), uWash, 0.25 + 0.15 * pulse), uWash, smoothstep(0.2, 0.9, rimLight));
+  // With emission the glow keeps its hue and goes past white, so only these
+  // parts reach the bloom threshold and their halo is coloured.
+  vec3 emitted = uWash * (1.0 + uEmission * (0.6 + 0.4 * pulse));
+  glow = mix(glow, emitted, 0.8 * min(uEmission, 1.0));
   colour = mix(colour, glow, uGlow);
 
   gl_FragColor = vec4(colour, uPartId / 255.0);

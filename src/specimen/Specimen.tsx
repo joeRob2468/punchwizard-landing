@@ -7,6 +7,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { use, useEffect, useMemo } from 'react';
 
 import { GHOST_OPACITY } from '../config/layers.ts';
+import { FX } from '../config/fx.ts';
 import { LOOKS, washFor } from '../config/looks.ts';
 import { usePlateStore } from '../state/plate-store.ts';
 import type { LabelChannel } from '../labels/label-channel.ts';
@@ -37,7 +38,7 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
         const material = new InkWashMaterial({
           partId: ids[index] ?? partIdFor(index),
           useOcclusion: true,
-          wash: washFor(LOOKS.plate, entry.look.wash),
+          wash: washFor(LOOKS.plate, entry.id, entry.look.wash),
           glow: entry.look.glow ?? 0,
           strands: entry.look.hatch === 'strands',
         });
@@ -72,17 +73,20 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   }, [meshes, layers]);
 
   const look = LOOKS[usePlateStore((state) => state.look)];
+  const fx = usePlateStore((state) => state.fx);
   useEffect(() => {
-    meshes.forEach(({ layer, wash, material }) => {
+    meshes.forEach(({ id, layer, wash, material }) => {
       material.paint({
-        wash: washFor(look, wash),
+        wash: washFor(look, id, wash),
         line: look.line,
         dark: look.ground === 'dark',
         hatch: look.hatch,
         gain: look.layerGain?.[layer] ?? 1,
+        lit: fx.lit,
+        emission: fx.bloom ? FX.bloom.emission : 0,
       });
     });
-  }, [meshes, look]);
+  }, [meshes, look, fx]);
 
   // Irises and pupils follow the pointer.
   const gaze = useMemo(() => new GazeRig(), []);

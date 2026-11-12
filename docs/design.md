@@ -246,12 +246,29 @@ Defined twice and kept in step: CSS custom properties in `src/styles/tokens.css`
 
 ### Looks
 
-`src/config/looks.ts` defines candidate looks for comparison; one will ship. Each is a full palette, a line colour (outlines, hatching, section patterns), strengths for hatching, outlines and section patterns, optional per-layer surface brightness, and a ground:
+`src/config/looks.ts` defines candidate looks for comparison; one will ship. Each look has:
 
-- **paper**: pigment on white, multiplied onto paper (Plate, Sepia).
-- **dark**: light on black (the scene background turns black), screened onto dark paper. The surface wash builds up from black where lit instead of thinning toward white (Nocturne, MRI).
+- a full palette, plus optional washes for particular parts (the scan looks blacken hair, hat and robe, which give no signal);
+- a line colour for hatching and section patterns, and an optional separate outline colour;
+- strengths for hatching, outlines and section patterns, and optional surface brightness per layer;
+- a haze tint;
+- a ground: **paper** (pigment on white, multiplied onto paper: Plate, Sepia) or **dark** (light on black, screened onto dark paper: Nocturne, MRI, MRI colour). On a dark ground the wash builds up from black where lit, instead of thinning toward white.
 
-The look lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push it into their materials' and effects' uniforms (`paint(...)`), and `scene/Ground` sets the background, so switching needs no rebuild. The DOM chrome follows through `[data-look=…]` blocks in `tokens.css`. In development, `ui/LookSwitcher` (top centre, `V`, `?look=<id>`) switches between looks and sets `data-look`. Production always uses `DEFAULT_LOOK`.
+The look lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push it into their materials' and effects' uniforms (`paint(...)`), and `scene/Ground` sets the background, so switching needs no rebuild. The DOM chrome follows through `[data-look=…]` blocks in `tokens.css`. Production always uses `DEFAULT_LOOK` with no effects.
+
+### Optional effects
+
+`src/config/fx.ts` lists effects that can be toggled on top of any look:
+
+- **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue; the composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
+- **Haze** (`HazeEffect`, `haze.frag.glsl`): depth haze behind the specimen's centre and slow fbm wisps rising from the bottom of the frame, tinted by the look, applied before the paper composite.
+- **Focus:** depth of field focused on the face.
+- **Lit:** the surface shader swaps glazes and hatching for smooth lighting: wrapped key light with warm translucency at the terminator, a cool fill, rim and highlight.
+- **Lens:** chromatic aberration, grain and vignette on the finished image.
+
+Stack order: outline, haze, depth of field, paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass.
+
+In development, `ui/StylePanel` (top centre) switches looks (also `V`) and toggles effects. `?look=<id>&fx=<id>,<id>` opens a combination and is kept in the URL.
 
 ## Typography
 

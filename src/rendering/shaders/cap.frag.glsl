@@ -12,6 +12,7 @@ uniform float uTime;
 uniform float uPartId;
 uniform vec3 uBlank; // the empty ground: white on paper, black on a dark ground
 uniform float uSection; // 0–1 section pattern strength
+uniform float uEmission; // how far past white glowing caps go (for bloom)
 
 varying vec3 vWorldPosition;
 
@@ -53,6 +54,8 @@ void main() {
   } else {
     float pulse = 0.5 + 0.5 * sin(uTime * 1.3);
     colour = mix(vec3(1.0), uWash, 0.45 + 0.2 * pulse);
+    vec3 emitted = uWash * (1.0 + uEmission * (0.6 + 0.4 * pulse));
+    colour = mix(colour, emitted, 0.8 * min(uEmission, 1.0));
   }
 
   colour = mix(colour, uInk, ink * uSection);

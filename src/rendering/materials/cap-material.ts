@@ -44,6 +44,8 @@ export interface CapPaint {
   readonly dark: boolean;
   /** 0–1 multiplier on the section pattern. */
   readonly section: number;
+  /** How far past white glowing caps go (0 = not at all), for bloom. */
+  readonly emission: number;
 }
 
 export class CapMaterial extends ShaderMaterial {
@@ -53,6 +55,7 @@ export class CapMaterial extends ShaderMaterial {
   readonly #line: Color;
   readonly #blank: Color;
   readonly #section: { value: number };
+  readonly #emission: { value: number };
 
   constructor({ wash, pattern, centre = [0, 0, 0], partId }: CapOptions) {
     const time = { value: 0 };
@@ -61,6 +64,7 @@ export class CapMaterial extends ShaderMaterial {
     const line = new Color(PALETTE.ink);
     const blank = new Color(1, 1, 1);
     const section = { value: 1 };
+    const emission = { value: 0 };
     super({
       vertexShader: vertex,
       fragmentShader: fragment.replace('#include <common>', `#include <common>\n${noise}`),
@@ -78,6 +82,7 @@ export class CapMaterial extends ShaderMaterial {
         uInk: { value: line },
         uBlank: { value: blank },
         uSection: section,
+        uEmission: emission,
         uNormal: normal,
         uCentre: { value: new Vector3(...centre) },
         uPattern: { value: PATTERN_IDS[pattern] },
@@ -92,9 +97,11 @@ export class CapMaterial extends ShaderMaterial {
     this.#line = line;
     this.#blank = blank;
     this.#section = section;
+    this.#emission = emission;
   }
 
-  paint({ wash, line, dark, section }: CapPaint) {
+  paint({ wash, line, dark, section, emission }: CapPaint) {
+    this.#emission.value = emission;
     this.#wash.set(wash);
     this.#line.set(line);
     this.#blank.setScalar(dark ? 0 : 1);
