@@ -1,9 +1,8 @@
 /**
  * The plate's post-processing stack as an R3F component: ink outlines, optional
- * haze and depth of field on the scene, the paper composite, then optional bloom
- * and lens effects on the finished image (see config/fx.ts).
+ * depth of field on the scene, the paper composite, then optional bloom and lens
+ * effects on the finished image (see config/fx.ts).
  */
-import { useFrame } from '@react-three/fiber';
 import {
   Bloom,
   ChromaticAberration,
@@ -19,40 +18,38 @@ import { Vector2 } from 'three';
 import { FX } from '../../config/fx.ts';
 import { LOOKS } from '../../config/looks.ts';
 import { usePlateStore } from '../../state/plate-store.ts';
-import { HazeEffect, OutlineEffect, PaperEffect } from './plate-effects.ts';
+import { OutlineEffect, PaperEffect } from './plate-effects.ts';
 
 export function PlateEffects() {
   const outline = useMemo(() => new OutlineEffect(), []);
-  const haze = useMemo(() => new HazeEffect(), []);
   const paper = useMemo(() => new PaperEffect(), []);
   const aberration = useMemo(() => new Vector2(FX.lens.aberration, FX.lens.aberration * 0.6), []);
 
   useEffect(
     () => () => {
       outline.dispose();
-      haze.dispose();
       paper.dispose();
     },
-    [outline, haze, paper],
+    [outline, paper],
   );
 
   const look = LOOKS[usePlateStore((state) => state.look)];
   const fx = usePlateStore((state) => state.fx);
   useEffect(() => {
     const { palette } = look;
-    outline.paint(look.outlineLine ?? look.line, look.outline);
-    haze.paint(look.haze);
-    paper.paint(palette.paper, palette.paperShadow, palette.foxing, look.ground === 'dark');
-  }, [look, outline, haze, paper]);
-
-  useFrame(({ camera }) => {
-    haze.focusAt(camera.position.length());
-  });
+    outline.paint(look.line, look.outline);
+    paper.paint(
+      palette.paper,
+      palette.paperShadow,
+      palette.foxing,
+      look.paperTexture,
+      look.ground === 'dark',
+    );
+  }, [look, outline, paper]);
 
   return (
     <EffectComposer multisampling={4} stencilBuffer>
       <primitive object={outline} />
-      {fx.haze && <primitive object={haze} />}
       {fx.focus && (
         <DepthOfField
           target={FX.focus.target}

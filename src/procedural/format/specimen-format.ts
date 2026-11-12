@@ -27,8 +27,6 @@ export type SectionPattern = 'hatch' | 'stipple' | 'rings' | 'glow' | 'gyri' | '
 export interface PartLook {
   readonly wash: string;
   readonly glow?: number;
-  /** Hatching style: cross-contour (default) or lines along hanging strands (hair). */
-  readonly hatch?: 'contour' | 'strands';
   /** Outline as this part (no inked edge where they meet), for one tissue split in two. */
   readonly inkAs?: string;
   readonly section?: {

@@ -1,6 +1,7 @@
 /**
- * The plate's surface material: flat watercolour washes with ink hatching in deep
- * shadow. Supports the renderer's clipping planes so the specimen can be sectioned.
+ * The specimen's surface material: lit washes (see ink-wash.frag.glsl), self-lit
+ * glow for arcane parts. Supports the renderer's clipping planes so the specimen
+ * can be sectioned.
  */
 import {
   AddEquation,
@@ -18,7 +19,6 @@ import {
 import noise from '../shaders/lib/noise.glsl?raw';
 import fragment from '../shaders/ink-wash.frag.glsl?raw';
 import vertex from '../shaders/ink-wash.vert.glsl?raw';
-import { PALETTE } from '../../config/palette.ts';
 import { RENDER } from '../../config/render.ts';
 
 export interface InkWashOptions {
@@ -26,8 +26,6 @@ export interface InkWashOptions {
   readonly wash: string;
   /** 0 for ordinary pigment, 1 for a self-lit arcane wash. */
   readonly glow?: number;
-  /** Hatch lines per object-space unit. */
-  readonly hatchScale?: number;
   /**
    * 1–254, unique per part. Written to the alpha channel so the outline effect can
    * ink boundaries between parts; 255 is reserved for the background and helpers.
@@ -35,23 +33,15 @@ export interface InkWashOptions {
   readonly partId?: number;
   /** Read the baked `occlusion` vertex attribute (specimen parts have it). */
   readonly useOcclusion?: boolean;
-  /** Hatch along hanging strands (hair) instead of across the form. */
-  readonly strands?: boolean;
 }
 
 /** How a part is painted under the current look (see config/looks.ts). */
 export interface SurfacePaint {
   readonly wash: string;
-  /** Colour of hatch lines. */
-  readonly line: string;
   /** Light laid on a dark ground rather than pigment on white. */
   readonly dark: boolean;
-  /** 0–1 multiplier on hatching. */
-  readonly hatch: number;
   /** Brightness of the surface against the ground (1 = as painted). */
   readonly gain: number;
-  /** Smooth photographic lighting instead of glazes and hatching. */
-  readonly lit: boolean;
   /** How far past white self-lit parts glow (0 = not at all), for bloom. */
   readonly emission: number;
 }
@@ -59,30 +49,15 @@ export interface SurfacePaint {
 export class InkWashMaterial extends ShaderMaterial {
   readonly #time: { value: number };
   readonly #wash: Color;
-  readonly #line: Color;
   readonly #blank: Color;
-  readonly #dark: { value: number };
-  readonly #hatch: { value: number };
   readonly #gain: { value: number };
-  readonly #lit: { value: number };
   readonly #emission: { value: number };
 
-  constructor({
-    wash,
-    glow = 0,
-    hatchScale = RENDER.hatchScale,
-    partId = 255,
-    useOcclusion = false,
-    strands = false,
-  }: InkWashOptions) {
+  constructor({ wash, glow = 0, partId = 255, useOcclusion = false }: InkWashOptions) {
     const time = { value: 0 };
     const washColour = new Color(wash);
-    const line = new Color(PALETTE.ink);
     const blank = new Color(1, 1, 1);
-    const dark = { value: 0 };
-    const hatch = { value: 1 };
     const gain = { value: 1 };
-    const lit = { value: 0 };
     const emission = { value: 0 };
     super({
       vertexShader: vertex,
@@ -90,43 +65,29 @@ export class InkWashMaterial extends ShaderMaterial {
       clipping: true,
       uniforms: {
         uWash: { value: washColour },
-        uInk: { value: line },
         uBlank: { value: blank },
-        uDark: dark,
-        uHatch: hatch,
         uGain: gain,
-        uLit: lit,
         uEmission: emission,
         uLightDirection: { value: new Vector3(...RENDER.lightDirection).normalize() },
-        uHatchScale: { value: hatchScale },
         uGlow: { value: glow },
         uTime: time,
         uPartId: { value: partId },
         uUseOcclusion: { value: useOcclusion ? 1 : 0 },
-        uStrands: { value: strands ? 1 : 0 },
       },
     });
     this.name = 'InkWashMaterial';
     this.#time = time;
     this.#wash = washColour;
-    this.#line = line;
     this.#blank = blank;
-    this.#dark = dark;
-    this.#hatch = hatch;
     this.#gain = gain;
-    this.#lit = lit;
     this.#emission = emission;
   }
 
-  paint({ wash, line, dark, hatch, gain, lit, emission }: SurfacePaint) {
-    this.#lit.value = lit ? 1 : 0;
-    this.#emission.value = emission;
+  paint({ wash, dark, gain, emission }: SurfacePaint) {
     this.#wash.set(wash);
-    this.#line.set(line);
     this.#blank.setScalar(dark ? 0 : 1);
-    this.#dark.value = dark ? 1 : 0;
-    this.#hatch.value = hatch;
     this.#gain.value = gain;
+    this.#emission.value = emission;
   }
 
   set time(seconds: number) {

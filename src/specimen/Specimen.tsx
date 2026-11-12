@@ -40,7 +40,6 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
           useOcclusion: true,
           wash: washFor(LOOKS.plate, entry.id, entry.look.wash),
           glow: entry.look.glow ?? 0,
-          strands: entry.look.hatch === 'strands',
         });
         material.clippingPlanes = [plane];
         return {
@@ -78,11 +77,8 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
     meshes.forEach(({ id, layer, wash, material }) => {
       material.paint({
         wash: washFor(look, id, wash),
-        line: look.line,
         dark: look.ground === 'dark',
-        hatch: look.hatch,
         gain: look.layerGain?.[layer] ?? 1,
-        lit: fx.lit,
         emission: fx.bloom ? FX.bloom.emission : 0,
       });
     });

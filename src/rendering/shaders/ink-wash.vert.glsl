@@ -3,7 +3,6 @@
 
 varying vec3 vViewNormal;
 varying vec3 vObjectPosition;
-varying vec3 vObjectNormal;
 varying float vOcclusion;
 
 // Baked per vertex (1 = open). Geometry without it reads 0 here, so the material
@@ -13,7 +12,6 @@ uniform float uUseOcclusion;
 
 void main() {
   vObjectPosition = position;
-  vObjectNormal = normal;
   vOcclusion = mix(1.0, occlusion, uUseOcclusion);
   vViewNormal = normalize(normalMatrix * normal);
 

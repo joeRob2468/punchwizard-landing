@@ -6,10 +6,10 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 
 - **M0–M5:** scaffold, render pipeline, procedural specimen with bake, sectioning with stencil caps, internals (skeleton, brain, fantasy organs, mana vessels, conduit lattice), nineteen labelled features with leader lines and tooltips.
 - **Controls:** left-drag orbits, right-drag pans, the **wheel moves the cut** (Ctrl/⌘ + wheel or pinch zooms), two-finger drag moves the cut on touch, `S` / `[` `]` / `R` / arrows / `+` `-`, double-click resets. No on-screen slice handle.
-- **Shading:** four soft watercolour glazes, baked ambient occlusion, cross-contour engraved hatching at a steady screen spacing, depth and part-id outlines without flickering specks, paper composite.
+- **Shading:** lit like a photograph (wrapped key, translucency, fill, rim, highlight) with baked ambient occlusion, depth and part-id outlines without flickering specks, paper composite.
 - **Face (realism pass, owner-approved):** an old man's face with large, forward-set eyes angled away from the nose, almond lids, fold, bags, filled inner corners, wrinkles. The head has no through-holes.
 - **Labels:** all land in the default cut except the Cochlea Arcana (by the ears; coronal or transverse cuts) and the Familiar's Perch (on the removed half).
-- **Hair (realism pass):** beard, moustache, eyebrows and hair are clumped locks over solid cores, grown with gravity and collision (`growth/locks.ts`); hair drapes over the shoulders; hair parts hatch along their strands.
+- **Hair (realism pass):** beard, moustache, eyebrows and hair are clumped locks over solid cores, grown with gravity and collision (`growth/locks.ts`); hair drapes over the shoulders.
 - **Hat (realism pass):** floppy lobed brim with a rolled edge, crumpled and creased cone, leather band with a metal buckle and a mana-blue gem.
 - **Robe (realism pass):** plum inner robe with folds, blue mantle with scalloped hem, V opening and stand collar, gold trim, two brooches with garnets and a chain; the Familiar's Perch stands clear of the mantle on the left shoulder.
 - **Internal anatomy (after the medical references):** skull with cranial fossae, palate, orbits and nasal cavity (septum, conchae, frontal and sphenoid sinuses); mandible and 32 teeth; brain with corpus callosum, ventricles, brainstem and cerebellum, meninges/CSF, spinal cord; C1–T10 with the cervical curve, discs and canal; tongue, soft palate, hyoid, larynx, trachea and oesophagus with open airways; clavicles, sternum, scapulae, humeri, ribs and costal cartilage; torso flesh under the robe. The resting sagittal cut sits just past the septum.
@@ -17,14 +17,14 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Layers:** shown, see-through or hidden per layer, with presets (Omnia, Ossa, Viscera; `L`), bottom left. Internal features label from outside once what covers them is see-through or hidden.
 - **Gaze:** both irises and pupils follow the pointer together (soft-limited turn), anywhere on the page; they return to straight ahead when the pointer leaves the window.
 - **Bake:** parallel workers, meshoptimizer simplification, inward-triangle repair, through-hole warnings, baked occlusion, quantised format v3. About 400k triangles, ~4 MB, a 90–110 s bake (the head with its horn core dominates; over the plan's budget, fine for the desktop audience).
-- **Looks and effects (dev comparison):** Plate, Nocturne (plate colours on ink-black paper, dark outlines, pale hatching), MRI (greys by tissue), MRI colour (false colour after the colourised scans: blue brain, red-orange soft tissue and bone), Sepia. Effects to toggle on any look: Bloom (coloured halos on arcane parts), Haze (depth haze and rising wisps), Focus (depth of field), Lit (smooth photographic lighting instead of glazes and hatching), Lens (aberration, grain, vignette). The dev panel is at top centre; `?look=…&fx=…`. See design.md § Looks.
+- **Looks and effects (dev comparison):** Plate (light paper texture), Nocturne (plate colours on ink-black paper, dark lines) and MRI (greys by tissue, hair and clothing black). Effects to toggle on any look: Bloom (coloured halos on arcane parts), Focus (depth of field), Lens (aberration, light grain, vignette). The dev panel is at top centre; `?look=…&fx=…`. See design.md § Looks.
 - **M6 (started):** Docker image, compose files and runbook written but never built or run.
 
 ## Next
 
 Exterior, internal anatomy, fantasy organs, layers and framing are done and approved. In this order:
 
-1. **Stylisation checks:** the owner compares looks and effects and picks a combination (or asks for changes). Then make it the default, and decide whether to drop the rest and the panel before shipping. Ideas not yet tried: god rays from the Aetheric Core, floating mana motes (particles), screen-space AO in Lit mode (needs clipping-aware normals). Effects' cost on low-end GPUs isn't measured yet.
+1. **Stylisation checks:** the owner is refining Plate, Nocturne and MRI (Sepia, MRI colour and Haze were dropped; the lit shading replaced glazes and hatching). Then choose the default look and which effects ship, and remove the panel. Ideas not yet tried: god rays from the Aetheric Core, floating mana motes. Effects' cost on low-end GPUs isn't measured yet.
 2. **Optimise:** bake is ~100 s (head with horn core, hair, beard dominate; consider coarser cells or splitting the head's horn into its own part), ~400k triangles / ~4 MB (simplification error, fewer hair locks), and label tracking cost (BVHs for every part now).
 3. **Finalise (M6 polish):** idle motion, ink-in on load, no-WebGL fallback image, touch tuning, build and test the Docker image locally (ask first: it pulls base images). Deploy (M8) only once the owner calls the site final.
 

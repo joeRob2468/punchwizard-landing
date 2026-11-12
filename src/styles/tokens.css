@@ -46,19 +46,3 @@
   --ink: #c9d3d6;
   --ink-faint: rgb(201 211 214 / 0.5);
 }
-
-:root[data-look='mri-colour'] {
-  --paper: #050608;
-  --paper-shadow: #000000;
-  --foxing: #0a0c10;
-  --ink: #cfe0f0;
-  --ink-faint: rgb(207 224 240 / 0.5);
-}
-
-:root[data-look='sepia'] {
-  --paper: #f1e6cf;
-  --paper-shadow: #dcc9a6;
-  --foxing: #b3854f;
-  --ink: #3a2414;
-  --ink-faint: rgb(58 36 20 / 0.55);
-}

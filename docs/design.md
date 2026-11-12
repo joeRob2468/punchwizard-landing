@@ -137,9 +137,7 @@ Current output: about 340k triangles and 3.6 MB across 46 parts, baked in about 
 The scene is drawn as **pigment on white** (the scene background is white), then post-processed:
 
 1. **Surface: `InkWashMaterial`** (`rendering/materials/`, shaders in `rendering/shaders/ink-wash.*.glsl`). A `ShaderMaterial` with clipping enabled.
-   - Tone = half-Lambert against a fixed key light in **view space** (upper left), so the specimen is always lit like an illustration whichever way it's turned, darkened by the baked occlusion attribute (specimen parts set `useOcclusion`).
-   - Tone is laid down as four soft glazes, their edges brushed by object-space noise and pooling slightly darker pigment. Thin wash in the light, the full wash in mid-tones, a deeper and more saturated version in shadow; pigment also collects in occluded crevices; wash density varies across the surface.
-   - Hatching follows the form (cross-contour): rings of constant height on upright surfaces, concentric rings on flat ones, and in deeper shadow a spiral cross-hatch around the vertical axis. Lines thicken as tone darkens and keep a steady on-screen spacing (about 9 device px) at any zoom by cross-fading between octaves of density, chosen from the screen-space derivative of position. Hair parts (look `hatch: 'strands'`) hatch along their strands instead: wavy, near-vertical lines from the mid-tones down.
+   - Lit like a photograph, against lights fixed in **view space**, so the specimen is always lit the same way whichever way it's turned: a wrapped key light from the upper left with warm translucency at the terminator (light scattering under skin), a cool fill from the lower right, a rim from behind and a soft highlight. All are darkened by the baked occlusion attribute (specimen parts set `useOcclusion`). Pigment collects slightly in crevices and its density varies across the surface.
    - `glow` (0–1) makes a part self-lit: pale centre, saturated rim, slow pulse. Used for arcane parts.
 2. **`OutlineEffect`** (`rendering/effects/`): reads the depth buffer and the part ids in alpha. A clearly farther neighbour draws a silhouette on the near side of the jump; spikes in depth curvature draw fainter creases; a change of part id draws a part edge (see below). Sample positions wobble and line width varies with screen-space noise.
 
@@ -151,7 +149,7 @@ The scene is drawn as **pigment on white** (the scene background is white), then
 
 Both effects use `BlendFunction.SET` and run in one merged pass, outline first. Shared noise functions are in `shaders/lib/noise.glsl` (prefixed `pw`).
 
-Tunables (light direction, base hatch density, outline width and strength, part-edge strength) are in `src/config/render.ts`.
+Tunables (light direction, outline width and strength, part-edge strength) are in `src/config/render.ts`.
 
 ### Gaze
 
@@ -248,11 +246,11 @@ Defined twice and kept in step: CSS custom properties in `src/styles/tokens.css`
 
 `src/config/looks.ts` defines candidate looks for comparison; one will ship. Each look has:
 
-- a full palette, plus optional washes for particular parts (the scan looks blacken hair, hat and robe, which give no signal);
-- a line colour for hatching and section patterns, and an optional separate outline colour;
-- strengths for hatching, outlines and section patterns, and optional surface brightness per layer;
-- a haze tint;
-- a ground: **paper** (pigment on white, multiplied onto paper: Plate, Sepia) or **dark** (light on black, screened onto dark paper: Nocturne, MRI, MRI colour). On a dark ground the wash builds up from black where lit, instead of thinning toward white.
+- a full palette, plus optional washes for particular parts (MRI blackens hair, hat and robe, which give no signal);
+- a line colour for outlines and section patterns (dark in every look: pale lines read as noise);
+- strengths for outlines and section patterns, and optional surface brightness per layer;
+- a paper texture strength (mottling, fibres, foxing, vignette, granulation);
+- a ground: **paper** (pigment on white, multiplied onto paper: Plate) or **dark** (light on black, screened onto dark paper: Nocturne, MRI).
 
 The look lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push it into their materials' and effects' uniforms (`paint(...)`), and `scene/Ground` sets the background, so switching needs no rebuild. The DOM chrome follows through `[data-look=…]` blocks in `tokens.css`. Production always uses `DEFAULT_LOOK` with no effects.
 
@@ -261,12 +259,10 @@ The look lives in the store. `Specimen`, `SectionCaps` and `PlateEffects` push i
 `src/config/fx.ts` lists effects that can be toggled on top of any look:
 
 - **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue; the composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
-- **Haze** (`HazeEffect`, `haze.frag.glsl`): depth haze behind the specimen's centre and slow fbm wisps rising from the bottom of the frame, tinted by the look, applied before the paper composite.
 - **Focus:** depth of field focused on the face.
-- **Lit:** the surface shader swaps glazes and hatching for smooth lighting: wrapped key light with warm translucency at the terminator, a cool fill, rim and highlight.
 - **Lens:** chromatic aberration, grain and vignette on the finished image.
 
-Stack order: outline, haze, depth of field, paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass.
+Stack order: outline, depth of field, paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass.
 
 In development, `ui/StylePanel` (top centre) switches looks (also `V`) and toggles effects. `?look=<id>&fx=<id>,<id>` opens a combination and is kept in the URL.
 

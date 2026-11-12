@@ -161,7 +161,7 @@ export function beardPart(): PartDefinition {
   return {
     id: 'beard',
     layer: 'integument',
-    look: { wash: 'washBone', hatch: 'strands', section: { pattern: 'strands' } },
+    look: { wash: 'washBone', section: { pattern: 'strands' } },
     field,
     bounds: segmentsBounds(locks, { min: [-0.48, -0.64, -0.05], max: [0.48, 0.05, 0.56] }),
     cellSize: 0.011,
@@ -192,7 +192,7 @@ export function moustachePart(): PartDefinition {
   return {
     id: 'moustache',
     layer: 'integument',
-    look: { wash: 'washBone', hatch: 'strands', section: { pattern: 'strands' } },
+    look: { wash: 'washBone', section: { pattern: 'strands' } },
     field: segmentsField(locks, 0.018, 0.05),
     bounds: segmentsBounds(locks, { min: [0, -0.2, 0.5], max: [0, -0.1, 0.6] }),
     cellSize: 0.006,
@@ -224,7 +224,7 @@ export function eyebrowsPart(): PartDefinition {
   return {
     id: 'eyebrows',
     layer: 'integument',
-    look: { wash: 'washBone', hatch: 'strands', section: { pattern: 'strands' } },
+    look: { wash: 'washBone', section: { pattern: 'strands' } },
     field: segmentsField(locks, 0.01, 0.04),
     bounds: segmentsBounds(locks, { min: [0, 0.2, 0.4], max: [0, 0.3, 0.5] }),
     cellSize: 0.005,
@@ -287,7 +287,7 @@ export function hairPart(): PartDefinition {
   return {
     id: 'hair',
     layer: 'integument',
-    look: { wash: 'washBone', hatch: 'strands', section: { pattern: 'strands' } },
+    look: { wash: 'washBone', section: { pattern: 'strands' } },
     field,
     bounds: segmentsBounds(locks, { min: [-0.5, -0.17, -0.65], max: [0.5, 0.42, 0.15] }),
     cellSize: 0.013,
