@@ -1,21 +1,30 @@
 /**
  * Connects the specimen bake (scripts/bake.ts) to Vite.
  *
- * - Dev: bakes when the server starts and whenever a file under src/procedural/
- *   changes, then reloads the page; serves generated/specimen/ at /specimen/.
+ * - Dev: bakes when the server starts and whenever files under src/procedural/
+ *   change, then reloads the page; serves generated/specimen/ at /specimen/.
  *   Bakes run in a child process so module caches are fresh and the server stays
- *   responsive.
+ *   responsive. A bake waits until changes settle (an edit and the formatter's
+ *   rewrite make one bake), a change during a bake restarts it rather than queueing
+ *   a second, and saves that leave the sources as they were don't bake at all
+ *   (nor does starting the server when they match the last successful bake).
  * - Build: emits generated/specimen/ into dist/specimen/. `npm run build` bakes
  *   first; building without a bake fails.
  */
-import { spawn } from 'node:child_process';
-import { readdir, readFile } from 'node:fs/promises';
+import { type ChildProcess, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
 import type { Plugin, ViteDevServer } from 'vite';
 
 const WATCHED = /[\\/]src[\\/]procedural[\\/]/;
+const SOURCES_DIR = 'src/procedural';
+/** Quiet time after the last change before a bake starts. */
+const SETTLE_MS = 1500;
 const OUTPUT_DIR = 'generated/specimen';
+/** The fingerprint of the sources behind the bake in OUTPUT_DIR (kept out of it: it would ship). */
+const FINGERPRINT_FILE = 'generated/specimen.sources';
 const URL_PREFIX = '/specimen/';
 const CONTENT_TYPES: Record<string, string> = {
   '.json': 'application/json',
@@ -24,35 +33,61 @@ const CONTENT_TYPES: Record<string, string> = {
 
 export function bakeSpecimen(): Plugin {
   let root = process.cwd();
-  let running = false;
-  let queued = false;
+  let child: ChildProcess | null = null;
+  let settle: ReturnType<typeof setTimeout> | undefined;
+  /** Fingerprint of the sources the last successful bake (or the running one) used. */
+  let baked: string | null = null;
+  let loaded = false;
 
-  const runBake = (server: ViteDevServer): void => {
-    if (running) {
-      queued = true;
+  const runBake = async (server: ViteDevServer): Promise<void> => {
+    const { logger } = server.config;
+    if (!loaded) {
+      loaded = true;
+      baked = await readFile(resolve(root, FINGERPRINT_FILE), 'utf8').catch(() => null);
+    }
+    const fingerprint = await sourcesFingerprint(resolve(root, SOURCES_DIR));
+    if (fingerprint === baked) {
+      if (!child) logger.info('[bake] specimen is up to date', { timestamp: true });
       return;
     }
-    running = true;
+    if (child) {
+      // Its sources are already out of date: start over rather than finish it.
+      const stale = child;
+      child = null;
+      stale.kill();
+      logger.info('[bake] sources changed; restarting', { timestamp: true });
+    }
+    baked = fingerprint;
     const started = Date.now();
-    const { logger } = server.config;
     logger.info('[bake] baking specimen…', { timestamp: true });
-    const child = spawn(process.execPath, ['--import', 'tsx', 'scripts/bake.ts'], {
+    const current = spawn(process.execPath, ['--import', 'tsx', 'scripts/bake.ts'], {
       cwd: root,
       stdio: ['ignore', 'ignore', 'inherit'],
     });
-    child.on('exit', (code) => {
-      running = false;
+    child = current;
+    current.on('exit', (code) => {
+      if (child !== current) return; // replaced by a newer bake
+      child = null;
       if (code === 0) {
         logger.info(`[bake] done in ${Date.now() - started} ms`, { timestamp: true });
         server.ws.send({ type: 'full-reload' });
+        writeFile(resolve(root, FINGERPRINT_FILE), fingerprint).catch((err: unknown) => {
+          logger.warn(`[bake] could not save the sources fingerprint: ${String(err)}`);
+        });
       } else {
+        baked = null; // so saving the same sources again retries
         logger.error('[bake] failed; see the error above', { timestamp: true });
       }
-      if (queued) {
-        queued = false;
-        runBake(server);
-      }
     });
+  };
+
+  const scheduleBake = (server: ViteDevServer): void => {
+    clearTimeout(settle);
+    settle = setTimeout(() => {
+      runBake(server).catch((err: unknown) => {
+        server.config.logger.error(`[bake] could not start: ${String(err)}`, { timestamp: true });
+      });
+    }, SETTLE_MS);
   };
 
   return {
@@ -63,9 +98,15 @@ export function bakeSpecimen(): Plugin {
     },
 
     configureServer(server) {
-      runBake(server);
+      scheduleBake(server);
+      // A restart (config or plugin edits) closes this server: stop its bake too.
+      server.httpServer?.once('close', () => {
+        clearTimeout(settle);
+        child?.kill();
+        child = null;
+      });
       server.watcher.on('change', (file) => {
-        if (WATCHED.test(file)) runBake(server);
+        if (WATCHED.test(file)) scheduleBake(server);
       });
 
       server.middlewares.use(URL_PREFIX, (req, res, next) => {
@@ -119,4 +160,19 @@ export function bakeSpecimen(): Plugin {
       }
     },
   };
+}
+
+/** A hash of every file under `dir` (paths and contents). */
+async function sourcesFingerprint(dir: string): Promise<string> {
+  const hash = createHash('sha1');
+  const entries = await readdir(dir, { recursive: true, withFileTypes: true });
+  const files = entries
+    .filter((entry) => entry.isFile())
+    .map((entry) => join(entry.parentPath, entry.name))
+    .sort();
+  for (const file of files) {
+    hash.update(file);
+    hash.update(await readFile(file));
+  }
+  return hash.digest('hex');
 }

@@ -46,7 +46,7 @@ More folders arrive with each milestone; see [PLAN.md](PLAN.md#5-repository-layo
 
 ## Working on the specimen
 
-The dev server re-bakes whenever a file in `src/procedural/` changes and reloads the page when it's done (about 7 s; progress is in the terminal). A bake error, such as a surface outside its part's bounds, is printed there and the previous bake stays in place.
+The dev server re-bakes when files in `src/procedural/` change and reloads the page when it's done (about 90 s; progress is in the terminal). It waits 1.5 s for changes to settle (an edit and `npm run format` make one bake), restarts a running bake when sources change under it, and skips the bake when the sources match the last successful one (also on server start; the fingerprint is in `generated/specimen.sources`). A bake error, such as a surface outside its part's bounds, is printed there and the previous bake stays in place.
 
 ### Adding a part
 
