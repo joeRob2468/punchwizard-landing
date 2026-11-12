@@ -29,7 +29,7 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 - **Views:** Tabula (default: Deyrolle washes on ink-black paper, dark outlines and section lines) and Resonantia (MRI greys, hair and clothing black), switched at the bottom right or with `V`. Bloom (each magical organ glows in its own colour, in both views, and through see-through layers) and Lens (aberration, light grain, vignette) are part of both. See design.md § Views.
 - **Performance:** about 3 ms a frame on the GPU at 2500 × 1330 (no MSAA; SMAA alone), cut faces drawn only for parts the plane crosses, label overlay writes only what changed, pixel ratio adapts on weak devices; the specimen is meshopt-compressed (2.0 MB gzipped) and preloaded from the HTML.
 - **Preloader:** a ring of Futhark runes that ink in as the specimen loads, captioned _Praeparatur specimen_, fading out on the first frame.
-- **Metadata:** title, description, canonical URL, Open Graph and X/Twitter cards with a 1200 × 630 preview image of the plate.
+- **Metadata:** title, description, canonical URL, Open Graph and X/Twitter cards with a 1200 × 630 title-card preview image.
 - **Icons:** SVG favicon (the hat on dark paper) with ICO, touch and manifest (incl. maskable) renders, and a web manifest.
 - **Fallback:** without WebGL 2 (or if the plate fails), the border and title with a still of the specimen and a short note; `<noscript>` shows the same still.
 - **Touch:** no browser gestures on the plate (pinch zooms the camera, not the page), larger tap targets on touch screens, bottom controls stacked on phones, tooltips kept on screen (they open toward the middle, and upward low down).
