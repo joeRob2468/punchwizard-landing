@@ -87,23 +87,6 @@
   font-style: italic;
 }
 
-/* An aside (no plate number) reads as a remark: no numeral, quoted. */
-.label[data-aside] .number {
-  display: none;
-}
-
-.label[data-aside] .name::before {
-  content: '\201C';
-}
-
-.label[data-aside] .name::after {
-  content: '\201D';
-}
-
-.labels[data-compact] .label[data-aside] .number {
-  display: inline;
-}
-
 .label:hover .name,
 .label[data-pinned] .name {
   text-decoration: underline;

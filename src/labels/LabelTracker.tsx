@@ -32,10 +32,11 @@ import {
 } from './anchors.ts';
 import type { LabelChannel } from './label-channel.ts';
 
-/** Parts that can hide a surface anchor from view (everything seen from outside). */
-const OCCLUDER_LAYERS = new Set(['integument']);
-const EXTRA_OCCLUDERS = new Set(['eyes', 'girdle']);
-/** A part's raycasting structure, with its layer (only solid layers occlude). */
+/**
+ * A part's raycasting structure, with its layer. Every part can hide a surface
+ * anchor, but only while its layer is shown: ghost or hide the skin and the bones
+ * and organs labels appear; leave only the arcana and theirs do.
+ */
 interface Occluder {
   readonly bvh: MeshBVH;
   readonly layer: Layer;
@@ -63,12 +64,10 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
 
   const outerFields = useMemo(
     () =>
-      specimen.parts
-        .filter(({ entry }) => OCCLUDER_LAYERS.has(entry.layer))
-        .flatMap(({ entry }) => {
-          const field = fields.get(entry.id);
-          return field ? [{ field, layer: entry.layer }] : [];
-        }),
+      specimen.parts.flatMap(({ entry }) => {
+        const field = fields.get(entry.id);
+        return field ? [{ field, layer: entry.layer }] : [];
+      }),
     [specimen, fields],
   );
 
@@ -87,20 +86,17 @@ export function LabelTracker({ specimen, channel }: LabelTrackerProps) {
     [fields],
   );
 
-  // BVHs for raycasting the outer parts, built a part at a time after start-up.
+  // BVHs for raycasting every part, built a part at a time after start-up.
   const occluders = useRef<Occluder[]>([]);
   useEffect(() => {
-    const queue = specimen.parts.filter(
-      ({ entry }) => OCCLUDER_LAYERS.has(entry.layer) || EXTRA_OCCLUDERS.has(entry.id),
-    );
+    const queue = [...specimen.parts];
+    // Filled in as they're built, so occlusion starts working part by part.
     const built: Occluder[] = [];
+    occluders.current = built;
     let timer = 0;
     const buildNext = () => {
       const next = queue.shift();
-      if (!next) {
-        occluders.current = built;
-        return;
-      }
+      if (!next) return;
       built.push({ bvh: new MeshBVH(next.geometry), layer: next.entry.layer });
       timer = window.setTimeout(buildNext, 30);
     };

@@ -22,7 +22,7 @@ The Common Punchwizard's anatomy is entirely fictional. This file is the source 
 | 16  | Cochlea Arcana                | _Cochlea arcana_        | `cochlea`            | Arcane     |
 | 17  | Ganglia Arcana                | _Ganglia arcana_        | `ganglia`            | Arcane     |
 | 18  | Radix Barbae                  | _Radix barbae_          | `beard-roots`        | Organs     |
-| †   | Signature look of superiority | _Vultus superioritatis_ | `head` (face)        | Integument |
+| 19  | Signature look of superiority | _Vultus superioritatis_ | `head` (face)        | Integument |
 
 ## Entries
 
@@ -62,7 +62,7 @@ The Common Punchwizard's anatomy is entirely fictional. This file is the source 
 
 **18. Radix Barbae (_Radix barbae_).** The root plexus along the jaw from which the Mnemonic Beard grows; memories pass down it to be filed in the hairs. _Art:_ fine gilt roots under the skin of the chin and jaw.
 
-**† Signature look of superiority (_Vultus superioritatis_).** Not an organ but a remark, printed without a number: perfected over centuries of looking down the nose at apprentices, best delivered over the beard, in silence.
+**19. Signature look of superiority (_Vultus superioritatis_).** Not an organ but an expression: perfected over centuries of looking down the nose at apprentices, best delivered over the beard, in silence.
 
 ## Supporting structures
 

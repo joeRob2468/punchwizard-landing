@@ -198,28 +198,28 @@ The scroll wheel moves the cut: `SliceController` listens for wheel events on th
 
 ### Registry
 
-`src/anatomy/registry.ts` holds the eighteen features and one aside (text mirrors [anatomy.md](anatomy.md)): number, name, Latin name, lore, the manifest part it belongs to, and two lists of candidate anchors in specimen space:
+`src/anatomy/registry.ts` holds the nineteen features (text mirrors [anatomy.md](anatomy.md)): number, name, Latin name, lore, the manifest part it belongs to, and two lists of candidate anchors in specimen space:
 
 - `section`: points to label where the cut passes through the part.
-- `surface`: guesses near the outer surface, for features seen uncut (hat, eye, beard, perch).
+- `surface`: guesses near the part's surface, for features seen uncut. Internal features have them too (on all sides, or along their trunks), so they label from outside whenever the layers over them are ghosted or hidden.
 
 ### Tracking (in the scene)
 
 `labels/LabelTracker` runs every frame inside the Canvas:
 
 1. **Section anchors.** If the cut is in (not parked) and the camera is on the removed side, each candidate is projected onto the plane and kept if the part's SDF is negative there (`anchors.sectionAnchor`). The fields come from `specimenParts()`, the same pure code the bake uses, so labels sit exactly on the cut face and follow it as the plane moves.
-2. **Surface anchors.** Snapped onto the part's surface at start-up (Newton steps on the field). Every 6 frames each is checked: it must face the camera; if the cut is in, it must be on the kept side and the sight line must not cross the plane inside an outer part (that would be looking through a cap); and no kept geometry may be in the way, tested with `three-mesh-bvh` raycasts against the outer parts. The BVHs are built one part at a time after start-up to avoid a stall.
+2. **Surface anchors.** Snapped onto the part's surface at start-up (Newton steps on the field). Every 6 frames each is checked: it must face the camera; if the cut is in, it must be on the kept side and the sight line must not cross the plane inside an outer part (that would be looking through a cap); and no kept geometry may be in the way, tested with `three-mesh-bvh` raycasts against every part whose layer is shown (ghosted and hidden layers don't occlude). The BVHs are built one part at a time after start-up to avoid a stall.
 3. Visible anchors are projected to CSS pixels and written to a `LabelChannel` (`setSample`, `setViewport`), which notifies its subscriber.
 
 ### Overlay (in the DOM)
 
-`labels/LabelOverlay` renders one button per feature (number, italic name; an entry without a number is an aside, printed as a quoted remark, and a tooltip with the Latin name and lore) and an SVG of leader paths and anchor dots, once. On each channel update it lays out the visible labels (`layout.layoutLabels`: left or right column by the anchor's side of the specimen's centre, sorted by height, pushed apart to a minimum row height and kept within the column's limits; the left column starts below the title block) and writes positions, paths and visibility straight to the elements.
+`labels/LabelOverlay` renders one button per feature (number, italic name, and a tooltip with the Latin name and lore) and an SVG of leader paths and anchor dots, once. On each channel update it lays out the visible labels (`layout.layoutLabels`: left or right column by the anchor's side of the specimen's centre, sorted by height, pushed apart to a minimum row height and kept within the column's limits; the left column starts below the title block) and writes positions, paths and visibility straight to the elements.
 
 Leaders are cubic curves from the label to the anchor with a small per-label wobble. Hovering or focusing a label thickens its leader; hover, focus or click shows its tooltip, and a click pins it until Escape or a press elsewhere. Hidden labels are taken out of the tab order and hidden from assistive tech. Below 720 px wide, labels show their number only and the tooltip adds the name.
 
 ## Layers
 
-`ui/LayerControls` (bottom left) sets how each layer is drawn: shown, ghost (see-through) or hidden, one layer at a time or by preset (Omnia, Ossa, Viscera; `L` steps through them). The modes are in the store (`layers`) and the presets in `src/config/layers.ts`. A ghosted part's `InkWashMaterial` blends its colour at a constant opacity while keeping the destination's alpha (the part ids the outline effect reads) and writing no depth, so what's behind it stays visible and inked. Only shown layers get cut faces, hide surface anchors from view, or label: a hidden layer's labels go away.
+`ui/LayerControls` (bottom left) sets how each layer is drawn: shown, ghost (see-through) or hidden, one layer at a time or by preset (Omnia, Ossa, Viscera; `L` steps through them). The modes are in the store (`layers`) and the presets in `src/config/layers.ts`. A ghosted part's `InkWashMaterial` blends its colour at a constant opacity while keeping the destination's alpha (the part ids the outline effect reads) and writing no depth, so what's behind it stays visible and inked. Only shown layers get cut faces or hide surface anchors from view, and a hidden layer's labels go away; so leaving only the arcana shown labels just the arcana, each from outside.
 
 ## Camera and input
 

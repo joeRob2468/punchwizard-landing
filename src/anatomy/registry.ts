@@ -16,7 +16,24 @@ import { SINUS_PIPES } from '../procedural/parts/face-organs.ts';
 import { hornTip } from '../procedural/parts/cranium.ts';
 import { canalAt } from '../procedural/parts/spine-path.ts';
 import { bezier, lerp, mirrorX } from '../procedural/sdf/math.ts';
+import { hatSpine } from '../procedural/parts/hat-shape.ts';
+import type { Vec3 } from '../procedural/sdf/types.ts';
 import type { AnatomyEntry } from './types.ts';
+
+/** Candidate points on all six sides of `c`, for organs labelled from any angle. */
+function around([x, y, z]: Vec3, r: number): Vec3[] {
+  return [
+    [x, y, z + r],
+    [x + r, y, z],
+    [x - r, y, z],
+    [x, y + r, z],
+    [x, y, z - r],
+    [x, y - r, z],
+  ];
+}
+
+/** The hat's spine where it bends over toward the tip. */
+const HAT_SHOULDER: Vec3 = hatSpine().points[6] ?? L.hatTip;
 
 export const ANATOMY: readonly AnatomyEntry[] = [
   {
@@ -48,7 +65,9 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     part: 'lattice',
     // Along the trunk, up through the brain to the fontanelle.
     section: [0.35, 0.55, 0.75, 0.2].map((t) => bezier(L.aethericCore, LATTICE_BEND, hornTip(), t)),
-    surface: [],
+    surface: [0.3, 0.5, 0.7]
+      .map((t) => bezier(hornTip(), HAT_SHOULDER, L.hatTip, t))
+      .concat([0.4, 0.7].map((t) => bezier(L.aethericCore, LATTICE_BEND, hornTip(), t))),
   },
   {
     id: 'fontanelle',
@@ -59,7 +78,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       "An opening at the tip of the skull's horn core that never closes. The Conduit Lattice passes through it into the hat.",
     part: 'lattice',
     section: [hornTip()],
-    surface: [],
+    surface: around(hornTip(), 0.05),
   },
   {
     id: 'core',
@@ -70,7 +89,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       'A glowing nodule at the centre of the brain where mana is stored. Every vessel leads to it.',
     part: 'aetheric-core',
     section: [L.aethericCore],
-    surface: [],
+    surface: around(L.aethericCore, 0.1),
   },
   {
     id: 'gland',
@@ -81,7 +100,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       'Meters out spell potency. When overworked, the wizard suffers burnout: dim eyes and a limp hat.',
     part: 'ethereal-gland',
     section: [L.etherealGland],
-    surface: [],
+    surface: around(L.etherealGland, 0.07),
   },
   {
     id: 'gems',
@@ -92,7 +111,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       'Crystals under the cortex, one for each discipline mastered. Old wizards carry many.',
     part: 'focus-gems',
     section: focusGemCentres(),
-    surface: [],
+    surface: focusGemCentres().map(([x, y, z]): Vec3 => [x * 1.1, y + 0.02, z + 0.02]),
   },
   {
     id: 'eye',
@@ -118,7 +137,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
     description: 'A resonance chamber behind the nose that tunes the voice for incantation.',
     part: 'sinus',
     section: [...SINUS_PIPES],
-    surface: [],
+    surface: SINUS_PIPES.flatMap(([x, y, z]) => around([x, y, z], 0.03)),
   },
   {
     id: 'tongue',
@@ -129,7 +148,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       'Ridged like engraved sigils, for the precise consonants of the old spell-tongues.',
     part: 'tongue',
     section: [L.tongue, [0, L.tongue[1], L.tongue[2] + 0.08]],
-    surface: [],
+    surface: around(L.tongue, 0.12),
   },
   {
     id: 'beard',
@@ -162,7 +181,12 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       lerp(L.shoulderLeft, [0, -0.6, 0], 0.4),
       lerp(mirrorX(L.shoulderLeft), [0, -0.6, 0], 0.4),
     ],
-    surface: [],
+    surface: [
+      lerp(L.shoulderLeft, [0, -0.6, 0], 0.4),
+      lerp(mirrorX(L.shoulderLeft), [0, -0.6, 0], 0.4),
+      L.shoulderLeft,
+      mirrorX(L.shoulderLeft),
+    ],
   },
   {
     id: 'perch',
@@ -188,7 +212,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       [0, 0.75, 0.02],
       [0, 1.0, -0.06],
     ],
-    surface: [],
+    surface: [...around([0, 0.85, -0.08], 0.25), [0, 1.0, -0.1]],
   },
   {
     id: 'lexicon',
@@ -204,7 +228,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       LEXICON_CENTRE[1] + dy,
       LEXICON_CENTRE[2] - 0.12 + LEXICON_BINDING,
     ]),
-    surface: [],
+    surface: around(LEXICON_CENTRE, 0.1),
   },
   {
     id: 'heart',
@@ -218,7 +242,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       [HEART_TOP[0] - 0.02, HEART_TOP[1] - 0.08, HEART_TOP[2]],
       [HEART_TOP[0], HEART_TOP[1] - 0.12, HEART_TOP[2] + 0.01],
     ],
-    surface: [],
+    surface: around([HEART_TOP[0], HEART_TOP[1] - 0.1, HEART_TOP[2]], 0.1),
   },
   {
     id: 'cochlea',
@@ -232,7 +256,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       [COCHLEA_CENTRE[0], COCHLEA_CENTRE[1], COCHLEA_CENTRE[2] + 0.038],
       [-COCHLEA_CENTRE[0], COCHLEA_CENTRE[1], COCHLEA_CENTRE[2] + 0.038],
     ],
-    surface: [],
+    surface: [...around(COCHLEA_CENTRE, 0.06), ...around(mirrorX(COCHLEA_CENTRE), 0.06)],
   },
   {
     id: 'ganglia',
@@ -243,7 +267,7 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       'Beads of light strung down the front of the spinal cord, one to a vertebra. Each holds a reflex spell, cast faster than thought.',
     part: 'ganglia',
     section: GANGLIA_CENTRES.slice(2, 7),
-    surface: [],
+    surface: GANGLIA_CENTRES.slice(2, 9).map(([x, y, z]): Vec3 => [x, y, z + 0.04]),
   },
   {
     id: 'beard-roots',
@@ -257,10 +281,15 @@ export const ANATOMY: readonly AnatomyEntry[] = [
       [0, -0.43, 0.433],
       [-0.06, -0.433, 0.425],
     ],
-    surface: [],
+    surface: [
+      [0, -0.43, 0.48],
+      [0.16, -0.435, 0.44],
+      [-0.16, -0.435, 0.44],
+    ],
   },
   {
     id: 'superiority',
+    number: 19,
     name: 'Signature look of superiority',
     latin: 'Vultus superioritatis',
     description:
