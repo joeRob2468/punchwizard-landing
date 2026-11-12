@@ -2,7 +2,7 @@
  * Rune circles in the Elder Futhark (ornament/rune-ring.ts): a summoning circle
  * on the ground just under the bust, its outer and inner rings turning opposite
  * ways, and a fainter ring that always stands behind the head, facing the
- * camera, like a halo. The ground circle is a pedestal: a depth-only disc under
+ * camera, like a halo (in the marginalia's pale chalk). The ground circle is a pedestal: a depth-only disc under
  * it hides the halo and the paper's marginalia behind it. Drawn additively in the view's mana colour; they hold
  * still for visitors who prefer reduced motion.
  */
@@ -95,7 +95,7 @@ export function RuneCircles() {
       materials: {
         outer: ringMaterial(OUTER, 2048, 1.1),
         inner: ringMaterial(INNER, 2048, 0.95),
-        halo: ringMaterial(HALO, 1024, 0.12),
+        halo: ringMaterial(HALO, 1024, 0.07),
       },
     }),
     [],
@@ -114,8 +114,10 @@ export function RuneCircles() {
     [ground, pedestal, blocker, haloPlane, materials],
   );
 
-  // Tinted with the view's mana colour.
+  // The ground circle in the view's mana colour; the halo in the pale chalk of the
+  // marginalia, so it sits back with them.
   const tint = useMemo(() => new Color(LOOKS[look].palette.arcaneMana), [look]);
+  const chalk = useMemo(() => new Color(LOOKS[look].chalk), [look]);
 
   const scratch = useMemo(
     () => ({ away: new Vector3(), spin: new Quaternion(), axis: new Vector3(0, 0, 1) }),
@@ -126,7 +128,8 @@ export function RuneCircles() {
     for (const mesh of [outer.current, inner.current, halo.current]) {
       const material = mesh?.material;
       if (material instanceof MeshBasicMaterial) {
-        material.color.copy(tint).multiplyScalar(material.userData.strength as number);
+        const colour = mesh === halo.current ? chalk : tint;
+        material.color.copy(colour).multiplyScalar(material.userData.strength as number);
       }
     }
     // Opposite ways, fast enough to read against the camera's idle turn.

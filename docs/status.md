@@ -31,11 +31,11 @@ Milestones are in [PLAN.md](PLAN.md#8-milestones); the realism revision after th
 
 ## Next
 
-Exterior, internal anatomy, fantasy organs, layers and framing are done and approved. In this order:
+The look, the views, the layers and the flair round are done and reviewed. Next, preparing for launch:
 
-1. **Flair review:** the owner reviews the new flair (label pulse, idle life, mana pulses, motes, rune circles, marginalia, rune border, key of lights, cipher notes) and asks for changes. Not measured yet: the cost of the added effects on low-end GPUs.
-2. **Optimise:** bake is ~100 s (head with horn core, hair, beard dominate; consider coarser cells or splitting the head's horn into its own part), ~400k triangles / ~4 MB (simplification error, fewer hair locks), and label tracking cost (BVHs for every part now).
-3. **Finalise (M6 polish):** idle motion, ink-in on load, no-WebGL fallback image, touch tuning, build and test the Docker image locally (ask first: it pulls base images). Deploy (M8) only once the owner calls the site final.
+1. **Optimise:** load size (~4 MB specimen, ~1.1 MB bundle) and time to first frame; frame cost with all effects (bloom, SMAA, lens, outline, marginalia) on low-end GPUs and phones (consider a lighter quality tier); label tracking cost (BVHs for every part); bake ~90 s (head with horn core, hair and beard dominate).
+2. **Polish for launch:** a preloader while the specimen loads (in the plate's style), HTML metadata (title, description, Open Graph and Twitter cards with a preview image), favicon and touch icons, the no-WebGL fallback image, touch tuning, an ink-in on load.
+3. **Ship:** build and test the Docker image locally (ask first: it pulls base images), then deploy (M8) only once the owner calls the site final.
 
 ## Working notes
 
