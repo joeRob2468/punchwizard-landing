@@ -32,7 +32,6 @@ export function PlateEffects() {
   );
 
   const look = LOOKS[usePlateStore((state) => state.look)];
-  const fx = usePlateStore((state) => state.fx);
   useEffect(() => {
     const { palette } = look;
     outline.paint(look.outlineLine, look.outline);
@@ -43,19 +42,15 @@ export function PlateEffects() {
     <EffectComposer multisampling={4} stencilBuffer>
       <primitive object={outline} />
       <primitive object={paper} />
-      {fx.bloom && (
-        <Bloom
-          mipmapBlur
-          intensity={FX.bloom.intensity}
-          luminanceThreshold={FX.bloom.threshold}
-          luminanceSmoothing={FX.bloom.smoothing}
-        />
-      )}
-      {fx.lens && (
-        <ChromaticAberration offset={aberration} radialModulation modulationOffset={0.3} />
-      )}
-      {fx.lens && <Noise blendFunction={BlendFunction.SOFT_LIGHT} opacity={FX.lens.grain} />}
-      {fx.lens && <Vignette offset={0.3} darkness={FX.lens.vignette} />}
+      <Bloom
+        mipmapBlur
+        intensity={FX.bloom.intensity}
+        luminanceThreshold={FX.bloom.threshold}
+        luminanceSmoothing={FX.bloom.smoothing}
+      />
+      <ChromaticAberration offset={aberration} radialModulation modulationOffset={0.3} />
+      <Noise blendFunction={BlendFunction.SOFT_LIGHT} opacity={FX.lens.grain} />
+      <Vignette offset={0.3} darkness={FX.lens.vignette} />
     </EffectComposer>
   );
 }

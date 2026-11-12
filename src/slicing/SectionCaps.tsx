@@ -86,17 +86,16 @@ export function SectionCaps({ parts, gaze }: SectionCapsProps) {
   );
 
   const look = LOOKS[usePlateStore((state) => state.look)];
-  const fx = usePlateStore((state) => state.fx);
   useEffect(() => {
     layers.forEach(({ id, wash, cap }) => {
       cap.paint({
         wash: washFor(look, id, wash),
         line: look.line,
         section: look.section,
-        emission: fx.bloom ? FX.bloom.emission : 0,
+        emission: FX.bloom.emission,
       });
     });
-  }, [layers, look, fx]);
+  }, [layers, look]);
 
   const point = useMemo(() => new Vector3(), []);
   const rotation = useMemo(() => new Quaternion(), []);

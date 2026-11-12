@@ -78,16 +78,15 @@ export function Specimen({ specimen, labels }: SpecimenProps) {
   }, [meshes, layers]);
 
   const look = LOOKS[usePlateStore((state) => state.look)];
-  const fx = usePlateStore((state) => state.fx);
   useEffect(() => {
     meshes.forEach(({ id, layer, wash, material }) => {
       material.paint({
         wash: washFor(look, id, wash),
         gain: look.layerGain?.[layer] ?? 1,
-        emission: fx.bloom ? FX.bloom.emission : 0,
+        emission: FX.bloom.emission,
       });
     });
-  }, [meshes, look, fx]);
+  }, [meshes, look]);
 
   // Irises and pupils follow the pointer.
   const gaze = useMemo(() => new GazeRig(), []);

@@ -254,12 +254,12 @@ Each view has a palette, optional per-part washes, outline and section-line colo
 
 ### Post effects
 
-`src/config/fx.ts` lists the post effects, both on:
+Both views get these post effects (tunables in `src/config/fx.ts`):
 
 - **Bloom:** arcane parts (surface glow and glowing caps) emit past white in their own hue. The composer's half-float buffers keep the excess, and a threshold bloom after the paper composite turns only them into halos.
 - **Lens:** slight chromatic aberration, light grain and a vignette on the finished image.
 
-Stack order: outline, paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass. In development, `ui/StylePanel` (top centre) switches effects off to compare. `?look=<id>&fx=<id>,<id>` opens a view and set of effects, and is kept in the URL.
+Stack order: outline, paper, bloom, lens. The outline effect is flagged as a convolution so it always leads its own pass.
 
 ## Typography
 

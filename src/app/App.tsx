@@ -17,7 +17,6 @@ import { Specimen } from '../specimen/Specimen.tsx';
 import { PlateBorder } from '../ui/PlateBorder.tsx';
 import { PlateHeader } from '../ui/PlateHeader.tsx';
 import { LayerControls } from '../ui/LayerControls.tsx';
-import { StylePanel } from '../ui/StylePanel.tsx';
 import { ViewToggle } from '../ui/ViewToggle.tsx';
 import { SliceControls } from '../ui/SliceControls.tsx';
 import styles from './App.module.css';
@@ -63,7 +62,6 @@ export function App() {
         <SliceControls />
         <LayerControls />
         <ViewToggle />
-        {import.meta.env.DEV && <StylePanel />}
       </div>
     </main>
   );
